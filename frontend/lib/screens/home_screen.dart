@@ -22,7 +22,6 @@ class _HomeScreenState extends State<HomeScreen> {
   String _goingTo = '';
   String _selectedMonth = 'Any Month';
   bool _isLoading = true;
-  String _selectedMonth = 'Any Month';
 
   final List<String> _months = ['Any Month', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 

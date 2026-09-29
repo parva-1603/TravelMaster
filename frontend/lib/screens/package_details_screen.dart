@@ -1,8 +1,12 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:glassmorphism/glassmorphism.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:http/http.dart' as http;
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 
-class PackageDetailsScreen extends StatelessWidget {
+class PackageDetailsScreen extends StatefulWidget {
   final Map<String, dynamic> pkg;
   final VoidCallback onThemeToggle;
 
@@ -13,7 +17,51 @@ class PackageDetailsScreen extends StatelessWidget {
   });
 
   @override
+  State<PackageDetailsScreen> createState() => _PackageDetailsScreenState();
+}
+
+class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
+  Map<String, dynamic>? _weatherData;
+  bool _isLoadingWeather = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchWeather();
+  }
+
+  Future<void> _fetchWeather() async {
+    try {
+      final location = widget.pkg['location'].toString().split(',').first;
+      final response = await http.get(Uri.parse('http://localhost:5000/api/weather?location=$location'));
+      if (response.statusCode == 200) {
+        if (mounted) {
+          setState(() {
+            _weatherData = json.decode(response.body);
+            _isLoadingWeather = false;
+          });
+        }
+      } else {
+        if (mounted) setState(() => _isLoadingWeather = false);
+      }
+    } catch (e) {
+      debugPrint('Error fetching weather: $e');
+      if (mounted) setState(() => _isLoadingWeather = false);
+    }
+  }
+
+  LatLng _getCoordinates(String locationName) {
+    if (locationName.contains('Kerala')) return const LatLng(10.8505, 76.2711);
+    if (locationName.contains('Jaipur')) return const LatLng(26.9124, 75.7873);
+    if (locationName.contains('Ladakh')) return const LatLng(34.1526, 77.5771);
+    if (locationName.contains('Goa')) return const LatLng(15.2993, 74.1240);
+    return const LatLng(20.5937, 78.9629); // Default India
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final latLng = _getCoordinates(widget.pkg['location']);
+
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       body: Stack(
@@ -21,9 +69,9 @@ class PackageDetailsScreen extends StatelessWidget {
           // Background Image (Hero)
           Positioned.fill(
             child: Hero(
-              tag: 'image_${pkg['title']}',
+              tag: 'image_${widget.pkg['title']}',
               child: Image.network(
-                pkg['image'],
+                widget.pkg['image'],
                 fit: BoxFit.cover,
               ),
             ),
@@ -70,20 +118,6 @@ class PackageDetailsScreen extends StatelessWidget {
                           onPressed: () => Navigator.pop(context),
                         ),
                       ),
-                      GlassmorphicContainer(
-                        width: 48,
-                        height: 48,
-                        borderRadius: 24,
-                        blur: 15,
-                        alignment: Alignment.center,
-                        border: 1,
-                        linearGradient: LinearGradient(colors: [Colors.white.withValues(alpha: 0.2), Colors.white.withValues(alpha: 0.05)]),
-                        borderGradient: LinearGradient(colors: [Colors.white.withValues(alpha: 0.5), Colors.white.withValues(alpha: 0.0)]),
-                        child: IconButton(
-                          icon: const Icon(Icons.favorite_border, color: Colors.white),
-                          onPressed: () {},
-                        ),
-                      ),
                     ],
                   ),
                 ),
@@ -93,7 +127,7 @@ class PackageDetailsScreen extends StatelessWidget {
                 // Content Sheet
                 GlassmorphicContainer(
                   width: double.infinity,
-                  height: MediaQuery.of(context).size.height * 0.45,
+                  height: MediaQuery.of(context).size.height * 0.65,
                   borderRadius: 40,
                   blur: 30,
                   alignment: Alignment.topCenter,
@@ -102,8 +136,8 @@ class PackageDetailsScreen extends StatelessWidget {
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
-                      Theme.of(context).colorScheme.surface.withValues(alpha: 0.7),
-                      Theme.of(context).colorScheme.surface.withValues(alpha: 0.4),
+                      Theme.of(context).colorScheme.surface.withValues(alpha: 0.8),
+                      Theme.of(context).colorScheme.surface.withValues(alpha: 0.5),
                     ],
                   ),
                   borderGradient: LinearGradient(
@@ -114,7 +148,7 @@ class PackageDetailsScreen extends StatelessWidget {
                       Colors.white.withValues(alpha: 0.1),
                     ],
                   ),
-                  child: Padding(
+                  child: SingleChildScrollView(
                     padding: const EdgeInsets.all(32.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -124,7 +158,7 @@ class PackageDetailsScreen extends StatelessWidget {
                           children: [
                             Expanded(
                               child: Text(
-                                pkg['title'],
+                                widget.pkg['title'],
                                 style: const TextStyle(
                                   fontSize: 28,
                                   fontWeight: FontWeight.bold,
@@ -142,7 +176,7 @@ class PackageDetailsScreen extends StatelessWidget {
                                   const Icon(Icons.star, color: Colors.white, size: 16),
                                   const SizedBox(width: 4),
                                   Text(
-                                    pkg['rating'],
+                                    widget.pkg['rating'],
                                     style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                                   ),
                                 ],
@@ -156,28 +190,100 @@ class PackageDetailsScreen extends StatelessWidget {
                             Icon(Icons.location_on, color: Theme.of(context).colorScheme.primary, size: 18),
                             const SizedBox(width: 6),
                             Text(
-                              pkg['location'],
+                              widget.pkg['location'],
                               style: const TextStyle(fontSize: 16),
                             ),
                           ],
                         ),
+                        const SizedBox(height: 16),
+                        
+                        // Weather Section
+                        if (_isLoadingWeather)
+                           const CircularProgressIndicator()
+                        else if (_weatherData != null)
+                           Container(
+                             padding: const EdgeInsets.all(12),
+                             decoration: BoxDecoration(
+                               color: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.1),
+                               borderRadius: BorderRadius.circular(16),
+                               border: Border.all(color: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.3)),
+                             ),
+                             child: Row(
+                               children: [
+                                 Image.network(_weatherData!['icon'], width: 50, height: 50),
+                                 const SizedBox(width: 12),
+                                 Column(
+                                   crossAxisAlignment: CrossAxisAlignment.start,
+                                   children: [
+                                     Text(
+                                       '${_weatherData!['temperature']}°C - ${_weatherData!['description']}',
+                                       style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                     ),
+                                     Text(
+                                       'Humidity: ${_weatherData!['humidity']}% | Wind: ${_weatherData!['windSpeed']} m/s',
+                                       style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7)),
+                                     ),
+                                   ],
+                                 ),
+                               ],
+                             ),
+                           ).animate().fadeIn(),
+
                         const SizedBox(height: 24),
                         const Text(
                           'Description',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Experience the beauty of ${pkg['location']} with our exclusive ${pkg['duration']} travel package. Enjoy luxurious stays, guided tours, and unforgettable memories.',
+                          'Experience the beauty of ${widget.pkg['location']} with our exclusive ${widget.pkg['duration']} travel package.',
                           style: TextStyle(
                             height: 1.5,
                             color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.8),
                           ),
                         ),
-                        const Spacer(),
+                        const SizedBox(height: 24),
+
+                        // Map Section
+                        const Text(
+                          'Location Map',
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 12),
+                        Container(
+                          height: 200,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(20),
+                            child: FlutterMap(
+                              options: MapOptions(
+                                initialCenter: latLng,
+                                initialZoom: 10.0,
+                              ),
+                              children: [
+                                TileLayer(
+                                  urlTemplate: 'https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key=UmD3882jQqxEhkk0NONd',
+                                  userAgentPackageName: 'com.travelmaster.app',
+                                ),
+                                MarkerLayer(
+                                  markers: [
+                                    Marker(
+                                      point: latLng,
+                                      width: 40,
+                                      height: 40,
+                                      child: const Icon(Icons.location_on, color: Colors.red, size: 40),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(height: 32),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -186,7 +292,7 @@ class PackageDetailsScreen extends StatelessWidget {
                               children: [
                                 const Text('Total Price'),
                                 Text(
-                                  pkg['price'],
+                                  widget.pkg['price'],
                                   style: TextStyle(
                                     fontSize: 26,
                                     fontWeight: FontWeight.w900,
@@ -198,7 +304,7 @@ class PackageDetailsScreen extends StatelessWidget {
                             ElevatedButton(
                               onPressed: () {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Booking feature coming soon!')),
+                                  const SnackBar(content: Text('Booking flow initiated...')),
                                 );
                               },
                               style: ElevatedButton.styleFrom(
