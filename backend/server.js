@@ -27,7 +27,7 @@ app.post('/api/seed', async (req, res) => {
       {
         title: 'Kerala Backwaters',
         location: 'Kerala',
-        price: '₹25,000',
+        price: 'Rs. 25,000',
         rating: '4.9',
         duration: '5 Days',
         image: 'https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?q=80&w=600&auto=format&fit=crop',
@@ -36,7 +36,7 @@ app.post('/api/seed', async (req, res) => {
       {
         title: 'Royal Rajasthan',
         location: 'Jaipur',
-        price: '₹32,000',
+        price: 'Rs. 32,000',
         rating: '4.8',
         duration: '7 Days',
         image: 'https://images.unsplash.com/photo-1477587458883-47145ed94245?q=80&w=600&auto=format&fit=crop',
@@ -45,7 +45,7 @@ app.post('/api/seed', async (req, res) => {
       {
         title: 'Majestic Himalayas',
         location: 'Ladakh',
-        price: '₹45,000',
+        price: 'Rs. 45,000',
         rating: '5.0',
         duration: '8 Days',
         image: 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?q=80&w=600&auto=format&fit=crop',
@@ -54,7 +54,7 @@ app.post('/api/seed', async (req, res) => {
       {
         title: 'Goa Beach Escape',
         location: 'Goa',
-        price: '₹18,000',
+        price: 'Rs. 18,000',
         rating: '4.7',
         duration: '4 Days',
         image: 'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?q=80&w=600&auto=format&fit=crop',

@@ -424,8 +424,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ).animate().fadeIn(delay: 500.ms).slideY(begin: 0.2),
                   ),
                 ),
-
-                const SizedBox(height: 32),
+                const SliverToBoxAdapter(child: SizedBox(height: 32)),
 
                 // Section Title
                 SliverToBoxAdapter(
@@ -453,7 +452,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
 
-                const SizedBox(height: 12),
+                const SliverToBoxAdapter(child: SizedBox(height: 12)),
 
                 // Horizontal Packages Carousel
                 SliverToBoxAdapter(

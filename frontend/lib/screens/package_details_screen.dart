@@ -216,7 +216,7 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
                                    crossAxisAlignment: CrossAxisAlignment.start,
                                    children: [
                                      Text(
-                                       '${_weatherData!['temperature']}°C - ${_weatherData!['description']}',
+                                       '${_weatherData!['temperature']} C - ${_weatherData!['description']}',
                                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                                      ),
                                      Text(
