@@ -476,7 +476,7 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
                               ),
                               children: [
                                 TileLayer(
-                                  urlTemplate: 'https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key=UmD3882jQqxEhkk0NONd',
+                                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                                   userAgentPackageName: 'com.travelmaster.app',
                                 ),
                                 MarkerLayer(
