@@ -28,12 +28,10 @@ class _HomeScreenState extends State<HomeScreen> {
   final List<String> _months = ['Any Month', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
   final List<Map<String, dynamic>> _services = [
-    {'icon': Icons.flight, 'title': 'Flights', 'active': false},
-    {'icon': Icons.hotel, 'title': 'Hotels', 'active': false},
-    {'icon': Icons.beach_access, 'title': 'Holidays', 'active': true},
-    {'icon': Icons.train, 'title': 'Trains', 'active': false},
-    {'icon': Icons.directions_bus, 'title': 'Bus', 'active': false},
-    {'icon': Icons.local_taxi, 'title': 'Cabs', 'active': false},
+    {'icon': Icons.map, 'title': 'Itineraries', 'active': true},
+    {'icon': Icons.beach_access, 'title': 'Holidays', 'active': false},
+    {'icon': Icons.landscape, 'title': 'Tours', 'active': false},
+    {'icon': Icons.camera_alt, 'title': 'Attractions', 'active': false},
   ];
 
   List<Map<String, dynamic>> _allPackages = [];
