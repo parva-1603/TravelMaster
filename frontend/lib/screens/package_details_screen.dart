@@ -86,6 +86,28 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
     return 'Luxury SUV';
   }
 
+  String _calculateDate(String? startDateStr, int dayOffset) {
+    if (startDateStr == null || startDateStr.isEmpty) return '';
+    try {
+      final parts = startDateStr.split(' ');
+      if (parts.length != 3) return '';
+      final day = int.parse(parts[0]);
+      final monthStr = parts[1];
+      final year = int.parse(parts[2]);
+      
+      const months = {'Jan': 1, 'Feb': 2, 'Mar': 3, 'Apr': 4, 'May': 5, 'Jun': 6, 'Jul': 7, 'Aug': 8, 'Sep': 9, 'Oct': 10, 'Nov': 11, 'Dec': 12};
+      final month = months[monthStr] ?? 1;
+      
+      final startDate = DateTime(year, month, day);
+      final targetDate = startDate.add(Duration(days: dayOffset - 1));
+      
+      final outMonths = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      return '${targetDate.day.toString().padLeft(2, '0')} ${outMonths[targetDate.month]} ${targetDate.year}';
+    } catch (e) {
+      return '';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final latLng = _getCoordinates(widget.pkg['location']);
@@ -438,12 +460,15 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
                               description += '\n\n$weatherIcon | Forecast: ${_weatherData!['temperature']}°C';
                             }
                             
+                            final actualDate = _calculateDate(_selectedDate, dayPlan['day'] as int);
+                            final dateDisplay = actualDate.isNotEmpty ? ' ($actualDate)' : '';
+                            
                             return Padding(
                               padding: const EdgeInsets.only(bottom: 8.0),
                               child: ExpansionTile(
                                 tilePadding: EdgeInsets.zero,
                                 title: Text(
-                                  'Day ${dayPlan['day']}: ${dayPlan['title']}',
+                                  'Day ${dayPlan['day']}$dateDisplay: ${dayPlan['title']}',
                                   style: const TextStyle(fontWeight: FontWeight.bold),
                                 ),
                                 children: [
