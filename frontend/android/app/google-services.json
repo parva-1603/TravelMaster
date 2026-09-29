@@ -1,0 +1,82 @@
+{
+  "project_info": {
+    "project_number": "871934658697",
+    "project_id": "travelguru1",
+    "storage_bucket": "travelguru1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:871934658697:android:e98bc472821e43090a9e58",
+        "android_client_info": {
+          "package_name": "com.TraveGuru"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "871934658697-htafh500r22n2pi225vmf77jh3ob732h.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAKvZmx_k_YT1kdN7wrwwT57aGNJ8cEcqY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "871934658697-htafh500r22n2pi225vmf77jh3ob732h.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "871934658697-h9pgjkf9edvjjms5b2gmi2ikl4754iu9.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.ce071SdpLab3"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:871934658697:android:8d2a1c94abaccca10a9e58",
+        "android_client_info": {
+          "package_name": "com.example.ce071_sdp_lab3"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "871934658697-htafh500r22n2pi225vmf77jh3ob732h.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAKvZmx_k_YT1kdN7wrwwT57aGNJ8cEcqY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "871934658697-htafh500r22n2pi225vmf77jh3ob732h.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "871934658697-h9pgjkf9edvjjms5b2gmi2ikl4754iu9.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.ce071SdpLab3"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
