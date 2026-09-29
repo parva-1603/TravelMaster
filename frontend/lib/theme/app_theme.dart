@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
   static ThemeData get lightTheme {
@@ -12,7 +11,7 @@ class AppTheme {
         secondary: Color(0xFFFF9800),
         surface: Colors.white,
       ),
-      textTheme: GoogleFonts.outfitTextTheme(ThemeData.light().textTheme),
+      textTheme: ThemeData.light().textTheme,
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF0F52BA),
@@ -36,7 +35,7 @@ class AppTheme {
         secondary: Color(0xFFFFB74D),
         surface: Color(0xFF1E1E24),
       ),
-      textTheme: GoogleFonts.outfitTextTheme(ThemeData.dark().textTheme),
+      textTheme: ThemeData.dark().textTheme,
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF1E88E5),
