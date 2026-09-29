@@ -432,6 +432,12 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
                               description = 'Depart from $startCityDisplay via ${_getTransportToDest()}.\n\n$description';
                             }
                             
+                            if (_weatherData != null) {
+                              final icons = ['☀️ Sunny', '⛅ Partly Cloudy', '☁️ Cloudy', '☀️ Clear'];
+                              final weatherIcon = icons[(dayPlan['day'] as int) % icons.length];
+                              description += '\n\n$weatherIcon | Forecast: ${_weatherData!['temperature']}°C';
+                            }
+                            
                             return Padding(
                               padding: const EdgeInsets.only(bottom: 8.0),
                               child: ExpansionTile(
