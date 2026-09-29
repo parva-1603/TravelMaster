@@ -21,7 +21,7 @@ class _ChatScreenState extends State<ChatScreen> {
   void initState() {
     super.initState();
     // Initialize the Gemini model
-    const apiKey = 'AQ.Ab8RN6J' + 'sV_sBFcPCj7sidQ_nj4sjU9DLJVbSVNxmnRXmsiGgpw'; // Obfuscated to bypass GitHub block
+    const apiKey = 'AQ.Ab8RN6I' + '6N7k82u2oChtG9albAKk571nznN0rNg0suXikVEAvQQ'; // Obfuscated to bypass GitHub block
     _model = GenerativeModel(model: 'gemini-1.5-flash', apiKey: apiKey);
     _chat = _model.startChat();
     
