@@ -1,4 +1,6 @@
 import 'dart:ui';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -19,6 +21,8 @@ class _HomeScreenState extends State<HomeScreen> {
   String _leavingFrom = '';
   String _goingTo = '';
   String _selectedMonth = 'Any Month';
+  bool _isLoading = true;
+  String _selectedMonth = 'Any Month';
 
   final List<String> _months = ['Any Month', 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
@@ -31,40 +35,45 @@ class _HomeScreenState extends State<HomeScreen> {
     {'icon': Icons.local_taxi, 'title': 'Cabs', 'active': false},
   ];
 
-  final List<Map<String, dynamic>> _allPackages = [
-    {
-      'title': 'Kerala Backwaters',
-      'location': 'Kerala, India',
-      'price': '₹25,000',
-      'rating': '4.9',
-      'duration': '5 Days',
-      'image': 'https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?q=80&w=600&auto=format&fit=crop',
-    },
-    {
-      'title': 'Royal Rajasthan',
-      'location': 'Jaipur, India',
-      'price': '₹32,000',
-      'rating': '4.8',
-      'duration': '7 Days',
-      'image': 'https://images.unsplash.com/photo-1477587458883-47145ed94245?q=80&w=600&auto=format&fit=crop',
-    },
-    {
-      'title': 'Majestic Himalayas',
-      'location': 'Ladakh, India',
-      'price': '₹45,000',
-      'rating': '5.0',
-      'duration': '8 Days',
-      'image': 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?q=80&w=600&auto=format&fit=crop',
-    },
-    {
-      'title': 'Goa Beach Escape',
-      'location': 'Goa, India',
-      'price': '₹18,000',
-      'rating': '4.7',
-      'duration': '4 Days',
-      'image': 'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?q=80&w=600&auto=format&fit=crop',
-    },
-  ];
+  List<Map<String, dynamic>> _allPackages = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchPackages();
+  }
+
+  Future<void> _fetchPackages() async {
+    try {
+      final response = await http.get(Uri.parse('http://localhost:5000/api/packages/trending'));
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        if (mounted) {
+          setState(() {
+            _allPackages = data.map((e) => e as Map<String, dynamic>).toList();
+            _isLoading = false;
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint('Error fetching packages: $e');
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> _fetchLocations(String query) async {
+    if (query.length < 2) return [];
+    try {
+      final response = await http.get(Uri.parse('http://localhost:5000/api/locations?query=$query'));
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        return data.map((e) => e as Map<String, dynamic>).toList();
+      }
+    } catch (e) {
+      debugPrint('Error fetching locations: $e');
+    }
+    return [];
+  }
 
   void _logout(BuildContext context) async {
     await FirebaseAuth.instance.signOut();
@@ -273,28 +282,50 @@ class _HomeScreenState extends State<HomeScreen> {
                                   // Leaving From
                                   Padding(
                                     padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
-                                    child: TextField(
-                                      onChanged: (v) => setState(() => _leavingFrom = v),
-                                      decoration: InputDecoration(
-                                        icon: Icon(Icons.flight_takeoff, color: Theme.of(context).colorScheme.primary),
-                                        labelText: 'Leaving From',
-                                        hintText: 'Enter City',
-                                        border: InputBorder.none,
-                                      ),
+                                    child: Autocomplete<Map<String, dynamic>>(
+                                      optionsBuilder: (TextEditingValue textEditingValue) async {
+                                        return await _fetchLocations(textEditingValue.text);
+                                      },
+                                      displayStringForOption: (option) => "${option['name']}, ${option['country']}",
+                                      onSelected: (option) => setState(() => _leavingFrom = option['name']),
+                                      fieldViewBuilder: (context, controller, focusNode, onEditingComplete) {
+                                        return TextField(
+                                          controller: controller,
+                                          focusNode: focusNode,
+                                          onEditingComplete: onEditingComplete,
+                                          decoration: InputDecoration(
+                                            icon: Icon(Icons.flight_takeoff, color: Theme.of(context).colorScheme.primary),
+                                            labelText: 'Leaving From',
+                                            hintText: 'Enter City',
+                                            border: InputBorder.none,
+                                          ),
+                                        );
+                                      },
                                     ),
                                   ),
                                   Divider(height: 1, color: Colors.white.withValues(alpha: 0.1)),
                                   // Going To
                                   Padding(
                                     padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
-                                    child: TextField(
-                                      onChanged: (v) => setState(() => _goingTo = v),
-                                      decoration: InputDecoration(
-                                        icon: Icon(Icons.flight_land, color: Theme.of(context).colorScheme.secondary),
-                                        labelText: 'Going To',
-                                        hintText: 'Any Destination',
-                                        border: InputBorder.none,
-                                      ),
+                                    child: Autocomplete<Map<String, dynamic>>(
+                                      optionsBuilder: (TextEditingValue textEditingValue) async {
+                                        return await _fetchLocations(textEditingValue.text);
+                                      },
+                                      displayStringForOption: (option) => "${option['name']}, ${option['country']}",
+                                      onSelected: (option) => setState(() => _goingTo = option['name']),
+                                      fieldViewBuilder: (context, controller, focusNode, onEditingComplete) {
+                                        return TextField(
+                                          controller: controller,
+                                          focusNode: focusNode,
+                                          onEditingComplete: onEditingComplete,
+                                          decoration: InputDecoration(
+                                            icon: Icon(Icons.flight_land, color: Theme.of(context).colorScheme.secondary),
+                                            labelText: 'Going To',
+                                            hintText: 'Any Destination',
+                                            border: InputBorder.none,
+                                          ),
+                                        );
+                                      },
                                     ),
                                   ),
                                 ],
@@ -403,23 +434,27 @@ class _HomeScreenState extends State<HomeScreen> {
                 SliverToBoxAdapter(
                   child: SizedBox(
                     height: 320,
-                    child: ListView.builder(
-                      physics: const BouncingScrollPhysics(),
-                      scrollDirection: Axis.horizontal,
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      itemCount: filteredPackages.length,
-                      itemBuilder: (context, index) {
-                        final pkg = filteredPackages[index];
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                          child: PackageCard(
-                            pkg: pkg,
-                            index: index,
-                            onThemeToggle: widget.onThemeToggle,
+                    child: _isLoading 
+                      ? const Center(child: CircularProgressIndicator()) 
+                      : filteredPackages.isEmpty 
+                        ? const Center(child: Text("No packages found."))
+                        : ListView.builder(
+                            physics: const BouncingScrollPhysics(),
+                            scrollDirection: Axis.horizontal,
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            itemCount: filteredPackages.length,
+                            itemBuilder: (context, index) {
+                              final pkg = filteredPackages[index];
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                child: PackageCard(
+                                  pkg: pkg,
+                                  index: index,
+                                  onThemeToggle: widget.onThemeToggle,
+                                ),
+                              );
+                            },
                           ),
-                        );
-                      },
-                    ),
                   ),
                 ),
                 

@@ -122,19 +122,67 @@ app.get('/api/packages/search', async (req, res) => {
   }
 });
 
-// 3. Search/Autocomplete Locations
+// 3. Search/Autocomplete Locations (using LatLng API)
 app.get('/api/locations', async (req, res) => {
   try {
     const { query } = req.query;
-    if (!query) return res.json([]);
+    if (!query || query.length < 2) return res.json([]);
 
-    const locations = await Location.find({
-      name: { $regex: query, $options: 'i' }
-    }).limit(5);
+    const response = await fetch(`https://suggest.latlng.work/autosuggest?q=${encodeURIComponent(query)}`, {
+      headers: {
+        'X-Api-Key': process.env.LATLNG_API_KEY
+      }
+    });
 
-    res.json(locations);
+    if (!response.ok) {
+      throw new Error(`LatLng API returned status ${response.status}`);
+    }
+
+    const data = await response.json();
+    
+    // The LatLng API returns results in the 'suggestions' array.
+    const places = data.suggestions || [];
+    
+    // Map the external data to a simple format for the frontend
+    const formattedLocations = places.slice(0, 5).map(place => ({
+      name: place.name || place.city || query,
+      state: place.region || '',
+      country: place.country || ''
+    }));
+
+    res.json(formattedLocations);
   } catch (error) {
-    res.status(500).json({ error: 'Server error' });
+    console.error('Location Autocomplete Error:', error);
+    res.status(500).json({ error: 'Failed to fetch location autocomplete' });
+  }
+});
+
+// 4. Get Current Weather
+app.get('/api/weather', async (req, res) => {
+  try {
+    const { location } = req.query;
+    if (!location) return res.status(400).json({ error: 'Location is required' });
+
+    const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(location)}&appid=${process.env.WEATHER_API_KEY}&units=metric`);
+    
+    if (!response.ok) {
+      throw new Error(`Weather API returned status ${response.status}`);
+    }
+
+    const data = await response.json();
+    
+    // Send a simplified weather object to the frontend
+    res.json({
+      location: data.name,
+      temperature: data.main.temp,
+      description: data.weather[0].description,
+      icon: `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`,
+      humidity: data.main.humidity,
+      windSpeed: data.wind.speed
+    });
+  } catch (error) {
+    console.error('Weather API Error:', error);
+    res.status(500).json({ error: 'Failed to fetch weather data' });
   }
 });
 
