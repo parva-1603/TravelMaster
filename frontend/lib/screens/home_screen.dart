@@ -4,9 +4,11 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:glassmorphism/glassmorphism.dart';
 import 'login_screen.dart';
 import 'package_details_screen.dart';
+import 'chat_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final VoidCallback onThemeToggle;
@@ -44,18 +46,20 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _fetchPackages() async {
     try {
-      final response = await http.get(Uri.parse('http://localhost:5000/api/packages/trending'));
-      if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
-        if (mounted) {
-          setState(() {
-            _allPackages = data.map((e) => e as Map<String, dynamic>).toList();
-            _isLoading = false;
-          });
-        }
+      final data = await Supabase.instance.client
+          .from('packages')
+          .select()
+          .eq('isTrending', true)
+          .limit(10);
+          
+      if (mounted) {
+        setState(() {
+          _allPackages = List<Map<String, dynamic>>.from(data);
+          _isLoading = false;
+        });
       }
     } catch (e) {
-      debugPrint('Error fetching packages: $e');
+      debugPrint('Error fetching packages from Supabase: $e');
       if (mounted) setState(() => _isLoading = false);
     }
   }
@@ -97,6 +101,16 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const ChatScreen()),
+          );
+        },
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        child: const Icon(Icons.chat_bubble_outline, color: Colors.white),
+      ),
       body: Stack(
         children: [
           // Dynamic Background (using simple blurred shapes to match premium aesthetic)
