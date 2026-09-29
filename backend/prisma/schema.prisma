@@ -3,7 +3,23 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "sqlserver"
+  url      = env("DATABASE_URL")
+}
+
+model Package {
+  id         Int     @id @default(autoincrement())
+  title      String
+  location   String
+  price      String
+  rating     String
+  duration   String
+  image      String
+  isTrending Boolean @default(false)
+}
+
+model Location {
+  id      Int    @id @default(autoincrement())
+  name    String
+  state   String
 }

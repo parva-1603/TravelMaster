@@ -46,20 +46,21 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _fetchPackages() async {
     try {
-      final data = await Supabase.instance.client
-          .from('packages')
-          .select()
-          .eq('isTrending', true)
-          .limit(10);
-          
-      if (mounted) {
-        setState(() {
-          _allPackages = List<Map<String, dynamic>>.from(data);
-          _isLoading = false;
-        });
+      final response = await http.get(Uri.parse('http://localhost:5000/api/packages/trending'));
+      
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        if (mounted) {
+          setState(() {
+            _allPackages = data.map((e) => e as Map<String, dynamic>).toList();
+            _isLoading = false;
+          });
+        }
+      } else {
+        throw Exception('Failed to load packages');
       }
     } catch (e) {
-      debugPrint('Error fetching packages from Supabase: $e');
+      debugPrint('Error fetching packages from backend: $e');
       if (mounted) setState(() => _isLoading = false);
     }
   }

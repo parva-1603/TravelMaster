@@ -1,10 +1,8 @@
 require('dotenv').config();
 const express = require('express');
-const mongoose = require('mongoose');
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
 const cors = require('cors');
-
-const Package = require('./models/Package');
-const Location = require('./models/Location');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -13,18 +11,17 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-// MongoDB Connection
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/travelmaster';
-mongoose.connect(MONGODB_URI)
-  .then(() => console.log('Connected to MongoDB Successfully'))
-  .catch((err) => console.error('MongoDB connection error:', err));
+// Prisma will auto-connect, but we can verify connection here
+prisma.$connect()
+  .then(() => console.log('Connected to Microsoft SQL Server Successfully via Prisma'))
+  .catch((err) => console.error('Prisma connection error:', err));
 
 // =======================
 // SEED DATABASE ROUTE
 // =======================
 app.post('/api/seed', async (req, res) => {
   try {
-    await Package.deleteMany({});
+    await prisma.package.deleteMany({});
     
     const dummyPackages = [
       {
@@ -65,9 +62,9 @@ app.post('/api/seed', async (req, res) => {
       }
     ];
 
-    await Package.insertMany(dummyPackages);
+    await prisma.package.createMany({ data: dummyPackages });
 
-    await Location.deleteMany({});
+    await prisma.location.deleteMany({});
     const dummyLocations = [
       { name: 'Delhi', state: 'Delhi' },
       { name: 'Mumbai', state: 'Maharashtra' },
@@ -77,7 +74,7 @@ app.post('/api/seed', async (req, res) => {
       { name: 'Jaipur', state: 'Rajasthan' },
       { name: 'Ladakh', state: 'Ladakh' }
     ];
-    await Location.insertMany(dummyLocations);
+    await prisma.location.createMany({ data: dummyLocations });
 
     res.json({ message: 'Database seeded successfully with dummy data!' });
   } catch (error) {
@@ -93,7 +90,10 @@ app.post('/api/seed', async (req, res) => {
 // 1. Get Trending Packages
 app.get('/api/packages/trending', async (req, res) => {
   try {
-    const packages = await Package.find({ isTrending: true }).limit(10);
+    const packages = await prisma.package.findMany({
+      where: { isTrending: true },
+      take: 10
+    });
     res.json(packages);
   } catch (error) {
     res.status(500).json({ error: 'Server error' });
@@ -109,13 +109,13 @@ app.get('/api/packages/search', async (req, res) => {
     // Here we do a basic regex match on location.
     const query = {};
     if (to) {
-      query.$or = [
-        { location: { $regex: to, $options: 'i' } },
-        { title: { $regex: to, $options: 'i' } }
+      query.OR = [
+        { location: { contains: to } },
+        { title: { contains: to } }
       ];
     }
     
-    const packages = await Package.find(query);
+    const packages = await prisma.package.findMany({ where: query });
     res.json(packages);
   } catch (error) {
     res.status(500).json({ error: 'Server error' });
