@@ -187,39 +187,50 @@ class _HomeScreenState extends State<HomeScreen> {
                         final isActive = service['active'] as bool;
                         return Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: isActive ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-                                  shape: BoxShape.circle,
-                                  boxShadow: isActive ? [
-                                    BoxShadow(
-                                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.4),
-                                      blurRadius: 12,
-                                      offset: const Offset(0, 4),
-                                    )
-                                  ] : [],
+                          child: GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                for (var s in _services) {
+                                  s['active'] = false;
+                                }
+                                _services[index]['active'] = true;
+                                // In the future, this will change the main content view
+                              });
+                            },
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: isActive ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                                    shape: BoxShape.circle,
+                                    boxShadow: isActive ? [
+                                      BoxShadow(
+                                        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.4),
+                                        blurRadius: 12,
+                                        offset: const Offset(0, 4),
+                                      )
+                                    ] : [],
+                                  ),
+                                  child: Icon(
+                                    service['icon'] as IconData,
+                                    color: isActive ? Theme.of(context).colorScheme.onPrimary : Theme.of(context).colorScheme.onSurface,
+                                    size: 24,
+                                  ),
                                 ),
-                                child: Icon(
-                                  service['icon'] as IconData,
-                                  color: isActive ? Theme.of(context).colorScheme.onPrimary : Theme.of(context).colorScheme.onSurface,
-                                  size: 24,
+                                const SizedBox(height: 6),
+                                Text(
+                                  service['title'] as String,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+                                    color: isActive ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(height: 6),
-                              Text(
-                                service['title'] as String,
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-                                  color: isActive ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface,
-                                ),
-                              ),
-                            ],
-                          ).animate().fadeIn(delay: (300 + (index * 50)).ms).slideY(begin: 0.2),
+                              ],
+                            ).animate().fadeIn(delay: (300 + (index * 50)).ms).slideY(begin: 0.2),
+                          ),
                         );
                       },
                     ),
