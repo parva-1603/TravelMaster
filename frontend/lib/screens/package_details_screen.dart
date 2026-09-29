@@ -25,6 +25,8 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
   bool _isLoadingWeather = true;
   String _selectedCategory = 'Standard';
   String? _selectedDate;
+  final TextEditingController _startingCityController = TextEditingController();
+  String _startingCity = '';
 
   @override
   void initState() {
@@ -36,6 +38,12 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
     if (dates != null && dates.isNotEmpty) {
       _selectedDate = dates.first.toString();
     }
+  }
+
+  @override
+  void dispose() {
+    _startingCityController.dispose();
+    super.dispose();
   }
 
   Future<void> _fetchWeather() async {
@@ -66,6 +74,18 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
     return const LatLng(20.5937, 78.9629); // Default India
   }
 
+  String _getTransportToDest() {
+    if (_selectedCategory == 'Economy') return 'Non-AC Train';
+    if (_selectedCategory == 'Standard') return '2 Tier AC Train';
+    return 'Flight';
+  }
+
+  String _getInternalTransport() {
+    if (_selectedCategory == 'Economy') return 'Non-AC Bus';
+    if (_selectedCategory == 'Standard') return 'AC Volvo';
+    return 'Luxury SUV';
+  }
+
   @override
   Widget build(BuildContext context) {
     final latLng = _getCoordinates(widget.pkg['location']);
@@ -76,7 +96,13 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
 
     final currentCategory = categories != null ? categories[_selectedCategory] : null;
     final displayPrice = currentCategory != null ? currentCategory['price'] : widget.pkg['price'];
-    final facilities = currentCategory != null ? currentCategory['facilities'] as List<dynamic> : [];
+    List<dynamic> facilities = currentCategory != null ? List.from(currentCategory['facilities']) : [];
+    
+    final String startCityDisplay = _startingCity.trim().isEmpty ? 'your city' : _startingCity.trim();
+    
+    // Inject dynamic transportation based on requirements
+    facilities.insert(0, '${_getTransportToDest()} from $startCityDisplay');
+    facilities.insert(1, 'Internal Road Transport: ${_getInternalTransport()}');
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
@@ -220,6 +246,30 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
                         ),
                         const SizedBox(height: 16),
                         
+                        // Starting City Input
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3)),
+                          ),
+                          child: TextField(
+                            controller: _startingCityController,
+                            onChanged: (val) {
+                              setState(() {
+                                _startingCity = val;
+                              });
+                            },
+                            decoration: InputDecoration(
+                              icon: Icon(Icons.flight_takeoff, color: Theme.of(context).colorScheme.primary),
+                              hintText: 'Enter Starting City (e.g. Delhi, Mumbai)',
+                              border: InputBorder.none,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        
                         // Weather Section
                         if (_isLoadingWeather)
                            const Center(child: CircularProgressIndicator())
@@ -328,28 +378,35 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
                         if (itinerary != null && itinerary.isNotEmpty) ...[
                           const Text('Day-wise Plan', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                           const SizedBox(height: 12),
-                          ...itinerary.map((dayPlan) => Padding(
-                            padding: const EdgeInsets.only(bottom: 8.0),
-                            child: ExpansionTile(
-                              tilePadding: EdgeInsets.zero,
-                              title: Text(
-                                'Day ${dayPlan['day']}: ${dayPlan['title']}',
-                                style: const TextStyle(fontWeight: FontWeight.bold),
-                              ),
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.only(bottom: 16.0),
-                                  child: Text(
-                                    dayPlan['description'],
-                                    style: TextStyle(
-                                      height: 1.5,
-                                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
+                          ...itinerary.map((dayPlan) {
+                            String description = dayPlan['description'];
+                            if (dayPlan['day'] == 1) {
+                              description = 'Depart from $startCityDisplay via ${_getTransportToDest()}.\n\n$description';
+                            }
+                            
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 8.0),
+                              child: ExpansionTile(
+                                tilePadding: EdgeInsets.zero,
+                                title: Text(
+                                  'Day ${dayPlan['day']}: ${dayPlan['title']}',
+                                  style: const TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.only(bottom: 16.0),
+                                    child: Text(
+                                      description,
+                                      style: TextStyle(
+                                        height: 1.5,
+                                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
+                                      ),
                                     ),
                                   ),
-                                ),
-                              ],
-                            ),
-                          )).toList(),
+                                ],
+                              ),
+                            );
+                          }).toList(),
                           const SizedBox(height: 24),
                         ],
 
