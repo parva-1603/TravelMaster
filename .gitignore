@@ -2,3 +2,5 @@ node_modules/
 misc/
 .agents/
 .env
+.vercel
+.env*
