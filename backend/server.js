@@ -107,11 +107,12 @@ app.get('/api/packages/trending', async (req, res) => {
           Luxury: { price: 'Rs. 45,000', facilities: ['5-Star Premium Houseboat', 'All Meals Included', 'Private SUV', 'Ayurvedic Spa'] }
         },
         itinerary: [
-          { day: 1, title: 'Arrival in Kochi', description: 'Arrive at Kochi airport, transfer to hotel. Evening visit to Fort Kochi and Chinese Fishing Nets.' },
-          { day: 2, title: 'Munnar Hills', description: 'Drive to Munnar. Visit tea gardens, Mattupetty Dam, and Echo Point. Enjoy the cool breeze.' },
-          { day: 3, title: 'Thekkady Wildlife', description: 'Proceed to Thekkady. Enjoy a boat ride in Periyar Lake and watch wildlife.' },
-          { day: 4, title: 'Alleppey Houseboat', description: 'Check into a traditional houseboat in Alleppey. Cruise through the backwaters.' },
-          { day: 5, title: 'Departure', description: 'Morning breakfast on the houseboat. Transfer to Kochi airport for departure.' }
+          { day: 1, title: 'Arrival in Kochi & Heritage Walk', description: 'Upon arrival at the Kochi International Airport, our representative will greet you and transfer you to your hotel. After a refreshing welcome drink and check-in, you will have some time to relax. In the late afternoon, step out to explore the historic Fort Kochi area. Walk along the vibrant streets lined with colonial-era architecture, visit the iconic St. Francis Church, and witness the fascinating Chinese Fishing Nets in action as the sun sets over the Arabian Sea. Conclude the day with a traditional Kerala dinner.' },
+          { day: 2, title: 'Scenic Drive to Munnar Hills', description: 'After a hearty breakfast, begin your scenic drive towards the misty hills of Munnar, famously known as the Kashmir of South India. The journey itself is breathtaking, passing through lush green tea plantations, cascading waterfalls, and winding mountain roads. En route, make a stop at the majestic Cheeyappara Waterfalls. Upon reaching Munnar, check into your hill-station resort. Spend the evening at your leisure, sipping freshly brewed local tea and enjoying the panoramic views of the valley.' },
+          { day: 3, title: 'Munnar Tea Estates & Wildlife', description: 'Wake up to the cool mountain breeze and head out for a full day of sightseeing. Your first stop is the famous Eravikulam National Park, home to the endangered Nilgiri Tahr. Next, visit the sprawling Tata Tea Museum to learn about the history of tea processing. In the afternoon, head to Mattupetty Dam for a serene boat ride, followed by a visit to Echo Point where your voice bounces back from the surrounding hills. Return to your resort for a cozy overnight stay.' },
+          { day: 4, title: 'Thekkady Spice Plantations & Safari', description: 'Check out from Munnar and drive towards Thekkady, the heart of Kerala\'s spice region. After checking into your jungle lodge, embark on a guided tour of a massive spice plantation, learning about the cultivation of cardamom, pepper, and cinnamon. Later in the afternoon, proceed to the Periyar National Park for an unforgettable boat safari on Periyar Lake. Keep your eyes peeled for wild elephants, bison, and exotic bird species drinking from the water\'s edge.' },
+          { day: 5, title: 'Alleppey Houseboat Cruise', description: 'Today features the highlight of your Kerala trip. Drive to Alleppey, the Venice of the East, and board a luxurious traditional houseboat (Kettuvallam). As you gently cruise through the intricate network of tranquil backwaters, witness the rustic village life, lush paddy fields, and swaying coconut trees. Enjoy authentic Kerala delicacies prepared fresh on board by your private chef. Spend the night sleeping on the water under the starry sky.' },
+          { day: 6, title: 'Departure with Memories', description: 'Wake up to a beautiful sunrise over the backwaters. Enjoy a relaxed breakfast on the deck of your houseboat before checking out. You will be transferred back to the Kochi International Airport for your onward journey, taking with you a lifetime of beautiful memories from "God\'s Own Country".' }
         ]
       },
       {
@@ -130,13 +131,13 @@ app.get('/api/packages/trending', async (req, res) => {
           Luxury: { price: 'Rs. 55,000', facilities: ['5-Star Palace Hotel', 'All Meals', 'Luxury SUV', 'Desert Safari'] }
         },
         itinerary: [
-          { day: 1, title: 'Welcome to Jaipur', description: 'Arrive in the Pink City. Transfer to hotel. Evening visit to Chokhi Dhani.' },
-          { day: 2, title: 'Jaipur Forts', description: 'Explore Amer Fort, Hawa Mahal, and City Palace. Shopping at Johari Bazaar.' },
-          { day: 3, title: 'Jodhpur Blue City', description: 'Drive to Jodhpur. Visit Mehrangarh Fort and Umaid Bhawan Palace.' },
-          { day: 4, title: 'Udaipur Lakes', description: 'Proceed to Udaipur. Enjoy a boat ride on Lake Pichola in the evening.' },
-          { day: 5, title: 'Udaipur Sightseeing', description: 'Visit City Palace, Jag Mandir, and Saheliyon Ki Bari.' },
-          { day: 6, title: 'Pushkar Visit', description: 'Drive back towards Jaipur via Pushkar. Visit the Brahma Temple.' },
-          { day: 7, title: 'Departure', description: 'Transfer to Jaipur airport with royal memories.' }
+          { day: 1, title: 'Welcome to the Pink City', description: 'Arrive at Jaipur International Airport where our royal host will welcome you. Transfer to your heritage hotel and freshen up. In the evening, head to Chokhi Dhani, a spectacular ethnic village resort. Here you will experience the true essence of Rajasthani culture with live folk dance, puppet shows, camel rides, and an authentic multi-course traditional thali dinner.' },
+          { day: 2, title: 'Majesty of Jaipur Forts', description: 'After an early breakfast, proceed to the magnificent Amer Fort, situated on a hilltop. Enjoy an elephant ride to the courtyard. Next, visit the City Palace, an exquisite blend of Rajput and Mughal architecture, and the Jantar Mantar observatory. Stop by the iconic Hawa Mahal (Palace of Winds) for stunning photographs. Spend your evening shopping for vibrant textiles and jewelry at Johari Bazaar.' },
+          { day: 3, title: 'The Blue City of Jodhpur', description: 'Check out and embark on a scenic drive to Jodhpur, the Blue City. Upon arrival, check into your hotel and rest. In the afternoon, visit the colossal Mehrangarh Fort, which towers over the city and houses a museum of royal palanquins and weapons. Later, visit Jaswant Thada, a beautiful marble cenotaph, and take a stroll through the blue-painted streets of the old city.' },
+          { day: 4, title: 'Drive to Udaipur', description: 'Today you will journey towards Udaipur, widely considered the most romantic city in India. En route, stop at the mesmerizing Ranakpur Jain Temple, famous for its 1,444 intricately carved marble pillars, no two of which are identical. Continue to Udaipur and check into your lakeside hotel. Relax and enjoy the tranquil atmosphere.' },
+          { day: 5, title: 'Udaipur City of Lakes', description: 'Start your day exploring the massive City Palace complex overlooking Lake Pichola. Visit the Crystal Gallery and the vintage car museum. In the afternoon, wander through the beautiful Saheliyon Ki Bari (Garden of the Maidens). As the sun begins to set, embark on a magical boat ride on Lake Pichola, offering spectacular views of Jag Mandir and the illuminated Lake Palace.' },
+          { day: 6, title: 'Spiritual Pushkar', description: 'Leave Udaipur and drive towards the holy town of Pushkar. Upon arrival, visit the famous Brahma Temple, one of the very few temples in the world dedicated to Lord Brahma. Walk down to the sacred Pushkar Lake and witness the evening Aarti ceremony on the ghats, accompanied by the chanting of mantras and ringing of bells.' },
+          { day: 7, title: 'Departure', description: 'Enjoy your final Rajasthani breakfast. Based on your flight schedule, you will be transferred to Jaipur Airport. Depart with a royal experience etched in your memory forever.' }
         ]
       },
       {
@@ -155,14 +156,14 @@ app.get('/api/packages/trending', async (req, res) => {
           Luxury: { price: 'Rs. 75,000', facilities: ['Premium Glamping', 'All Meals', 'Luxury SUV 4x4', 'Oxygen Support'] }
         },
         itinerary: [
-          { day: 1, title: 'Arrival & Acclimatization', description: 'Arrive in Leh. Rest for the entire day to acclimatize to the high altitude.' },
-          { day: 2, title: 'Leh Local Sightseeing', description: 'Visit Shanti Stupa, Leh Palace, and local markets.' },
-          { day: 3, title: 'Nubra Valley via Khardung La', description: 'Drive to Nubra Valley via the world\'s highest motorable road. Enjoy camel safari.' },
-          { day: 4, title: 'Turtuk Village', description: 'Day trip to the beautiful border village of Turtuk. Return to Nubra.' },
-          { day: 5, title: 'Pangong Tso', description: 'Drive to the majestic Pangong Lake. Camp overnight by the blue waters.' },
-          { day: 6, title: 'Return to Leh', description: 'Wake up to a beautiful sunrise. Drive back to Leh via Chang La pass.' },
-          { day: 7, title: 'Monasteries Tour', description: 'Visit Hemis, Thiksey, and Shey Monasteries.' },
-          { day: 8, title: 'Departure', description: 'Transfer to Leh airport with memories of a lifetime.' }
+          { day: 1, title: 'Arrival & Crucial Acclimatization', description: 'Touch down at the Kushok Bakula Rimpochee Airport in Leh, one of the highest commercial airports in the world. Transfer to your hotel. Since Leh is situated at an altitude of 11,500 feet, it is strictly advised to rest for the entire day to let your body acclimatize to the thin air. Hydrate well and enjoy a light dinner.' },
+          { day: 2, title: 'Leh Local Sightseeing', description: 'Once acclimatized, start exploring Leh. Visit the stunning Shanti Stupa, offering panoramic views of the city and surrounding mountains. Next, explore the ancient Leh Palace, a nine-story royal residence built in the 17th century. Spend the evening walking through the Leh Main Bazaar, picking up Tibetan handicrafts and trying local apricot juice.' },
+          { day: 3, title: 'Over the Khardung La to Nubra', description: 'Today features a thrilling drive to the Nubra Valley via the legendary Khardung La Pass, the highest motorable road in the world at 18,380 feet. Stop briefly at the summit for photos. Descend into the breathtaking Nubra Valley and check into your camp at Hunder. In the evening, enjoy a ride on the rare double-humped Bactrian camels across the cold desert sand dunes.' },
+          { day: 4, title: 'The Edge of the World - Turtuk', description: 'Take a day trip to Turtuk, the northernmost village in India, located mere kilometers from the Line of Control. Opened to tourists only recently, this picturesque village offers a unique glimpse into Balti culture. Walk through lush apricot orchards, interact with the warm locals, and enjoy views of the Karakoram range. Return to Nubra for the night.' },
+          { day: 5, title: 'Journey to Pangong Tso', description: 'Leave Nubra Valley and take the rugged, adventurous route alongside the Shyok River to reach the spectacular Pangong Tso Lake. Situated at 14,270 feet, this massive high-altitude saltwater lake famously changes colors from brilliant blue to emerald green. Check into your lakeside camp and spend the evening mesmerized by the sheer beauty of the landscape.' },
+          { day: 6, title: 'Sunrise at Pangong & Return to Leh', description: 'Wake up early to witness a magical, freezing sunrise over Pangong Lake, an absolute paradise for photographers. After breakfast, begin your drive back to Leh, crossing the formidable Chang La Pass (17,586 feet). You will arrive in Leh by late afternoon. The rest of the day is free for relaxation.' },
+          { day: 7, title: 'Monasteries of the Indus Valley', description: 'Spend your final day immersing yourself in Ladakhi spirituality. Visit the Thiksey Monastery, renowned for its massive two-story statue of Maitreya Buddha. Proceed to the Hemis Monastery, the largest and wealthiest in Ladakh, hidden inside a gorge. End the day with a visit to the 3 Idiots famous Druk White Lotus School.' },
+          { day: 8, title: 'Departure', description: 'After an early breakfast, transfer to the Leh airport for your flight back home, carrying unforgettable memories of the rugged Himalayas.' }
         ]
       },
       {
@@ -181,10 +182,10 @@ app.get('/api/packages/trending', async (req, res) => {
           Luxury: { price: 'Rs. 35,000', facilities: ['5-Star Beach Resort', 'All Meals', 'Private Cab', 'Yacht Ride'] }
         },
         itinerary: [
-          { day: 1, title: 'Welcome to Goa', description: 'Arrive in Goa. Check into your beach resort. Relax by the sea.' },
-          { day: 2, title: 'North Goa Beaches', description: 'Visit Baga, Calangute, and Anjuna beaches. Enjoy water sports.' },
-          { day: 3, title: 'Old Goa & Cruise', description: 'Explore the churches of Old Goa. Evening Mandovi river cruise.' },
-          { day: 4, title: 'Departure', description: 'Morning shopping at local markets. Transfer to airport.' }
+          { day: 1, title: 'Arrival & Beach Relaxation', description: 'Welcome to the party capital of India! Upon arrival at Dabolim Airport or Madgaon Railway Station, transfer to your beautiful beach resort in North Goa. After checking in and resting, spend your late afternoon taking a leisurely walk along the shoreline. Watch a glorious sunset while sipping a refreshing drink at a seaside shack.' },
+          { day: 2, title: 'North Goa Beaches & Water Sports', description: 'Get ready for an action-packed day exploring the vibrant beaches of North Goa. Start with Calangute and Baga beaches, where you can indulge in thrilling water sports like parasailing, jet skiing, and banana boat rides. In the afternoon, visit the historic Aguada Fort for panoramic ocean views. Experience Goa\'s legendary nightlife at Tito\'s Lane in the evening.' },
+          { day: 3, title: 'Heritage of Old Goa & River Cruise', description: 'Shift your focus from the beaches to Goa\'s rich Portuguese heritage. Visit the UNESCO World Heritage sites in Old Goa, including the magnificent Basilica of Bom Jesus and the Se Cathedral. Walk through the charming Latin Quarter of Fontainhas. In the evening, head to Panjim to board a lively sunset cruise on the Mandovi River, complete with DJ music and Goan folk dances.' },
+          { day: 4, title: 'Farewell Goa', description: 'Savor a relaxed Goan breakfast. Depending on your departure time, you can do some last-minute souvenir shopping at the Anjuna Flea Market or pick up some famous Goan cashew nuts. Transfer to the airport or railway station for your journey back home.' }
         ]
       }
     ];
