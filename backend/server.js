@@ -258,7 +258,11 @@ app.get('/api/weather', async (req, res) => {
     const { location } = req.query;
     if (!location) return res.status(400).json({ error: 'Location is required' });
 
-    const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(location)}&appid=${process.env.WEATHER_API_KEY}&units=metric`);
+    let searchCity = location;
+    if (location.toLowerCase() === 'kerala') searchCity = 'Kochi';
+    if (location.toLowerCase() === 'ladakh') searchCity = 'Leh';
+
+    const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(searchCity)}&appid=${process.env.WEATHER_API_KEY}&units=metric`);
     
     if (!response.ok) {
       throw new Error(`Weather API returned status ${response.status}`);
