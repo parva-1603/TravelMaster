@@ -23,11 +23,19 @@ class PackageDetailsScreen extends StatefulWidget {
 class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
   Map<String, dynamic>? _weatherData;
   bool _isLoadingWeather = true;
+  String _selectedCategory = 'Standard';
+  String? _selectedDate;
 
   @override
   void initState() {
     super.initState();
     _fetchWeather();
+    
+    // Initialize default date
+    final dates = widget.pkg['departureDates'] as List<dynamic>?;
+    if (dates != null && dates.isNotEmpty) {
+      _selectedDate = dates.first.toString();
+    }
   }
 
   Future<void> _fetchWeather() async {
@@ -61,6 +69,14 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     final latLng = _getCoordinates(widget.pkg['location']);
+    
+    final categories = widget.pkg['categories'] as Map<String, dynamic>?;
+    final itinerary = widget.pkg['itinerary'] as List<dynamic>?;
+    final dates = widget.pkg['departureDates'] as List<dynamic>?;
+
+    final currentCategory = categories != null ? categories[_selectedCategory] : null;
+    final displayPrice = currentCategory != null ? currentCategory['price'] : widget.pkg['price'];
+    final facilities = currentCategory != null ? currentCategory['facilities'] as List<dynamic> : [];
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
@@ -127,7 +143,7 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
                 // Content Sheet
                 GlassmorphicContainer(
                   width: double.infinity,
-                  height: MediaQuery.of(context).size.height * 0.65,
+                  height: MediaQuery.of(context).size.height * 0.75, // Increased height for more data
                   borderRadius: 40,
                   blur: 30,
                   alignment: Alignment.topCenter,
@@ -193,13 +209,20 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
                               widget.pkg['location'],
                               style: const TextStyle(fontSize: 16),
                             ),
+                            const Spacer(),
+                            Icon(Icons.access_time, color: Theme.of(context).colorScheme.secondary, size: 18),
+                            const SizedBox(width: 6),
+                            Text(
+                              widget.pkg['duration'],
+                              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                            ),
                           ],
                         ),
                         const SizedBox(height: 16),
                         
                         // Weather Section
                         if (_isLoadingWeather)
-                           const CircularProgressIndicator()
+                           const Center(child: CircularProgressIndicator())
                         else if (_weatherData != null)
                            Container(
                              padding: const EdgeInsets.all(12),
@@ -216,11 +239,11 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
                                    crossAxisAlignment: CrossAxisAlignment.start,
                                    children: [
                                      Text(
-                                       '${_weatherData!['temperature']} C - ${_weatherData!['description']}',
+                                       'Current Weather: ${_weatherData!['temperature']} C',
                                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                                      ),
                                      Text(
-                                       'Humidity: ${_weatherData!['humidity']}% | Wind: ${_weatherData!['windSpeed']} m/s',
+                                       '${_weatherData!['description'].toString().toUpperCase()} | Humidity: ${_weatherData!['humidity']}%',
                                        style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7)),
                                      ),
                                    ],
@@ -230,25 +253,108 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
                            ).animate().fadeIn(),
 
                         const SizedBox(height: 24),
-                        const Text(
-                          'Description',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Experience the beauty of ${widget.pkg['location']} with our exclusive ${widget.pkg['duration']} travel package.',
-                          style: TextStyle(
-                            height: 1.5,
-                            color: Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.8),
+                        
+                        // Departure Dates Selection
+                        if (dates != null && dates.isNotEmpty) ...[
+                          const Text('Departure Dates', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 12),
+                          SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: dates.map((date) {
+                                final isSelected = _selectedDate == date;
+                                return Padding(
+                                  padding: const EdgeInsets.only(right: 8.0),
+                                  child: ChoiceChip(
+                                    label: Text(date),
+                                    selected: isSelected,
+                                    onSelected: (bool selected) {
+                                      setState(() => _selectedDate = date);
+                                    },
+                                    selectedColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
+                                    labelStyle: TextStyle(
+                                      color: isSelected ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface,
+                                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 24),
+                          const SizedBox(height: 24),
+                        ],
+
+                        // Package Categories (Economy/Standard/Luxury)
+                        if (categories != null) ...[
+                          const Text('Package Category', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 12),
+                          SegmentedButton<String>(
+                            segments: const [
+                              ButtonSegment(value: 'Economy', label: Text('Economy')),
+                              ButtonSegment(value: 'Standard', label: Text('Standard')),
+                              ButtonSegment(value: 'Luxury', label: Text('Luxury')),
+                            ],
+                            selected: {_selectedCategory},
+                            onSelectionChanged: (Set<String> newSelection) {
+                              setState(() => _selectedCategory = newSelection.first);
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                          // Display facilities for selected category
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: facilities.map((facility) => Padding(
+                                padding: const EdgeInsets.only(bottom: 8.0),
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.check_circle, color: Theme.of(context).colorScheme.primary, size: 16),
+                                    const SizedBox(width: 8),
+                                    Text(facility.toString(), style: const TextStyle(fontSize: 14)),
+                                  ],
+                                ),
+                              )).toList(),
+                            ),
+                          ).animate(key: ValueKey(_selectedCategory)).fadeIn(),
+                          const SizedBox(height: 24),
+                        ],
+
+                        // Day-by-Day Itinerary
+                        if (itinerary != null && itinerary.isNotEmpty) ...[
+                          const Text('Day-wise Plan', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 12),
+                          ...itinerary.map((dayPlan) => Padding(
+                            padding: const EdgeInsets.only(bottom: 8.0),
+                            child: ExpansionTile(
+                              tilePadding: EdgeInsets.zero,
+                              title: Text(
+                                'Day ${dayPlan['day']}: ${dayPlan['title']}',
+                                style: const TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 16.0),
+                                  child: Text(
+                                    dayPlan['description'],
+                                    style: TextStyle(
+                                      height: 1.5,
+                                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )).toList(),
+                          const SizedBox(height: 24),
+                        ],
 
                         // Map Section
-                        const Text(
-                          'Location Map',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                        ),
+                        const Text('Location Map', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                         const SizedBox(height: 12),
                         Container(
                           height: 200,
@@ -292,7 +398,7 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
                               children: [
                                 const Text('Total Price'),
                                 Text(
-                                  widget.pkg['price'],
+                                  displayPrice,
                                   style: TextStyle(
                                     fontSize: 26,
                                     fontWeight: FontWeight.w900,
@@ -304,13 +410,13 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
                             ElevatedButton(
                               onPressed: () {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Booking flow initiated...')),
+                                  SnackBar(content: Text('Booking flow initiated for $_selectedCategory...')),
                                 );
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Theme.of(context).colorScheme.primary,
                                 foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
+                                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(24),
                                 ),
