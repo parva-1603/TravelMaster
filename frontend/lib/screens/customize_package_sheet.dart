@@ -23,6 +23,7 @@ class _CustomizePackageSheetState extends State<CustomizePackageSheet> {
   List<dynamic> _transports = [];
   List<dynamic> _hotels = [];
   bool _isLoading = false;
+  String _transportClass = 'Economy';
   
   Map<String, dynamic>? _selectedTransport;
   Map<String, dynamic>? _selectedHotel;
@@ -39,7 +40,7 @@ class _CustomizePackageSheetState extends State<CustomizePackageSheet> {
       final loc = widget.pkg['location'].toString().split(',').first;
       final startCity = widget.startingCity.isEmpty ? 'Delhi' : widget.startingCity;
       
-      final tRes = await http.get(Uri.parse('http://localhost:5000/api/transport?from=$startCity&to=$loc&mode=$_transportMode'));
+      final tRes = await http.get(Uri.parse('http://localhost:5000/api/transport?from=$startCity&to=$loc&mode=$_transportMode&classType=$_transportClass'));
       final hRes = await http.get(Uri.parse('http://localhost:5000/api/hotels?location=$loc'));
       
       if (tRes.statusCode == 200 && hRes.statusCode == 200) {
@@ -91,7 +92,7 @@ class _CustomizePackageSheetState extends State<CustomizePackageSheet> {
                 value: 'flight', 
                 groupValue: _transportMode, 
                 onChanged: (v) { 
-                  setState(() { _transportMode = v!; _selectedTransport = null; }); 
+                  setState(() { _transportMode = v!; _transportClass = 'Economy'; _selectedTransport = null; }); 
                   _fetchOptions(); 
                 }
               ),
@@ -100,11 +101,30 @@ class _CustomizePackageSheetState extends State<CustomizePackageSheet> {
                 value: 'train', 
                 groupValue: _transportMode, 
                 onChanged: (v) { 
-                  setState(() { _transportMode = v!; _selectedTransport = null; }); 
+                  setState(() { _transportMode = v!; _transportClass = 'Sleeper'; _selectedTransport = null; }); 
                   _fetchOptions(); 
                 }
               ),
               const Text('Train'),
+              const Spacer(),
+              DropdownButton<String>(
+                value: _transportClass,
+                items: (_transportMode == 'flight' 
+                    ? ['Economy', 'Business', 'First Class'] 
+                    : ['Sleeper', '3-Tier AC', '1-Tier AC']
+                ).map((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
+                onChanged: (v) {
+                  if (v != null) {
+                    setState(() => _transportClass = v);
+                    _fetchOptions();
+                  }
+                },
+              ),
             ],
           ),
           

@@ -323,16 +323,25 @@ app.get('/api/hotels', (req, res) => {
 
 // 6. Get Transport
 app.get('/api/transport', (req, res) => {
-  const { from, to, mode } = req.query;
+  const { from, to, mode, classType } = req.query;
+  
   if (mode === 'flight') {
+    let multiplier = 1;
+    if (classType === 'Business') multiplier = 2.5;
+    if (classType === 'First Class') multiplier = 4;
+    
     res.json([
-      { id: 'f1', name: 'Air India AI-101', departure: '10:00 AM', arrival: '12:30 PM', price: 4500 },
-      { id: 'f2', name: 'IndiGo 6E-202', departure: '02:00 PM', arrival: '04:15 PM', price: 3800 }
+      { id: 'f1', name: `Air India AI-101 (${classType || 'Economy'})`, departure: '10:00 AM', arrival: '12:30 PM', price: 4500 * multiplier },
+      { id: 'f2', name: `IndiGo 6E-202 (${classType || 'Economy'})`, departure: '02:00 PM', arrival: '04:15 PM', price: 3800 * multiplier }
     ]);
   } else {
+    let multiplier = 1;
+    if (classType === '3-Tier AC') multiplier = 2;
+    if (classType === '1-Tier AC') multiplier = 3.5;
+    
     res.json([
-      { id: 't1', name: 'Rajdhani Express', departure: '16:00', arrival: '08:30 (+1 Day)', price: 2500 },
-      { id: 't2', name: 'Shatabdi Express', departure: '06:00', arrival: '14:00', price: 1800 }
+      { id: 't1', name: `Rajdhani Express (${classType || 'Sleeper'})`, departure: '16:00', arrival: '08:30 (+1 Day)', price: 1200 * multiplier },
+      { id: 't2', name: `Shatabdi Express (${classType || 'Sleeper'})`, departure: '06:00', arrival: '14:00', price: 900 * multiplier }
     ]);
   }
 });
