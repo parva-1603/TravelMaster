@@ -352,15 +352,23 @@ app.get('/api/transport', (req, res) => {
     return res.json([]);
   }
   
+  const generateRandomTime = (startHour) => {
+    const hr = Math.floor(Math.random() * 5) + startHour;
+    const min = Math.floor(Math.random() * 60);
+    const ampm = hr >= 12 && hr < 24 ? 'PM' : 'AM';
+    const displayHr = hr > 12 ? (hr === 24 ? 12 : hr - 12) : (hr === 0 ? 12 : hr);
+    return `${displayHr.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')} ${ampm}`;
+  };
+
   if (mode === 'flight') {
     let multiplier = 1;
     if (classType === 'Business') multiplier = 2.5;
     if (classType === 'First Class') multiplier = 4;
     
     res.json([
-      { id: 'f1', name: `Air India AI-101 | ${from} ➔ ${to}`, departure: '10:00 AM', arrival: '12:30 PM', price: 4500 * multiplier },
-      { id: 'f2', name: `IndiGo 6E-202 | ${from} ➔ ${to}`, departure: '02:00 PM', arrival: '04:15 PM', price: 3800 * multiplier },
-      { id: 'f3', name: `SpiceJet SG-303 | ${from} ➔ ${to}`, departure: '06:00 PM', arrival: '08:45 PM', price: 3200 * multiplier }
+      { id: 'f1', name: `Air India AI-${Math.floor(Math.random()*900)+100} | ${from} ➔ ${to}`, departure: generateRandomTime(5), arrival: generateRandomTime(9), price: Math.floor((Math.random()*2000 + 3500) * multiplier) },
+      { id: 'f2', name: `IndiGo 6E-${Math.floor(Math.random()*900)+100} | ${from} ➔ ${to}`, departure: generateRandomTime(11), arrival: generateRandomTime(14), price: Math.floor((Math.random()*1500 + 3000) * multiplier) },
+      { id: 'f3', name: `SpiceJet SG-${Math.floor(Math.random()*900)+100} | ${from} ➔ ${to}`, departure: generateRandomTime(16), arrival: generateRandomTime(19), price: Math.floor((Math.random()*2000 + 2800) * multiplier) }
     ]);
   } else {
     let multiplier = 1;
@@ -368,9 +376,9 @@ app.get('/api/transport', (req, res) => {
     if (classType === '1-Tier AC') multiplier = 3.5;
     
     res.json([
-      { id: 't1', name: `Rajdhani Express | ${from} ➔ ${to}`, departure: '16:00', arrival: '08:30 (+1 Day)', price: 1200 * multiplier },
-      { id: 't2', name: `Shatabdi Express | ${from} ➔ ${to}`, departure: '06:00', arrival: '14:00', price: 900 * multiplier },
-      { id: 't3', name: `Duronto Express | ${from} ➔ ${to}`, departure: '21:00', arrival: '12:00 (+1 Day)', price: 1100 * multiplier }
+      { id: 't1', name: `Rajdhani Exp ${Math.floor(Math.random()*9000)+1000} | ${from} ➔ ${to}`, departure: generateRandomTime(6), arrival: generateRandomTime(18), price: Math.floor((Math.random()*500 + 1200) * multiplier) },
+      { id: 't2', name: `Shatabdi Exp ${Math.floor(Math.random()*9000)+1000} | ${from} ➔ ${to}`, departure: generateRandomTime(9), arrival: generateRandomTime(21), price: Math.floor((Math.random()*300 + 900) * multiplier) },
+      { id: 't3', name: `Duronto Exp ${Math.floor(Math.random()*9000)+1000} | ${from} ➔ ${to}`, departure: generateRandomTime(18), arrival: generateRandomTime(6) + ' (+1)', price: Math.floor((Math.random()*400 + 1000) * multiplier) }
     ]);
   }
 });
