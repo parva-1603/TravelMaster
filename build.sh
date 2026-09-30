@@ -4,4 +4,4 @@ if [ ! -d "flutter" ]; then
   git clone https://github.com/flutter/flutter.git -b stable
 fi
 export PATH="$PATH:`pwd`/flutter/bin"
-flutter/bin/flutter build web --release
+flutter/bin/flutter build web --web-renderer html --release
