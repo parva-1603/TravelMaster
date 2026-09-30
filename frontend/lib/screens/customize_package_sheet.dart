@@ -24,6 +24,7 @@ class _CustomizePackageSheetState extends State<CustomizePackageSheet> {
   List<dynamic> _hotels = [];
   bool _isLoading = false;
   String _transportClass = 'Economy';
+  final TextEditingController _fromController = TextEditingController();
   
   Map<String, dynamic>? _selectedTransport;
   Map<String, dynamic>? _selectedHotel;
@@ -31,14 +32,21 @@ class _CustomizePackageSheetState extends State<CustomizePackageSheet> {
   @override
   void initState() {
     super.initState();
+    _fromController.text = widget.startingCity.isEmpty ? 'Delhi' : widget.startingCity;
     _fetchOptions();
+  }
+
+  @override
+  void dispose() {
+    _fromController.dispose();
+    super.dispose();
   }
 
   Future<void> _fetchOptions() async {
     setState(() => _isLoading = true);
     try {
       final loc = widget.pkg['location'].toString().split(',').first;
-      final startCity = widget.startingCity.isEmpty ? 'Delhi' : widget.startingCity;
+      final startCity = _fromController.text.isEmpty ? 'Delhi' : _fromController.text;
       
       final tRes = await http.get(Uri.parse('http://localhost:5000/api/transport?from=$startCity&to=$loc&mode=$_transportMode&classType=$_transportClass'));
       final hRes = await http.get(Uri.parse('http://localhost:5000/api/hotels?location=$loc'));
@@ -82,6 +90,36 @@ class _CustomizePackageSheetState extends State<CustomizePackageSheet> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text('Customize Your Trip', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 16),
+          
+          // Cities
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _fromController,
+                  decoration: const InputDecoration(
+                    labelText: 'Leaving From',
+                    prefixIcon: Icon(Icons.flight_takeoff),
+                    border: OutlineInputBorder(),
+                  ),
+                  onSubmitted: (_) { _selectedTransport = null; _fetchOptions(); },
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: TextField(
+                  readOnly: true,
+                  controller: TextEditingController(text: widget.pkg['location'].toString().split(',').first),
+                  decoration: const InputDecoration(
+                    labelText: 'Going To',
+                    prefixIcon: Icon(Icons.flight_land),
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 16),
           
           // Transport
@@ -129,7 +167,17 @@ class _CustomizePackageSheetState extends State<CustomizePackageSheet> {
           ),
           
           if (_isLoading) const Center(child: CircularProgressIndicator())
-          else if (_transports.isNotEmpty) 
+          else if (_transports.isEmpty)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 16.0),
+              child: Center(
+                child: Text(
+                  'No flights/trains available for this route.',
+                  style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                ),
+              ),
+            )
+          else 
             SizedBox(
               height: 140,
               child: ListView.builder(

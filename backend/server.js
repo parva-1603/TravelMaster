@@ -325,6 +325,10 @@ app.get('/api/hotels', (req, res) => {
 app.get('/api/transport', (req, res) => {
   const { from, to, mode, classType } = req.query;
   
+  if (from && to && from.toLowerCase() === to.toLowerCase()) {
+    return res.json([]);
+  }
+  
   if (mode === 'flight') {
     let multiplier = 1;
     if (classType === 'Business') multiplier = 2.5;
