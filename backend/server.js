@@ -285,6 +285,11 @@ app.get('/api/weather', async (req, res) => {
   }
 });
 
+// Root Route
+app.get('/', (req, res) => {
+  res.send('TravelMaster Backend API is running!');
+});
+
 // Start Server (only if not running on Vercel)
 if (process.env.NODE_ENV !== 'production') {
   app.listen(PORT, () => {
