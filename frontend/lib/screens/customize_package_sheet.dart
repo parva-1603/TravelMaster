@@ -24,6 +24,7 @@ class _CustomizePackageSheetState extends State<CustomizePackageSheet> {
   List<dynamic> _hotels = [];
   bool _isLoading = false;
   String _transportClass = 'Economy';
+  String _accommodationType = 'Hotel';
   final TextEditingController _fromController = TextEditingController();
   
   Map<String, dynamic>? _selectedTransport;
@@ -49,7 +50,7 @@ class _CustomizePackageSheetState extends State<CustomizePackageSheet> {
       final startCity = _fromController.text.isEmpty ? 'Delhi' : _fromController.text;
       
       final tRes = await http.get(Uri.parse('http://localhost:5000/api/transport?from=$startCity&to=$loc&mode=$_transportMode&classType=$_transportClass'));
-      final hRes = await http.get(Uri.parse('http://localhost:5000/api/hotels?location=$loc'));
+      final hRes = await http.get(Uri.parse('http://localhost:5000/api/hotels?location=$loc&type=$_accommodationType'));
       
       if (tRes.statusCode == 200 && hRes.statusCode == 200) {
         if (mounted) {
@@ -199,7 +200,30 @@ class _CustomizePackageSheetState extends State<CustomizePackageSheet> {
           
           const SizedBox(height: 16),
           // Hotel
-          const Text('2. Select Hotel', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('2. Select Accommodation', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              DropdownButton<String>(
+                value: _accommodationType,
+                items: ['Hotel', 'Resort'].map((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
+                onChanged: (v) {
+                  if (v != null) {
+                    setState(() {
+                      _accommodationType = v;
+                      _selectedHotel = null;
+                    });
+                    _fetchOptions();
+                  }
+                },
+              ),
+            ],
+          ),
           const SizedBox(height: 8),
           if (_isLoading) const SizedBox()
           else if (_hotels.isNotEmpty)

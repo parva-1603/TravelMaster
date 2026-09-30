@@ -287,38 +287,61 @@ app.get('/api/weather', async (req, res) => {
 
 // 5. Get Hotels
 app.get('/api/hotels', (req, res) => {
-  const { location } = req.query;
+  const { location, type } = req.query;
   const loc = location || 'City';
-  const hotels = [
-    {
-      id: 1,
-      name: `Luxury Resort ${loc}`,
-      image: 'https://picsum.photos/seed/hotel1/600/400',
-      price: 5000,
-      rating: 4.8,
-      contact: '+91-9876543210',
-      rules: ['No smoking inside rooms', 'Check-in: 2 PM', 'Check-out: 11 AM', 'Couples allowed']
-    },
-    {
-      id: 2,
-      name: `Budget Inn ${loc}`,
-      image: 'https://picsum.photos/seed/hotel2/600/400',
-      price: 2000,
-      rating: 4.2,
-      contact: '+91-9876543211',
-      rules: ['Check-in: 12 PM', 'Check-out: 11 AM']
-    },
-    {
-      id: 3,
-      name: `Boutique Stay ${loc}`,
-      image: 'https://picsum.photos/seed/hotel3/600/400',
-      price: 3500,
-      rating: 4.5,
-      contact: '+91-9876543212',
-      rules: ['No pets allowed', 'Check-in: 1 PM']
-    }
-  ];
-  res.json(hotels);
+  
+  if (type === 'Resort') {
+    res.json([
+      {
+        id: 11,
+        name: `Grand ${loc} Resort`,
+        image: 'https://picsum.photos/seed/resort1/600/400',
+        price: 8500,
+        rating: 4.9,
+        contact: '+91-9876500001',
+        rules: ['No loud music after 10 PM', 'Check-in: 2 PM', 'Pool open till 8 PM']
+      },
+      {
+        id: 12,
+        name: `Nature Retreat Resort ${loc}`,
+        image: 'https://picsum.photos/seed/resort2/600/400',
+        price: 6000,
+        rating: 4.6,
+        contact: '+91-9876500002',
+        rules: ['Check-in: 12 PM', 'Check-out: 11 AM']
+      }
+    ]);
+  } else {
+    res.json([
+      {
+        id: 1,
+        name: `Premium Hotel ${loc}`,
+        image: 'https://picsum.photos/seed/hotel1/600/400',
+        price: 5000,
+        rating: 4.8,
+        contact: '+91-9876543210',
+        rules: ['No smoking inside rooms', 'Check-in: 2 PM', 'Couples allowed']
+      },
+      {
+        id: 2,
+        name: `Budget Inn ${loc}`,
+        image: 'https://picsum.photos/seed/hotel2/600/400',
+        price: 2000,
+        rating: 4.2,
+        contact: '+91-9876543211',
+        rules: ['Check-in: 12 PM', 'Check-out: 11 AM']
+      },
+      {
+        id: 3,
+        name: `Boutique Stay ${loc}`,
+        image: 'https://picsum.photos/seed/hotel3/600/400',
+        price: 3500,
+        rating: 4.5,
+        contact: '+91-9876543212',
+        rules: ['No pets allowed', 'Check-in: 1 PM']
+      }
+    ]);
+  }
 });
 
 // 6. Get Transport
@@ -335,8 +358,9 @@ app.get('/api/transport', (req, res) => {
     if (classType === 'First Class') multiplier = 4;
     
     res.json([
-      { id: 'f1', name: `Air India AI-101 (${classType || 'Economy'})`, departure: '10:00 AM', arrival: '12:30 PM', price: 4500 * multiplier },
-      { id: 'f2', name: `IndiGo 6E-202 (${classType || 'Economy'})`, departure: '02:00 PM', arrival: '04:15 PM', price: 3800 * multiplier }
+      { id: 'f1', name: `Air India AI-101 | ${from} ➔ ${to}`, departure: '10:00 AM', arrival: '12:30 PM', price: 4500 * multiplier },
+      { id: 'f2', name: `IndiGo 6E-202 | ${from} ➔ ${to}`, departure: '02:00 PM', arrival: '04:15 PM', price: 3800 * multiplier },
+      { id: 'f3', name: `SpiceJet SG-303 | ${from} ➔ ${to}`, departure: '06:00 PM', arrival: '08:45 PM', price: 3200 * multiplier }
     ]);
   } else {
     let multiplier = 1;
@@ -344,8 +368,9 @@ app.get('/api/transport', (req, res) => {
     if (classType === '1-Tier AC') multiplier = 3.5;
     
     res.json([
-      { id: 't1', name: `Rajdhani Express (${classType || 'Sleeper'})`, departure: '16:00', arrival: '08:30 (+1 Day)', price: 1200 * multiplier },
-      { id: 't2', name: `Shatabdi Express (${classType || 'Sleeper'})`, departure: '06:00', arrival: '14:00', price: 900 * multiplier }
+      { id: 't1', name: `Rajdhani Express | ${from} ➔ ${to}`, departure: '16:00', arrival: '08:30 (+1 Day)', price: 1200 * multiplier },
+      { id: 't2', name: `Shatabdi Express | ${from} ➔ ${to}`, departure: '06:00', arrival: '14:00', price: 900 * multiplier },
+      { id: 't3', name: `Duronto Express | ${from} ➔ ${to}`, departure: '21:00', arrival: '12:00 (+1 Day)', price: 1100 * multiplier }
     ]);
   }
 });
