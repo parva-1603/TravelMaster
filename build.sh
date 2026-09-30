@@ -9,4 +9,4 @@ export PATH="$PATH:`pwd`/flutter/bin"
 flutter/bin/flutter config --no-analytics
 
 # Build the web app
-flutter/bin/flutter build web --web-renderer html --release
+flutter/bin/flutter build web --release
