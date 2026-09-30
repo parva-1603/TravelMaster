@@ -5,6 +5,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'customize_package_sheet.dart';
 
 class PackageDetailsScreen extends StatefulWidget {
   final Map<String, dynamic> pkg;
@@ -27,6 +28,8 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
   String? _selectedDate;
   final TextEditingController _startingCityController = TextEditingController();
   String _startingCity = '';
+  int _customAdditionPrice = 0;
+  String _customDetails = '';
 
   @override
   void initState() {
@@ -108,6 +111,28 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
     }
   }
 
+  int _parsePrice(String priceStr) {
+    return int.tryParse(priceStr.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
+  }
+
+  void _showCustomizeSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => CustomizePackageSheet(
+        pkg: widget.pkg,
+        startingCity: _startingCity,
+        onCustomizationComplete: (additionalPrice, details) {
+          setState(() {
+            _customAdditionPrice = additionalPrice;
+            _customDetails = details;
+          });
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final latLng = _getCoordinates(widget.pkg['location']);
@@ -117,7 +142,14 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
     final dates = widget.pkg['departureDates'] as List<dynamic>?;
 
     final currentCategory = categories != null ? categories[_selectedCategory] : null;
-    final displayPrice = currentCategory != null ? currentCategory['price'] : widget.pkg['price'];
+    final displayPriceStr = currentCategory != null ? currentCategory['price'] : widget.pkg['price'];
+    
+    final int basePrice = _parsePrice(displayPriceStr);
+    final int finalPrice = basePrice + _customAdditionPrice;
+    
+    // Format back to Rs. XX,XXX
+    final String finalPriceFormatted = 'Rs. ${finalPrice.toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},')}';
+    
     List<dynamic> facilities = currentCategory != null ? List.from(currentCategory['facilities']) : [];
     
     final String startCityDisplay = _startingCity.trim().isEmpty ? 'your city' : _startingCity.trim();
@@ -416,7 +448,11 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
                             ],
                             selected: {_selectedCategory},
                             onSelectionChanged: (Set<String> newSelection) {
-                              setState(() => _selectedCategory = newSelection.first);
+                              setState(() {
+                                _selectedCategory = newSelection.first;
+                                _customAdditionPrice = 0;
+                                _customDetails = '';
+                              });
                             },
                           ),
                           const SizedBox(height: 16),
@@ -441,6 +477,26 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
                               )).toList(),
                             ),
                           ).animate(key: ValueKey(_selectedCategory)).fadeIn(),
+                          
+                          if (_customDetails.isNotEmpty) ...[
+                            const SizedBox(height: 12),
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.green.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text('✓ Customizations Applied', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.green)),
+                                  const SizedBox(height: 4),
+                                  Text(_customDetails, style: const TextStyle(fontSize: 14)),
+                                ],
+                              ),
+                            ),
+                          ],
                           const SizedBox(height: 24),
                         ],
 
@@ -527,37 +583,58 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
 
                         const SizedBox(height: 32),
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text('Total Price'),
-                                Text(
-                                  displayPrice,
-                                  style: TextStyle(
-                                    fontSize: 26,
-                                    fontWeight: FontWeight.w900,
-                                    color: Theme.of(context).colorScheme.primary,
+                            Expanded(
+                              flex: 2,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text('Total Price'),
+                                  Text(
+                                    finalPriceFormatted,
+                                    style: TextStyle(
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.w900,
+                                      color: Theme.of(context).colorScheme.primary,
+                                    ),
                                   ),
-                                ),
-                              ],
-                            ),
-                            ElevatedButton(
-                              onPressed: () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('Booking flow initiated for $_selectedCategory...')),
-                                );
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Theme.of(context).colorScheme.primary,
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(24),
-                                ),
+                                  if (_customAdditionPrice > 0)
+                                    Text('+ Rs. $_customAdditionPrice (Custom)', style: const TextStyle(fontSize: 10, color: Colors.grey)),
+                                ],
                               ),
-                              child: const Text('Book Now', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                            ),
+                            Expanded(
+                              flex: 3,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  OutlinedButton(
+                                    onPressed: _showCustomizeSheet,
+                                    style: OutlinedButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                                    ),
+                                    child: const Text('Customize'),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(content: Text('Booking flow initiated for $_selectedCategory...')),
+                                      );
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Theme.of(context).colorScheme.primary,
+                                      foregroundColor: Colors.white,
+                                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                    ),
+                                    child: const Text('Book', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                                  ),
+                                ],
+                              ),
                             ),
                           ],
                         ),

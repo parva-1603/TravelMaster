@@ -20,9 +20,13 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     super.initState();
-    // Initialize the Gemini model
+    // Initialize the Gemini model with specific instructions for TravelMaster
     const apiKey = 'AQ.Ab8RN6I' + '6N7k82u2oChtG9albAKk571nznN0rNg0suXikVEAvQQ'; // Obfuscated to bypass GitHub block
-    _model = GenerativeModel(model: 'gemini-3.8-flash', apiKey: apiKey);
+    _model = GenerativeModel(
+      model: 'gemini-3.8-flash', 
+      apiKey: apiKey,
+      systemInstruction: Content.system('You are TravelMaster AI, an expert travel assistant. Suggest destinations, plan itineraries, and if asked about hotels in a city (like Jaipur, Kerala, Ladakh, Goa), you must suggest some top hotels with their approximate prices, contact details, and rules (e.g., Luxury Resort, Budget Inn, Boutique Stay). Do not refuse to suggest hotels.'),
+    );
     _chat = _model.startChat();
     
     // Add a welcome message
@@ -113,6 +117,30 @@ class _ChatScreenState extends State<ChatScreen> {
               padding: EdgeInsets.all(8.0),
               child: CircularProgressIndicator(),
             ),
+            
+          // Quick Suggestions
+          if (_messages.length <= 2 && !_isLoading)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  'Hi, can you suggest me some place to visit?',
+                  'Show me hotels in Jaipur',
+                  'Plan a 5-day trip to Kerala',
+                  'What are the best beaches in Goa?',
+                ].map((q) => ActionChip(
+                  label: Text(q, style: const TextStyle(fontSize: 12)),
+                  backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                  onPressed: () {
+                    _controller.text = q;
+                    _sendMessage();
+                  },
+                )).toList(),
+              ),
+            ),
+            
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(

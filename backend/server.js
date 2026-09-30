@@ -285,6 +285,58 @@ app.get('/api/weather', async (req, res) => {
   }
 });
 
+// 5. Get Hotels
+app.get('/api/hotels', (req, res) => {
+  const { location } = req.query;
+  const loc = location || 'City';
+  const hotels = [
+    {
+      id: 1,
+      name: `Luxury Resort ${loc}`,
+      image: 'https://picsum.photos/seed/hotel1/600/400',
+      price: 5000,
+      rating: 4.8,
+      contact: '+91-9876543210',
+      rules: ['No smoking inside rooms', 'Check-in: 2 PM', 'Check-out: 11 AM', 'Couples allowed']
+    },
+    {
+      id: 2,
+      name: `Budget Inn ${loc}`,
+      image: 'https://picsum.photos/seed/hotel2/600/400',
+      price: 2000,
+      rating: 4.2,
+      contact: '+91-9876543211',
+      rules: ['Check-in: 12 PM', 'Check-out: 11 AM']
+    },
+    {
+      id: 3,
+      name: `Boutique Stay ${loc}`,
+      image: 'https://picsum.photos/seed/hotel3/600/400',
+      price: 3500,
+      rating: 4.5,
+      contact: '+91-9876543212',
+      rules: ['No pets allowed', 'Check-in: 1 PM']
+    }
+  ];
+  res.json(hotels);
+});
+
+// 6. Get Transport
+app.get('/api/transport', (req, res) => {
+  const { from, to, mode } = req.query;
+  if (mode === 'flight') {
+    res.json([
+      { id: 'f1', name: 'Air India AI-101', departure: '10:00 AM', arrival: '12:30 PM', price: 4500 },
+      { id: 'f2', name: 'IndiGo 6E-202', departure: '02:00 PM', arrival: '04:15 PM', price: 3800 }
+    ]);
+  } else {
+    res.json([
+      { id: 't1', name: 'Rajdhani Express', departure: '16:00', arrival: '08:30 (+1 Day)', price: 2500 },
+      { id: 't2', name: 'Shatabdi Express', departure: '06:00', arrival: '14:00', price: 1800 }
+    ]);
+  }
+});
+
 // Root Route
 app.get('/', (req, res) => {
   res.send('TravelMaster Backend API is running!');
