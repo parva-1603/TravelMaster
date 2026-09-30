@@ -365,21 +365,81 @@ app.get('/api/transport', (req, res) => {
     if (classType === 'Business') multiplier = 2.5;
     if (classType === 'First Class') multiplier = 4;
     
-    res.json([
+    return res.json([
       { id: 'f1', name: `Air India AI-${Math.floor(Math.random()*900)+100} | ${from} ➔ ${to}`, departure: generateRandomTime(5), arrival: generateRandomTime(9), price: Math.floor((Math.random()*2000 + 3500) * multiplier) },
       { id: 'f2', name: `IndiGo 6E-${Math.floor(Math.random()*900)+100} | ${from} ➔ ${to}`, departure: generateRandomTime(11), arrival: generateRandomTime(14), price: Math.floor((Math.random()*1500 + 3000) * multiplier) },
       { id: 'f3', name: `SpiceJet SG-${Math.floor(Math.random()*900)+100} | ${from} ➔ ${to}`, departure: generateRandomTime(16), arrival: generateRandomTime(19), price: Math.floor((Math.random()*2000 + 2800) * multiplier) }
     ]);
   } else {
-    let multiplier = 1;
-    if (classType === '3-Tier AC') multiplier = 2;
-    if (classType === '1-Tier AC') multiplier = 3.5;
-    
-    res.json([
-      { id: 't1', name: `Rajdhani Exp ${Math.floor(Math.random()*9000)+1000} | ${from} ➔ ${to}`, departure: generateRandomTime(6), arrival: generateRandomTime(18), price: Math.floor((Math.random()*500 + 1200) * multiplier) },
-      { id: 't2', name: `Shatabdi Exp ${Math.floor(Math.random()*9000)+1000} | ${from} ➔ ${to}`, departure: generateRandomTime(9), arrival: generateRandomTime(21), price: Math.floor((Math.random()*300 + 900) * multiplier) },
-      { id: 't3', name: `Duronto Exp ${Math.floor(Math.random()*9000)+1000} | ${from} ➔ ${to}`, departure: generateRandomTime(18), arrival: generateRandomTime(6) + ' (+1)', price: Math.floor((Math.random()*400 + 1000) * multiplier) }
-    ]);
+    // REAL IRCTC API INTEGRATION
+    const cityToStation = {
+      'delhi': 'NDLS', 'new delhi': 'NDLS',
+      'mumbai': 'MMCT', 'bombay': 'MMCT',
+      'kerala': 'ERS', 'kochi': 'ERS', 'ernakulam': 'ERS',
+      'jaipur': 'JP',
+      'ladakh': 'JAT', // Jammu Tawi is closest major railhead
+      'goa': 'MAO', 'madgaon': 'MAO',
+      'bangalore': 'SBC', 'bengaluru': 'SBC',
+      'chennai': 'MAS', 'madras': 'MAS',
+      'kolkata': 'HWH', 'howrah': 'HWH',
+      'hyderabad': 'SC', 'secunderabad': 'SC',
+      'agra': 'AGC'
+    };
+
+    const fromCode = cityToStation[from.toLowerCase()] || 'NDLS';
+    let toCode = cityToStation[to.toLowerCase()];
+    // Handle cases where 'to' contains "Kerala" but might have other words
+    if (!toCode) {
+      if (to.toLowerCase().includes('kerala')) toCode = 'ERS';
+      else if (to.toLowerCase().includes('jaipur')) toCode = 'JP';
+      else if (to.toLowerCase().includes('ladakh')) toCode = 'JAT';
+      else if (to.toLowerCase().includes('goa')) toCode = 'MAO';
+      else toCode = 'MMCT'; // Default fallback
+    }
+
+    if (fromCode === toCode) return res.json([]);
+
+    // Get date 3 days from now
+    const d = new Date();
+    d.setDate(d.getDate() + 3);
+    const dateStr = `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}-${d.getDate().toString().padStart(2,'0')}`;
+
+    fetch(`https://irctc1.p.rapidapi.com/api/v3/trainBetweenStations?fromStationCode=${fromCode}&toStationCode=${toCode}&dateOfJourney=${dateStr}`, {
+      method: 'GET',
+      headers: {
+        'x-rapidapi-key': '3bb29e74bamsh6df9d79706ecae1p1ff4cdjsn76b9637ab4ee',
+        'x-rapidapi-host': 'irctc1.p.rapidapi.com'
+      }
+    })
+    .then(response => response.json())
+    .then(json => {
+      if (!json.status || !json.data || json.data.length === 0) {
+        return res.json([]);
+      }
+      
+      let multiplier = 1;
+      if (classType === '3-Tier AC') multiplier = 2.5;
+      if (classType === '1-Tier AC') multiplier = 4;
+      
+      const realTrains = json.data.slice(0, 5).map(train => {
+        // Base price calculation: roughly Rs. 1 per km for Sleeper class
+        const basePrice = Math.max(500, Math.floor((train.distance || 800) * 0.9));
+        
+        return {
+          id: train.train_number,
+          name: `${train.train_name} (${train.train_number}) | ${fromCode} ➔ ${toCode}`,
+          departure: train.from_std,
+          arrival: train.to_sta,
+          price: Math.floor(basePrice * multiplier)
+        };
+      });
+      
+      res.json(realTrains);
+    })
+    .catch(err => {
+      console.error('IRCTC API Error:', err);
+      res.status(500).json([]);
+    });
   }
 });
 
