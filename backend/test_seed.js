@@ -12,7 +12,7 @@ async function main() {
         price: 'Rs. 25,000',
         rating: '4.9',
         duration: '5 Days',
-        image: 'https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?q=80&w=600&auto=format&fit=crop',
+        image: 'https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?auto=format&fit=crop&w=1400&q=85',
         isTrending: true
       },
       {
@@ -21,7 +21,7 @@ async function main() {
         price: 'Rs. 32,000',
         rating: '4.8',
         duration: '7 Days',
-        image: 'https://images.unsplash.com/photo-1477587458883-47145ed94245?q=80&w=600&auto=format&fit=crop',
+        image: 'https://images.unsplash.com/photo-1477587458883-47145ed94245?auto=format&fit=crop&w=1400&q=85',
         isTrending: true
       },
       {
@@ -30,7 +30,7 @@ async function main() {
         price: 'Rs. 45,000',
         rating: '5.0',
         duration: '8 Days',
-        image: 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?q=80&w=600&auto=format&fit=crop',
+        image: 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?auto=format&fit=crop&w=1400&q=85',
         isTrending: true
       },
       {
@@ -39,7 +39,7 @@ async function main() {
         price: 'Rs. 18,000',
         rating: '4.7',
         duration: '4 Days',
-        image: 'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?q=80&w=600&auto=format&fit=crop',
+        image: 'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?auto=format&fit=crop&w=1400&q=85',
         isTrending: true
       }
     ];

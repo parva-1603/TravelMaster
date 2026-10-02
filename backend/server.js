@@ -30,7 +30,7 @@ app.post('/api/seed', async (req, res) => {
         price: 'Rs. 25,000',
         rating: '4.9',
         duration: '5 Days',
-        image: 'https://picsum.photos/seed/kerala/600/400',
+        image: 'https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?auto=format&fit=crop&w=1400&q=85',
         isTrending: true
       },
       {
@@ -39,7 +39,7 @@ app.post('/api/seed', async (req, res) => {
         price: 'Rs. 32,000',
         rating: '4.8',
         duration: '7 Days',
-        image: 'https://picsum.photos/seed/rajasthan/600/400',
+        image: 'https://images.unsplash.com/photo-1477587458883-47145ed94245?auto=format&fit=crop&w=1400&q=85',
         isTrending: true
       },
       {
@@ -48,7 +48,7 @@ app.post('/api/seed', async (req, res) => {
         price: 'Rs. 45,000',
         rating: '5.0',
         duration: '8 Days',
-        image: 'https://picsum.photos/seed/himalayas/600/400',
+        image: 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?auto=format&fit=crop&w=1400&q=85',
         isTrending: true
       },
       {
@@ -57,7 +57,7 @@ app.post('/api/seed', async (req, res) => {
         price: 'Rs. 18,000',
         rating: '4.7',
         duration: '4 Days',
-        image: 'https://picsum.photos/seed/goa/600/400',
+        image: 'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?auto=format&fit=crop&w=1400&q=85',
         isTrending: true
       }
     ];
@@ -98,7 +98,7 @@ app.get('/api/packages/trending', async (req, res) => {
         price: 'Rs. 25,000',
         rating: '4.9',
         duration: '5 Days',
-        image: 'https://picsum.photos/seed/kerala/600/400',
+        image: 'https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?auto=format&fit=crop&w=1400&q=85',
         isTrending: true,
         departureDates: ['15 Oct 2026', '22 Oct 2026', '05 Nov 2026'],
         categories: {
@@ -122,7 +122,7 @@ app.get('/api/packages/trending', async (req, res) => {
         price: 'Rs. 32,000',
         rating: '4.8',
         duration: '7 Days',
-        image: 'https://picsum.photos/seed/rajasthan/600/400',
+        image: 'https://images.unsplash.com/photo-1477587458883-47145ed94245?auto=format&fit=crop&w=1400&q=85',
         isTrending: true,
         departureDates: ['10 Oct 2026', '25 Oct 2026', '12 Nov 2026'],
         categories: {
@@ -147,7 +147,7 @@ app.get('/api/packages/trending', async (req, res) => {
         price: 'Rs. 45,000',
         rating: '5.0',
         duration: '8 Days',
-        image: 'https://picsum.photos/seed/himalayas/600/400',
+        image: 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?auto=format&fit=crop&w=1400&q=85',
         isTrending: true,
         departureDates: ['01 May 2027', '15 May 2027', '05 Jun 2027'],
         categories: {
@@ -173,7 +173,7 @@ app.get('/api/packages/trending', async (req, res) => {
         price: 'Rs. 18,000',
         rating: '4.7',
         duration: '4 Days',
-        image: 'https://picsum.photos/seed/goa/600/400',
+        image: 'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?auto=format&fit=crop&w=1400&q=85',
         isTrending: true,
         departureDates: ['20 Nov 2026', '25 Nov 2026', '10 Dec 2026'],
         categories: {
