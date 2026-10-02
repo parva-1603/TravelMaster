@@ -26,14 +26,15 @@ class _CustomizePackageSheetState extends State<CustomizePackageSheet> {
   String _transportClass = 'Economy';
   String _accommodationType = 'Hotel';
   final TextEditingController _fromController = TextEditingController();
-  
+
   Map<String, dynamic>? _selectedTransport;
   Map<String, dynamic>? _selectedHotel;
 
   @override
   void initState() {
     super.initState();
-    _fromController.text = widget.startingCity.isEmpty ? 'Delhi' : widget.startingCity;
+    _fromController.text =
+        widget.startingCity.isEmpty ? 'Delhi' : widget.startingCity;
     _fetchOptions();
   }
 
@@ -47,11 +48,14 @@ class _CustomizePackageSheetState extends State<CustomizePackageSheet> {
     setState(() => _isLoading = true);
     try {
       final loc = widget.pkg['location'].toString().split(',').first;
-      final startCity = _fromController.text.isEmpty ? 'Delhi' : _fromController.text;
-      
-      final tRes = await http.get(Uri.parse('http://localhost:5000/api/transport?from=$startCity&to=$loc&mode=$_transportMode&classType=$_transportClass'));
-      final hRes = await http.get(Uri.parse('http://localhost:5000/api/hotels?location=$loc&type=$_accommodationType'));
-      
+      final startCity =
+          _fromController.text.isEmpty ? 'Delhi' : _fromController.text;
+
+      final tRes = await http.get(Uri.parse(
+          'http://localhost:5000/api/transport?from=$startCity&to=$loc&mode=$_transportMode&classType=$_transportClass'));
+      final hRes = await http.get(Uri.parse(
+          'http://localhost:5000/api/hotels?location=$loc&type=$_accommodationType'));
+
       if (tRes.statusCode == 200 && hRes.statusCode == 200) {
         if (mounted) {
           setState(() {
@@ -70,11 +74,12 @@ class _CustomizePackageSheetState extends State<CustomizePackageSheet> {
 
   void _applyCustomization() {
     if (_selectedHotel == null || _selectedTransport == null) return;
-    
+
     int tPrice = _selectedTransport!['price'] as int;
     int hPrice = _selectedHotel!['price'] as int;
-    
-    widget.onCustomizationComplete(tPrice + hPrice, 'Transport: ${_selectedTransport!['name']} | Hotel: ${_selectedHotel!['name']}');
+
+    widget.onCustomizationComplete(tPrice + hPrice,
+        'Transport: ${_selectedTransport!['name']} | Hotel: ${_selectedHotel!['name']}');
     Navigator.pop(context);
   }
 
@@ -82,17 +87,33 @@ class _CustomizePackageSheetState extends State<CustomizePackageSheet> {
   Widget build(BuildContext context) {
     return Container(
       height: MediaQuery.of(context).size.height * 0.85,
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Customize Your Trip', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+          Center(
+            child: Container(
+              width: 36,
+              height: 4,
+              margin: const EdgeInsets.only(bottom: 16),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.outlineVariant,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
+          Text(
+            'Make it your trip',
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+          ),
           const SizedBox(height: 16),
-          
+
           // Cities
           Row(
             children: [
@@ -104,14 +125,18 @@ class _CustomizePackageSheetState extends State<CustomizePackageSheet> {
                     prefixIcon: Icon(Icons.flight_takeoff),
                     border: OutlineInputBorder(),
                   ),
-                  onSubmitted: (_) { _selectedTransport = null; _fetchOptions(); },
+                  onSubmitted: (_) {
+                    _selectedTransport = null;
+                    _fetchOptions();
+                  },
                 ),
               ),
               const SizedBox(width: 16),
               Expanded(
                 child: TextField(
                   readOnly: true,
-                  controller: TextEditingController(text: widget.pkg['location'].toString().split(',').first),
+                  controller: TextEditingController(
+                      text: widget.pkg['location'].toString().split(',').first),
                   decoration: const InputDecoration(
                     labelText: 'Going To',
                     prefixIcon: Icon(Icons.flight_land),
@@ -122,36 +147,47 @@ class _CustomizePackageSheetState extends State<CustomizePackageSheet> {
             ],
           ),
           const SizedBox(height: 16),
-          
+
           // Transport
-          const Text('1. Select Transportation', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          Text(
+            '01  Transportation',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+          ),
           Row(
             children: [
               Radio<String>(
-                value: 'flight', 
-                groupValue: _transportMode, 
-                onChanged: (v) { 
-                  setState(() { _transportMode = v!; _transportClass = 'Economy'; _selectedTransport = null; }); 
-                  _fetchOptions(); 
-                }
-              ),
+                  value: 'flight',
+                  groupValue: _transportMode,
+                  onChanged: (v) {
+                    setState(() {
+                      _transportMode = v!;
+                      _transportClass = 'Economy';
+                      _selectedTransport = null;
+                    });
+                    _fetchOptions();
+                  }),
               const Text('Flight'),
               Radio<String>(
-                value: 'train', 
-                groupValue: _transportMode, 
-                onChanged: (v) { 
-                  setState(() { _transportMode = v!; _transportClass = 'Sleeper'; _selectedTransport = null; }); 
-                  _fetchOptions(); 
-                }
-              ),
+                  value: 'train',
+                  groupValue: _transportMode,
+                  onChanged: (v) {
+                    setState(() {
+                      _transportMode = v!;
+                      _transportClass = 'Sleeper';
+                      _selectedTransport = null;
+                    });
+                    _fetchOptions();
+                  }),
               const Text('Train'),
               const Spacer(),
               DropdownButton<String>(
                 value: _transportClass,
-                items: (_transportMode == 'flight' 
-                    ? ['Economy', 'Business', 'First Class'] 
-                    : ['Sleeper', '3-Tier AC', '1-Tier AC']
-                ).map((String value) {
+                items: (_transportMode == 'flight'
+                        ? ['Economy', 'Business', 'First Class']
+                        : ['Sleeper', '3-Tier AC', '1-Tier AC'])
+                    .map((String value) {
                   return DropdownMenuItem<String>(
                     value: value,
                     child: Text(value),
@@ -166,44 +202,53 @@ class _CustomizePackageSheetState extends State<CustomizePackageSheet> {
               ),
             ],
           ),
-          
-          if (_isLoading) const Center(child: CircularProgressIndicator())
+
+          if (_isLoading)
+            const Center(child: CircularProgressIndicator())
           else if (_transports.isEmpty)
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 16.0),
               child: Center(
                 child: Text(
                   'No flights/trains available for this route.',
-                  style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                  style:
+                      TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
                 ),
               ),
             )
-          else 
+          else
             SizedBox(
               height: 140,
               child: ListView.builder(
-                itemCount: _transports.length,
-                itemBuilder: (c, i) {
-                  final t = _transports[i];
-                  final isSelected = _selectedTransport == t;
-                  return ListTile(
-                    selected: isSelected,
-                    selectedTileColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
-                    title: Text(t['name']),
-                    subtitle: Text('${t['departure']} - ${t['arrival']}'),
-                    trailing: Text('Rs. ${t['price']}'),
-                    onTap: () => setState(() => _selectedTransport = t),
-                  );
-                }
-              ),
+                  itemCount: _transports.length,
+                  itemBuilder: (c, i) {
+                    final t = _transports[i];
+                    final isSelected = _selectedTransport == t;
+                    return ListTile(
+                      selected: isSelected,
+                      selectedTileColor: Theme.of(context)
+                          .colorScheme
+                          .primary
+                          .withValues(alpha: 0.1),
+                      title: Text(t['name']),
+                      subtitle: Text('${t['departure']} - ${t['arrival']}'),
+                      trailing: Text('Rs. ${t['price']}'),
+                      onTap: () => setState(() => _selectedTransport = t),
+                    );
+                  }),
             ),
-          
+
           const SizedBox(height: 16),
           // Hotel
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('2. Select Accommodation', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              Text(
+                '02  Stay',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+              ),
               DropdownButton<String>(
                 value: _accommodationType,
                 items: ['Hotel', 'Resort'].map((String value) {
@@ -225,64 +270,92 @@ class _CustomizePackageSheetState extends State<CustomizePackageSheet> {
             ],
           ),
           const SizedBox(height: 8),
-          if (_isLoading) const SizedBox()
+          if (_isLoading)
+            const SizedBox()
           else if (_hotels.isNotEmpty)
             Expanded(
               child: ListView.builder(
-                itemCount: _hotels.length,
-                itemBuilder: (c, i) {
-                  final h = _hotels[i];
-                  final isSelected = _selectedHotel == h;
-                  return Card(
-                    color: isSelected ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.1) : null,
-                    margin: const EdgeInsets.only(bottom: 12),
-                    child: InkWell(
-                      onTap: () => setState(() => _selectedHotel = h),
-                      child: Padding(
-                        padding: const EdgeInsets.all(12.0),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: Image.network(h['image'], width: 80, height: 80, fit: BoxFit.cover),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(h['name'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                                  const SizedBox(height: 4),
-                                  Text('⭐ ${h['rating']} | 📞 ${h['contact']}', style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.secondary)),
-                                  const SizedBox(height: 4),
-                                  Text('Rules: ${h['rules'].join(', ')}', style: const TextStyle(fontSize: 11), maxLines: 2, overflow: TextOverflow.ellipsis),
-                                ],
+                  itemCount: _hotels.length,
+                  itemBuilder: (c, i) {
+                    final h = _hotels[i];
+                    final isSelected = _selectedHotel == h;
+                    return Card(
+                      color: isSelected
+                          ? Theme.of(context)
+                              .colorScheme
+                              .primary
+                              .withValues(alpha: 0.1)
+                          : null,
+                      margin: const EdgeInsets.only(bottom: 12),
+                      child: InkWell(
+                        onTap: () => setState(() => _selectedHotel = h),
+                        child: Padding(
+                          padding: const EdgeInsets.all(12.0),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: Image.network(h['image'],
+                                    width: 80, height: 80, fit: BoxFit.cover),
                               ),
-                            ),
-                            Text('Rs. ${h['price']}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Theme.of(context).colorScheme.primary)),
-                          ],
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(h['name'],
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16)),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                        '⭐ ${h['rating']} | 📞 ${h['contact']}',
+                                        style: TextStyle(
+                                            fontSize: 12,
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .secondary)),
+                                    const SizedBox(height: 4),
+                                    Text('Rules: ${h['rules'].join(', ')}',
+                                        style: const TextStyle(fontSize: 11),
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis),
+                                  ],
+                                ),
+                              ),
+                              Text('Rs. ${h['price']}',
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .primary)),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                  );
-                }
-              ),
+                    );
+                  }),
             ),
-            
+
           const SizedBox(height: 16),
           SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: (_selectedTransport != null && _selectedHotel != null) ? _applyCustomization : null,
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.all(16),
-                backgroundColor: Theme.of(context).colorScheme.primary,
-                foregroundColor: Colors.white,
-              ),
-              child: const Text('Apply Customizations', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            )
-          )
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed:
+                    (_selectedTransport != null && _selectedHotel != null)
+                        ? _applyCustomization
+                        : null,
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.all(16),
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text('Apply Customizations',
+                    style:
+                        TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              ))
         ],
       ),
     );

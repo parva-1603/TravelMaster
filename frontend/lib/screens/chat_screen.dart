@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
-import 'package:glassmorphism/glassmorphism.dart';
+import '../widgets/live_background.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -21,19 +21,28 @@ class _ChatScreenState extends State<ChatScreen> {
   void initState() {
     super.initState();
     // Initialize the Gemini model with specific instructions for TravelMaster
-    const apiKey = 'AQ.Ab8RN6I' + '6N7k82u2oChtG9albAKk571nznN0rNg0suXikVEAvQQ'; // Obfuscated to bypass GitHub block
+    const apiKey = 'AQ.Ab8RN6I'
+        '6N7k82u2oChtG9albAKk571nznN0rNg0suXikVEAvQQ'; // Obfuscated to bypass GitHub block
     _model = GenerativeModel(
-      model: 'gemini-3.8-flash', 
+      model: 'gemini-3.8-flash',
       apiKey: apiKey,
-      systemInstruction: Content.system('You are TravelMaster AI, an expert travel assistant. Suggest destinations, plan itineraries, and if asked about hotels in a city (like Jaipur, Kerala, Ladakh, Goa), you must suggest some top hotels with their approximate prices, contact details, and rules (e.g., Luxury Resort, Budget Inn, Boutique Stay). Do not refuse to suggest hotels.'),
+      systemInstruction: Content.system(
+          'You are TravelMaster AI, an expert travel assistant. Suggest destinations, plan itineraries, and if asked about hotels in a city (like Jaipur, Kerala, Ladakh, Goa), you must suggest some top hotels with their approximate prices, contact details, and rules (e.g., Luxury Resort, Budget Inn, Boutique Stay). Do not refuse to suggest hotels.'),
     );
     _chat = _model.startChat();
-    
+
     // Add a welcome message
     _messages.add({
       'sender': 'bot',
-      'text': 'Hello! I am your TravelMaster AI assistant. How can I help you plan your trip today?'
+      'text':
+          'Hello! I am your TravelMaster AI assistant. How can I help you plan your trip today?'
     });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   Future<void> _sendMessage() async {
@@ -49,140 +58,189 @@ class _ChatScreenState extends State<ChatScreen> {
     try {
       final response = await _chat.sendMessage(Content.text(text));
       final responseText = response.text;
-      if (responseText != null) {
+      if (mounted && responseText != null) {
         setState(() {
           _messages.add({'sender': 'bot', 'text': responseText});
         });
       }
     } catch (e) {
+      if (!mounted) return;
       setState(() {
-        _messages.add({'sender': 'bot', 'text': 'Sorry, I encountered an error. Please try again later.'});
+        _messages.add({
+          'sender': 'bot',
+          'text': 'Sorry, I encountered an error. Please try again later.'
+        });
       });
       debugPrint('Error from Gemini: $e');
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
-        title: const Text('TravelMaster AI'),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        iconTheme: IconThemeData(color: Theme.of(context).colorScheme.onSurface),
+        titleSpacing: 20,
+        title: Row(
+          children: [
+            Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                color: colors.primary,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(Icons.explore_rounded,
+                  color: Colors.white, size: 21),
+            ),
+            const SizedBox(width: 10),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Travel guide'),
+                Text(
+                  'Here for the details',
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: colors.onSurfaceVariant,
+                      ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: _messages.length,
-              itemBuilder: (context, index) {
-                final message = _messages[index];
-                final isUser = message['sender'] == 'user';
-                return Align(
-                  alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
-                  child: Container(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    decoration: BoxDecoration(
-                      color: isUser 
-                          ? Theme.of(context).colorScheme.primary 
-                          : Theme.of(context).colorScheme.surfaceVariant,
-                      borderRadius: BorderRadius.circular(20).copyWith(
-                        bottomRight: isUser ? const Radius.circular(0) : null,
-                        bottomLeft: !isUser ? const Radius.circular(0) : null,
+      body: LiveBackground(
+        child: Column(
+          children: [
+            Expanded(
+              child: ListView.builder(
+                padding: const EdgeInsets.fromLTRB(18, 14, 18, 18),
+                itemCount: _messages.length,
+                itemBuilder: (context, index) {
+                  final message = _messages[index];
+                  final isUser = message['sender'] == 'user';
+                  return Align(
+                    alignment:
+                        isUser ? Alignment.centerRight : Alignment.centerLeft,
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxWidth: MediaQuery.sizeOf(context).width * 0.78,
+                      ),
+                      child: Container(
+                        margin: const EdgeInsets.only(bottom: 14),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 13),
+                        decoration: BoxDecoration(
+                          color: isUser ? colors.primary : colors.surface,
+                          borderRadius: BorderRadius.circular(15).copyWith(
+                            bottomRight:
+                                isUser ? const Radius.circular(4) : null,
+                            bottomLeft:
+                                !isUser ? const Radius.circular(4) : null,
+                          ),
+                          border: isUser
+                              ? null
+                              : Border.all(
+                                  color: colors.outlineVariant
+                                      .withValues(alpha: 0.65)),
+                        ),
+                        child: Text(
+                          message['text'] ?? '',
+                          style: TextStyle(
+                            height: 1.45,
+                            color: isUser ? colors.onPrimary : colors.onSurface,
+                          ),
+                        ),
                       ),
                     ),
-                    child: Text(
-                      message['text'] ?? '',
-                      style: TextStyle(
-                        color: isUser 
-                            ? Theme.of(context).colorScheme.onPrimary 
-                            : Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-          if (_isLoading)
-            const Padding(
-              padding: EdgeInsets.all(8.0),
-              child: CircularProgressIndicator(),
-            ),
-            
-          // Quick Suggestions
-          if (_messages.length <= 2 && !_isLoading)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              child: Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  'Hi, can you suggest me some place to visit?',
-                  'Show me hotels in Jaipur',
-                  'Plan a 5-day trip to Kerala',
-                  'What are the best beaches in Goa?',
-                ].map((q) => ActionChip(
-                  label: Text(q, style: const TextStyle(fontSize: 12)),
-                  backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
-                  onPressed: () {
-                    _controller.text = q;
-                    _sendMessage();
-                  },
-                )).toList(),
+                  );
+                },
               ),
             ),
-            
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, -5),
-                ),
-              ],
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _controller,
-                    decoration: InputDecoration(
-                      hintText: 'Ask me anything about travel...',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(30),
-                        borderSide: BorderSide.none,
+            if (_isLoading)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: 15,
+                      height: 15,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: colors.primary,
                       ),
-                      filled: true,
-                      fillColor: Theme.of(context).colorScheme.surfaceVariant,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                     ),
-                    onSubmitted: (_) => _sendMessage(),
-                  ),
+                    const SizedBox(width: 10),
+                    Text('Putting a few ideas together',
+                        style: Theme.of(context).textTheme.bodySmall),
+                  ],
                 ),
-                const SizedBox(width: 8),
-                CircleAvatar(
-                  backgroundColor: Theme.of(context).colorScheme.primary,
-                  child: IconButton(
-                    icon: const Icon(Icons.send, color: Colors.white),
-                    onPressed: _sendMessage,
-                  ),
+              ),
+            if (_messages.length <= 2 && !_isLoading)
+              SizedBox(
+                height: 44,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  children: [
+                    'Find me a quiet getaway',
+                    'Hotels in Jaipur',
+                    '5 days in Kerala',
+                    'Best beaches in Goa',
+                  ]
+                      .map((prompt) => Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: ActionChip(
+                              label: Text(prompt),
+                              side: BorderSide(color: colors.outlineVariant),
+                              backgroundColor: colors.surface,
+                              onPressed: () {
+                                _controller.text = prompt;
+                                _sendMessage();
+                              },
+                            ),
+                          ))
+                      .toList(),
                 ),
-              ],
+              ),
+            Container(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+              decoration: BoxDecoration(
+                color: colors.surface,
+                border: Border(top: BorderSide(color: colors.outlineVariant)),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _controller,
+                      minLines: 1,
+                      maxLines: 4,
+                      decoration: const InputDecoration(
+                        hintText: 'Ask about a place, stay or route',
+                        prefixIcon: Icon(Icons.chat_outlined),
+                      ),
+                      onSubmitted: (_) => _sendMessage(),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  SizedBox(
+                    width: 50,
+                    height: 50,
+                    child: IconButton.filled(
+                      tooltip: 'Send message',
+                      onPressed: _isLoading ? null : _sendMessage,
+                      icon: const Icon(Icons.arrow_upward_rounded),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

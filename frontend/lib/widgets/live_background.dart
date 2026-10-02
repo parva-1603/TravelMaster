@@ -7,7 +7,7 @@ class LiveBackground extends StatefulWidget {
   const LiveBackground({super.key, required this.child});
 
   @override
-  _LiveBackgroundState createState() => _LiveBackgroundState();
+  State<LiveBackground> createState() => _LiveBackgroundState();
 }
 
 class _LiveBackgroundState extends State<LiveBackground>
@@ -19,7 +19,7 @@ class _LiveBackgroundState extends State<LiveBackground>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 10),
+      duration: const Duration(seconds: 24),
     )..repeat();
   }
 
@@ -31,63 +31,103 @@ class _LiveBackgroundState extends State<LiveBackground>
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Stack(
       children: [
-        // Background color
-        Container(
-          color: Theme.of(context).scaffoldBackgroundColor,
+        Positioned.fill(
+          child: ColoredBox(color: Theme.of(context).scaffoldBackgroundColor),
         ),
-        // Animated gradient blobs
         AnimatedBuilder(
           animation: _controller,
           builder: (context, child) {
-            return Stack(
-              children: [
-                Positioned(
-                  top: -100 + 50 * math.sin(_controller.value * 2 * math.pi),
-                  left: -50 + 50 * math.cos(_controller.value * 2 * math.pi),
-                  child: Container(
-                    width: 300,
-                    height: 300,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: RadialGradient(
-                        colors: [
-                          Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
-                          Colors.transparent,
-                        ],
-                      ),
-                    ),
-                  ),
+            return Positioned.fill(
+              child: CustomPaint(
+                painter: _RouteMapPainter(
+                  progress: _controller.value,
+                  lineColor: Theme.of(context).colorScheme.primary,
                 ),
-                Positioned(
-                  bottom: -150 + 80 * math.cos(_controller.value * 2 * math.pi),
-                  right: -100 + 80 * math.sin(_controller.value * 2 * math.pi),
-                  child: Container(
-                    width: 400,
-                    height: 400,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: RadialGradient(
-                        colors: [
-                          Theme.of(context).colorScheme.secondary.withValues(alpha: 0.3),
-                          Colors.transparent,
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+              ),
             );
           },
         ),
-        // Glass overlay or just the child
         Positioned.fill(
           child: widget.child,
         ),
       ],
     );
   }
+}
+
+class _RouteMapPainter extends CustomPainter {
+  final double progress;
+  final Color lineColor;
+
+  _RouteMapPainter({required this.progress, required this.lineColor});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final contourPaint = Paint()
+      ..color = lineColor.withValues(alpha: 0.055)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1;
+
+    for (var index = 0; index < 11; index++) {
+      final y = size.height * (0.28 + index * 0.075);
+      final drift = math.sin(progress * 2 * math.pi + index * 0.42) * 14;
+      final path = Path()
+        ..moveTo(-30, y + drift)
+        ..cubicTo(
+          size.width * 0.24,
+          y - 58 + drift,
+          size.width * 0.42,
+          y + 72 - drift,
+          size.width * 0.68,
+          y + 12,
+        )
+        ..cubicTo(
+          size.width * 0.84,
+          y - 22 - drift,
+          size.width * 0.94,
+          y + 45 + drift,
+          size.width + 30,
+          y - 2,
+        );
+      canvas.drawPath(path, contourPaint);
+    }
+
+    final route = Path()
+      ..moveTo(size.width * 0.12, size.height * 0.82)
+      ..cubicTo(
+        size.width * 0.36,
+        size.height * 0.68,
+        size.width * 0.61,
+        size.height * 0.94,
+        size.width * 0.88,
+        size.height * 0.72,
+      );
+    final routePaint = Paint()
+      ..color = lineColor.withValues(alpha: 0.14)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.4;
+    canvas.drawPath(route, routePaint);
+
+    final routeMetric = route.computeMetrics().first;
+    final point =
+        routeMetric.getTangentForOffset(routeMetric.length * progress);
+    if (point != null) {
+      canvas.drawCircle(
+        point.position,
+        4,
+        Paint()..color = lineColor.withValues(alpha: 0.62),
+      );
+      canvas.drawCircle(
+        point.position,
+        8,
+        Paint()..color = lineColor.withValues(alpha: 0.1),
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _RouteMapPainter oldDelegate) =>
+      oldDelegate.progress != progress || oldDelegate.lineColor != lineColor;
 }

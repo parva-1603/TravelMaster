@@ -1,0 +1,82 @@
+{
+  "languages": {
+    "js": {
+      "naming": {
+        "functions": {
+          "camelCase": 430,
+          "snake_case": 0,
+          "PascalCase": 295,
+          "SCREAMING_SNAKE": 66,
+          "kebab-case": 0,
+          "other": 13
+        },
+        "variables": {
+          "camelCase": 30738,
+          "snake_case": 1,
+          "PascalCase": 203,
+          "SCREAMING_SNAKE": 282,
+          "kebab-case": 0,
+          "other": 1521
+        }
+      },
+      "errorHandling": {
+        "tryCatch": 230,
+        "promiseCatch": 10,
+        "resultType": 5
+      },
+      "importStyle": {
+        "named": 1,
+        "default": 0,
+        "wildcard": 0,
+        "sideEffect": 0
+      },
+      "quoteStyle": {
+        "single": 1203,
+        "double": 51043,
+        "backtick": 554
+      },
+      "totalFilesAnalyzed": 14,
+      "createdAt": "2026-10-02T07:47:20.688Z"
+    },
+    "java": {
+      "naming": {
+        "functions": {
+          "camelCase": 1,
+          "snake_case": 0,
+          "PascalCase": 0,
+          "SCREAMING_SNAKE": 0,
+          "kebab-case": 0,
+          "other": 0
+        },
+        "variables": {
+          "camelCase": 0,
+          "snake_case": 0,
+          "PascalCase": 0,
+          "SCREAMING_SNAKE": 1,
+          "kebab-case": 0,
+          "other": 0
+        }
+      },
+      "errorHandling": {
+        "tryCatch": 9,
+        "promiseCatch": 0,
+        "resultType": 0
+      },
+      "importStyle": {
+        "named": 0,
+        "default": 4,
+        "wildcard": 0,
+        "sideEffect": 0
+      },
+      "quoteStyle": {
+        "single": 0,
+        "double": 20,
+        "backtick": 0
+      },
+      "totalFilesAnalyzed": 1,
+      "createdAt": "2026-10-02T07:47:20.688Z"
+    }
+  },
+  "createdAt": "2026-10-02T07:47:20.688Z",
+  "version": 3
+}

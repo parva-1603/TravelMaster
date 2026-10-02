@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -13,7 +12,7 @@ class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key, required this.onThemeToggle});
 
   @override
-  _LoginScreenState createState() => _LoginScreenState();
+  State<LoginScreen> createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> {
@@ -21,6 +20,14 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   bool _isLoading = false;
   bool _isLogin = true;
+  bool _obscurePassword = true;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   Future<void> _submit() async {
     setState(() => _isLoading = true);
@@ -33,7 +40,9 @@ class _LoginScreenState extends State<LoginScreen> {
         if (mounted) {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (_) => HomeScreen(onThemeToggle: widget.onThemeToggle)),
+            MaterialPageRoute(
+                builder: (_) =>
+                    HomeScreen(onThemeToggle: widget.onThemeToggle)),
           );
         }
       } else {
@@ -44,15 +53,19 @@ class _LoginScreenState extends State<LoginScreen> {
         if (mounted) {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (_) => HomeScreen(onThemeToggle: widget.onThemeToggle)),
+            MaterialPageRoute(
+                builder: (_) =>
+                    HomeScreen(onThemeToggle: widget.onThemeToggle)),
           );
         }
       }
     } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Firebase Error: ${e.message}')),
       );
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: ${e.toString()}')),
       );
@@ -71,45 +84,49 @@ class _LoginScreenState extends State<LoginScreen> {
 
         await FirebaseAuth.instance.signInWithPopup(googleProvider);
       } else {
-        const webClientId = '565718048353-rnc2801bifk4djstv2373iern8esld1i.apps.googleusercontent.com';
-        
+        const webClientId =
+            '565718048353-rnc2801bifk4djstv2373iern8esld1i.apps.googleusercontent.com';
+
         final GoogleSignIn googleSignIn = GoogleSignIn(
           serverClientId: webClientId,
         );
-        
+
         final googleUser = await googleSignIn.signIn();
         if (googleUser == null) {
           // User canceled login
           return;
         }
-        
+
         final googleAuth = await googleUser.authentication;
         final accessToken = googleAuth.accessToken;
         final idToken = googleAuth.idToken;
-        
+
         if (accessToken == null && idToken == null) {
           throw 'No Tokens found.';
         }
-        
+
         final credential = GoogleAuthProvider.credential(
           idToken: idToken,
           accessToken: accessToken,
         );
-        
+
         await FirebaseAuth.instance.signInWithCredential(credential);
       }
-      
+
       if (mounted) {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) => HomeScreen(onThemeToggle: widget.onThemeToggle)),
+          MaterialPageRoute(
+              builder: (_) => HomeScreen(onThemeToggle: widget.onThemeToggle)),
         );
       }
     } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Firebase Error: ${e.message}')),
       );
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: ${e.toString()}')),
       );
@@ -121,138 +138,217 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: Icon(isDark ? Icons.light_mode : Icons.dark_mode),
-            onPressed: widget.onThemeToggle,
-          ).animate().fadeIn().scale(),
-        ],
-      ),
       body: LiveBackground(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(30),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-                child: Container(
-                  padding: const EdgeInsets.all(32),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surface.withValues(alpha: isDark ? 0.4 : 0.6),
-                    borderRadius: BorderRadius.circular(30),
-                    border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.2),
-                      width: 1.5,
+        child: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final wide = constraints.maxWidth >= 850;
+              return Stack(
+                children: [
+                  Positioned(
+                    top: 4,
+                    right: 12,
+                    child: IconButton(
+                      tooltip: isDark
+                          ? 'Switch to light theme'
+                          : 'Switch to dark theme',
+                      onPressed: widget.onThemeToggle,
+                      icon: Icon(isDark
+                          ? Icons.light_mode_outlined
+                          : Icons.dark_mode_outlined),
                     ),
                   ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.airplanemode_active_rounded,
-                        size: 64,
-                        color: Theme.of(context).colorScheme.primary,
-                      ).animate().fadeIn(duration: 800.ms).slideY(begin: -0.2),
-                      const SizedBox(height: 16),
-                      Text(
-                        'TravelMaster',
-                        style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 1.2,
-                            ),
-                      ).animate().fadeIn(delay: 200.ms).slideY(begin: -0.2),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Plan your perfect journey',
-                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                              color: Theme.of(context).textTheme.bodySmall?.color,
-                            ),
-                      ).animate().fadeIn(delay: 400.ms),
-                      const SizedBox(height: 48),
-                      _buildTextField(
-                        controller: _emailController,
-                        label: 'Email',
-                        icon: Icons.email_outlined,
-                      ).animate().fadeIn(delay: 600.ms).slideX(begin: -0.1),
-                      const SizedBox(height: 16),
-                      _buildTextField(
-                        controller: _passwordController,
-                        label: 'Password',
-                        icon: Icons.lock_outline,
-                        obscure: true,
-                      ).animate().fadeIn(delay: 800.ms).slideX(begin: 0.1),
-                      const SizedBox(height: 32),
-                      SizedBox(
-                        width: double.infinity,
-                        height: 56,
-                        child: ElevatedButton(
-                          onPressed: _isLoading ? null : _submit,
-                          child: _isLoading
-                              ? const CircularProgressIndicator(color: Colors.white)
-                              : Text(
-                                  _isLogin ? 'Sign In' : 'Create Account',
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                        ),
-                      ).animate().fadeIn(delay: 1000.ms).scale(),
-                      const SizedBox(height: 16),
-                      SizedBox(
-                        width: double.infinity,
-                        height: 56,
-                        child: OutlinedButton.icon(
-                          onPressed: _isLoading ? null : _googleSignIn,
-                          icon: Image.asset(
-                            'assets/images/google_logo.png',
-                            height: 24,
-                          ),
-                          label: const Text(
-                            'Sign in with Google',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          style: OutlinedButton.styleFrom(
-                            side: BorderSide(
-                              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
-                              width: 1.5,
-                            ),
-                          ),
-                        ),
-                      ).animate().fadeIn(delay: 1100.ms).scale(),
-                      const SizedBox(height: 24),
-                      TextButton(
-                        onPressed: () {
-                          setState(() {
-                            _isLogin = !_isLogin;
-                          });
-                        },
-                        child: Text(
-                          _isLogin ? 'Create an account' : 'Already have an account? Sign In',
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.primary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ).animate().fadeIn(delay: 1200.ms),
-                    ],
+                  Center(
+                    child: SingleChildScrollView(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: wide ? 40 : 22,
+                        vertical: 54,
+                      ),
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 1080),
+                        child: wide
+                            ? Row(
+                                children: [
+                                  Expanded(child: _buildWelcomePanel(context)),
+                                  const SizedBox(width: 54),
+                                  SizedBox(
+                                      width: 390,
+                                      child: _buildAuthForm(context)),
+                                ],
+                              )
+                            : _buildAuthForm(context),
+                      ),
+                    ),
                   ),
-                ),
-              ),
-            ),
+                ],
+              );
+            },
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildWelcomePanel(BuildContext context) {
+    return SizedBox(
+      height: 510,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            Image.network(
+              'https://images.unsplash.com/photo-1516483638261-f4dbaf036963?auto=format&fit=crop&w=1400&q=85',
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) =>
+                  const ColoredBox(color: Color(0xFF31594E)),
+            ),
+            const DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0x16000000), Color(0xB5000000)],
+                ),
+              ),
+            ),
+            Positioned(
+              left: 34,
+              right: 34,
+              bottom: 34,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'TRAVEL,\nWITHOUT THE\nTEMPLATE.',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 46,
+                      height: 1.02,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  Text(
+                    'Keep your plans loose. Let the good parts find you.',
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.86),
+                      fontSize: 15,
+                    ),
+                  ),
+                ],
+              ).animate().fadeIn(delay: 180.ms).slideY(begin: 0.08),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAuthForm(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Container(
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(
+                color: colors.primary,
+                borderRadius: BorderRadius.circular(13),
+              ),
+              child: const Icon(Icons.explore_rounded, color: Colors.white),
+            ),
+            const SizedBox(width: 10),
+            Text(
+              'TravelMaster',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 36),
+        Text(
+          _isLogin ? 'Welcome back.' : 'Make room\nfor somewhere new.',
+          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                height: 1.08,
+                fontWeight: FontWeight.w800,
+              ),
+        ).animate(key: ValueKey(_isLogin)).fadeIn(duration: 250.ms),
+        const SizedBox(height: 8),
+        Text(
+          _isLogin
+              ? 'Your next trip is closer than you think.'
+              : 'Create an account and start finding your way.',
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: colors.onSurfaceVariant,
+              ),
+        ),
+        const SizedBox(height: 28),
+        _buildTextField(
+          controller: _emailController,
+          label: 'Email address',
+          icon: Icons.mail_outline_rounded,
+        ),
+        const SizedBox(height: 14),
+        _buildTextField(
+          controller: _passwordController,
+          label: 'Password',
+          icon: Icons.lock_outline_rounded,
+          obscure: _obscurePassword,
+          suffix: IconButton(
+            tooltip: _obscurePassword ? 'Show password' : 'Hide password',
+            onPressed: () =>
+                setState(() => _obscurePassword = !_obscurePassword),
+            icon: Icon(_obscurePassword
+                ? Icons.visibility_outlined
+                : Icons.visibility_off_outlined),
+          ),
+        ),
+        const SizedBox(height: 20),
+        SizedBox(
+          width: double.infinity,
+          height: 52,
+          child: ElevatedButton(
+            onPressed: _isLoading ? null : _submit,
+            child: _isLoading
+                ? const SizedBox.square(
+                    dimension: 20,
+                    child: CircularProgressIndicator(
+                        strokeWidth: 2, color: Colors.white),
+                  )
+                : Text(_isLogin ? 'Sign in' : 'Create account'),
+          ),
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          width: double.infinity,
+          height: 50,
+          child: OutlinedButton.icon(
+            onPressed: _isLoading ? null : _googleSignIn,
+            icon: Image.asset('assets/images/google_logo.png', height: 19),
+            label: const Text('Continue with Google'),
+          ),
+        ),
+        const SizedBox(height: 16),
+        Center(
+          child: TextButton(
+            onPressed: () => setState(() => _isLogin = !_isLogin),
+            child: Text(
+              _isLogin
+                  ? 'New here? Create an account'
+                  : 'Already have an account? Sign in',
+              style:
+                  TextStyle(color: colors.primary, fontWeight: FontWeight.w700),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -261,6 +357,7 @@ class _LoginScreenState extends State<LoginScreen> {
     required String label,
     required IconData icon,
     bool obscure = false,
+    Widget? suffix,
   }) {
     return TextFormField(
       controller: controller,
@@ -268,25 +365,7 @@ class _LoginScreenState extends State<LoginScreen> {
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: Icon(icon),
-        filled: true,
-        fillColor: Theme.of(context).colorScheme.surface.withValues(alpha: 0.5),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(
-            color: Colors.white.withValues(alpha: 0.1),
-          ),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(
-            color: Theme.of(context).colorScheme.primary,
-            width: 2,
-          ),
-        ),
+        suffixIcon: suffix,
       ),
     );
   }
