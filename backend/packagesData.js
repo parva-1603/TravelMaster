@@ -2,127 +2,121 @@
 // Categorized by weather, ideal months, seasons, and adventure type
 
 const allPackages = [
-  // 1. KERALA BACKWATERS
+  // 1. SAPUTARA ADVENTURE CAMP (INVINCIBLE NGO)
   {
     id: 1,
-    title: 'Kerala Backwaters',
-    location: 'Kerala',
-    price: 'Rs. 25,000',
-    rating: '4.9',
-    duration: '5 Days',
-    image: 'https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?auto=format&fit=crop&w=1400&q=85',
+    title: 'Saputara Adventure Camp',
+    location: 'The Dang, South Gujarat',
+    price: 'Rs. 3,499',
+    rating: '4.8',
+    duration: '3 Days',
+    image: 'https://images.unsplash.com/photo-1546875355-66710b1069eb?auto=format&fit=crop&w=1400&q=85',
     isTrending: true,
-    organizer: 'TravelMaster Signature',
-    bestSeason: 'Autumn & Winter (Oct - Mar)',
-    bestMonths: ['October', 'November', 'December', 'January', 'February', 'March'],
-    weatherHighlight: '☀️ Pleasant 24°C • Breezy Backwaters',
-    tripType: 'Beach & Island',
-    departureDates: ['15 Oct 2026', '22 Oct 2026', '05 Nov 2026', '12 Dec 2026'],
+    organizer: 'Invincible NGO',
+    bestSeason: 'Monsoon & Winter (Oct - Jan)',
+    bestMonths: ['October', 'November', 'December', 'January 2027'],
+    weatherHighlight: 'Simply Kashmir of Gujarat!',
+    tripType: 'Adventure Camp',
+    departureDates: ['09 Oct 2026', '16 Oct 2026', '23 Oct 2026', '30 Oct 2026'],
     categories: {
-      Economy: { price: 'Rs. 18,000', facilities: ['Standard Room', 'Breakfast Only', 'Shared Coach Transfers'] },
-      Standard: { price: 'Rs. 25,000', facilities: ['3-Star Hotel', 'Breakfast & Dinner', 'Private Cab Transfers'] },
-      Luxury: { price: 'Rs. 45,000', facilities: ['5-Star Premium Houseboat', 'All Meals Included', 'Private SUV', 'Ayurvedic Spa'] }
+      Economy: { price: 'Rs. 2,699', facilities: ['Nature Camp Tents', 'Dangi/Gujarati Meals', 'Group Hikes', 'Instructors'] },
+      Standard: { price: 'Rs. 3,499', facilities: ['Deluxe Alpine Tents', 'All Meals', 'Zipline & Commando Net', 'Gira Waterfalls Trek', 'Sunset Point', 'Campfire'] },
+      Luxury: { price: 'Rs. 5,999', facilities: ['Hilltop Resort Cottage', 'Lake Boating', 'Private Valley Excursion', 'Ropeway Tickets', 'Dangi Tribal Tasting'] }
     },
     itinerary: [
-      { day: 1, title: 'Arrival in Kochi & Heritage Walk', description: 'Arrive at Kochi airport, transfer to hotel. Explore colonial Fort Kochi, St. Francis Church, and Chinese Fishing Nets at sunset.' },
-      { day: 2, title: 'Scenic Drive to Munnar Hills', description: 'Drive past Cheeyappara waterfalls to mist-covered Munnar tea plantations. Evening stroll through aromatic spice markets.' },
-      { day: 3, title: 'Munnar Tea Estates & Wildlife', description: 'Visit Eravikulam National Park (Nilgiri Tahr), Tata Tea Museum, Mattupetty Dam, and Echo Point.' },
-      { day: 4, title: 'Thekkady Spice Plantations & Safari', description: 'Guided spice plantation walk in Thekkady and Periyar Lake wildlife boat safari.' },
-      { day: 5, title: 'Alleppey Houseboat Cruise & Departure', description: 'Cruise on a traditional houseboat in Alleppey backwaters with fresh Kerala lunch before airport transfer.' }
+      { day: 1, title: 'Welcome to Saputara Sahyadri', description: 'Arrival, tent allotment, sunset hike over Maharashtra and Gujarat valleys, campfire music.' },
+      { day: 2, title: 'Governor Hill & Gira Waterfalls', description: 'High-rope zipline circuit and excursion to roaring Gira Waterfalls among dense bamboo forests.' },
+      { day: 3, title: 'Saputara Lake Boating & Crafts', description: 'Lake boating, tribal heritage museum, and rose gardens before departure.' }
     ]
   },
 
-  // 2. ROYAL RAJASTHAN
+  // 2. KERALA CALLING WITH VARKALA (INVINCIBLE NGO)
   {
     id: 2,
-    title: 'Royal Rajasthan',
-    location: 'Jaipur, Rajasthan',
-    price: 'Rs. 32,000',
-    rating: '4.8',
-    duration: '7 Days',
-    image: 'https://images.unsplash.com/photo-1477587458883-47145ed94245?auto=format&fit=crop&w=1400&q=85',
+    title: 'Kerala Calling with Varkala',
+    location: 'Kerala',
+    price: 'Rs. 14,999',
+    rating: '4.9',
+    duration: '8 Days',
+    image: 'https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?auto=format&fit=crop&w=1400&q=85',
     isTrending: true,
-    organizer: 'TravelMaster Signature',
-    bestSeason: 'Winter & Festive (Oct - Mar)',
-    bestMonths: ['October', 'November', 'December', 'January', 'February', 'March'],
-    weatherHighlight: '☀️ Sunny Days & Cool Nights • 18°C',
-    tripType: 'Heritage & Culture',
-    departureDates: ['10 Oct 2026', '25 Oct 2026', '12 Nov 2026', '08 Dec 2026'],
+    organizer: 'Invincible NGO',
+    bestSeason: 'Winter & Coastal Breeze (Oct - Jan)',
+    bestMonths: ['October', 'November', 'December', 'January 2027'],
+    weatherHighlight: "God's Own Country!",
+    tripType: 'Coastal & Nature',
+    departureDates: ['10 Oct 2026', '17 Oct 2026', '24 Oct 2026', '31 Oct 2026'],
     categories: {
-      Economy: { price: 'Rs. 20,000', facilities: ['Standard Room', 'Breakfast', 'Bus Transfers'] },
-      Standard: { price: 'Rs. 32,000', facilities: ['Heritage Hotel', 'Breakfast & Dinner', 'Private Sedan'] },
-      Luxury: { price: 'Rs. 55,000', facilities: ['5-Star Palace Hotel', 'All Meals', 'Luxury SUV', 'Desert Safari'] }
+      Economy: { price: 'Rs. 11,500', facilities: ['Standard Beach Villa Stay', 'Breakfast Only', 'Shared Coach Transfers'] },
+      Standard: { price: 'Rs. 14,999', facilities: ['Cliffside Resort in Varkala', 'Breakfast & Dinner', 'Varkala Beach & Backwaters Boat Cruise'] },
+      Luxury: { price: 'Rs. 24,000', facilities: ['5-Star Ayurvedic Beach Resort', 'All Meals Included', 'Private SUV', 'Ayurvedic Spa Session'] }
     },
     itinerary: [
-      { day: 1, title: 'Welcome to the Pink City', description: 'Check-in and evening cultural extravaganza at Chokhi Dhani with folk dances and traditional Rajasthani thali.' },
-      { day: 2, title: 'Majesty of Jaipur Forts', description: 'Amer Fort, City Palace, Jantar Mantar, and Hawa Mahal photoshoot.' },
-      { day: 3, title: 'The Blue City of Jodhpur', description: 'Mehrangarh Fort, Jaswant Thada, and stroll through old blue-painted streets.' },
-      { day: 4, title: 'Ranakpur Marble Temples to Udaipur', description: 'Admire 1,444 carved marble pillars at Ranakpur before arriving at Lake Pichola in Udaipur.' },
-      { day: 5, title: 'Udaipur City of Lakes', description: 'City Palace complex, Saheliyon Ki Bari, and sunset boat cruise.' },
-      { day: 6, title: 'Spiritual Pushkar', description: 'Brahma Temple and evening Aarti ceremonies on the sacred ghats.' },
-      { day: 7, title: 'Departure', description: 'Breakfast and airport transfer from Jaipur.' }
+      { day: 1, title: 'Arrival in Kochi & Heritage Stroll', description: 'Arrive in Kochi, explore colonial Fort Kochi, St. Francis Church, and Chinese Fishing Nets at sunset.' },
+      { day: 2, title: 'Scenic Drive to Munnar Hills', description: 'Drive past Cheeyappara waterfalls to mist-covered Munnar tea plantations. Evening stroll through aromatic spice markets.' },
+      { day: 3, title: 'Munnar Tea Estates & Wildlife', description: 'Visit Eravikulam National Park (Nilgiri Tahr), Tata Tea Museum, Mattupetty Dam, and Echo Point.' },
+      { day: 4, title: 'Thekkady Spice Plantations & Lake Safari', description: 'Guided spice plantation walk in Thekkady and Periyar Lake wildlife boat safari.' },
+      { day: 5, title: 'Alleppey Backwaters Houseboat Cruise', description: 'Cruise on a traditional houseboat in Alleppey backwaters with authentic Kerala sadhya lunch.' },
+      { day: 6, title: 'Red Cliffs & Beaches of Varkala', description: 'Arrive at the dramatic red laterite cliffs of Varkala overlooking the Arabian Sea. Sunset cafe hop.' },
+      { day: 7, title: 'Jatayu Earth Center & Black Sand Beach', description: 'Visit world’s largest bird sculpture at Jatayu Earth Center and relax on secluded Black Sand Beach.' },
+      { day: 8, title: 'Trivandrum Departure', description: 'Visit Padmanabhaswamy Temple before transfer to Trivandrum airport/railway station.' }
     ]
   },
 
-  // 3. MAJESTIC HIMALAYAS (LADAKH)
+  // 3. CHOPTA CHANDRASHILA TREK WITH TUNGNATH (INVINCIBLE NGO)
   {
     id: 3,
-    title: 'Majestic Himalayas',
-    location: 'Leh Ladakh',
-    price: 'Rs. 45,000',
+    title: 'Chopta Chandrashila Trek with Tungnath',
+    location: 'Uttarakhand',
+    price: 'Rs. 7,199',
     rating: '5.0',
-    duration: '8 Days',
-    image: 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?auto=format&fit=crop&w=1400&q=85',
+    duration: '4 Days',
+    image: 'https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?auto=format&fit=crop&w=1400&q=85',
     isTrending: true,
-    organizer: 'TravelMaster Signature',
-    bestSeason: 'Summer High-Passes (May - Sep)',
-    bestMonths: ['May', 'June', 'July', 'August', 'September'],
-    weatherHighlight: '🏔️ High Altitude Sun & Crisp Air • 15°C',
+    organizer: 'Invincible NGO',
+    bestSeason: 'Winter Summit Trail (Nov - Mar)',
+    bestMonths: ['November', 'December', 'January 2027', 'February 2027', 'March 2027'],
+    weatherHighlight: 'A Mountain Day, A Lifetime Memory',
     tripType: 'Trek & Adventure',
-    departureDates: ['15 May 2027', '05 Jun 2027', '20 Jun 2027', '10 Jul 2027'],
+    departureDates: ['24 Nov 2026'],
     categories: {
-      Economy: { price: 'Rs. 35,000', facilities: ['Standard Camps', 'Breakfast', 'Shared Tempo Traveller'] },
-      Standard: { price: 'Rs. 45,000', facilities: ['Deluxe Camps/Hotels', 'Breakfast & Dinner', 'Private Innova'] },
-      Luxury: { price: 'Rs. 75,000', facilities: ['Premium Glamping', 'All Meals', 'Luxury SUV 4x4', 'Oxygen Support'] }
+      Economy: { price: 'Rs. 5,800', facilities: ['Alpine Tents', 'High-Energy Veg Meals', 'Forest Permits', 'Trek Leader'] },
+      Standard: { price: 'Rs. 7,199', facilities: ['Chopta Meadow Campsite', 'Trek to Tungnath Temple & Chandrashila Peak', 'Deoriatal Lake Camp', 'Bonfire & Certificates'] },
+      Luxury: { price: 'Rs. 12,000', facilities: ['Heated Wooden Chalet in Chopta', 'Private Guide', 'Microspikes/Gaiters Included', 'Dedicated Vehicle Support'] }
     },
     itinerary: [
-      { day: 1, title: 'Arrival & Crucial Acclimatization', description: 'Arrive at Leh Airport (11,500 ft). Full day rest for altitude acclimatization.' },
-      { day: 2, title: 'Leh Local Sightseeing', description: 'Shanti Stupa, ancient Leh Palace, and Leh Main Bazaar.' },
-      { day: 3, title: 'Over Khardung La to Nubra Valley', description: 'Cross world-famous Khardung La Pass (18,380 ft). Camel safari at Hunder dunes.' },
-      { day: 4, title: 'Turtuk Village Expedition', description: 'Day trip to border village Turtuk, lush apricot orchards and Balti culture.' },
-      { day: 5, title: 'Pangong Tso Lake', description: 'Scenic drive along Shyok River to turquoise Pangong Lake (14,270 ft).' },
-      { day: 6, title: 'Sunrise & Return via Chang La', description: 'Sunrise at Pangong, cross Chang La Pass (17,586 ft) back to Leh.' },
-      { day: 7, title: 'Indus Valley Monasteries', description: 'Thiksey and Hemis monasteries, Rancho School.' },
-      { day: 8, title: 'Departure', description: 'Transfer to Leh Airport.' }
+      { day: 1, title: 'Rishikesh to Sari Village & Deoriatal', description: 'Scenic drive through Devprayag and Rudraprayag to Sari; hike to emerald Deoriatal lake reflecting Chaukhamba.' },
+      { day: 2, title: 'Deoriatal to Chopta Alpine Meadows', description: 'Trek through dense oak and rhododendron canopies with breathtaking panoramas of Garhwal Himalayas.' },
+      { day: 3, title: 'Tungnath Temple (12,073 ft) & Chandrashila (13,123 ft)', description: 'Ascend to the highest Shiva temple on earth and conquer Chandrashila summit for 360-degree Himalayan sunrise.' },
+      { day: 4, title: 'Chopta to Rishikesh Return', description: 'Descent to roadhead and picturesque drive back to Rishikesh for departure.' }
     ]
   },
 
-  // 4. GOA BEACH ESCAPE
+  // 4. MAGICAL MAHARASHTRA (INVINCIBLE NGO)
   {
     id: 4,
-    title: 'Goa Beach Escape',
-    location: 'Goa',
-    price: 'Rs. 18,000',
-    rating: '4.7',
-    duration: '4 Days',
-    image: 'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?auto=format&fit=crop&w=1400&q=85',
+    title: 'Magical Maharashtra',
+    location: 'Maharashtra',
+    price: 'Rs. 4,750',
+    rating: '4.8',
+    duration: '3 Days',
+    image: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1400&q=85',
     isTrending: true,
-    organizer: 'TravelMaster Signature',
-    bestSeason: 'Winter Beach Days (Nov - Feb)',
-    bestMonths: ['November', 'December', 'January', 'February'],
-    weatherHighlight: '🏖️ Golden Sunshine • 28°C Beach Weather',
-    tripType: 'Beach & Island',
-    departureDates: ['20 Nov 2026', '25 Nov 2026', '10 Dec 2026', '15 Jan 2027'],
+    organizer: 'Invincible NGO',
+    bestSeason: 'Sahyadri Forts & Treks (Oct - Nov)',
+    bestMonths: ['October', 'November'],
+    weatherHighlight: 'Unveil the mysterious treks of Maharashtra!',
+    tripType: 'Trek & Adventure',
+    departureDates: ['09 Oct 2026', '16 Oct 2026', '23 Oct 2026', '30 Oct 2026'],
     categories: {
-      Economy: { price: 'Rs. 12,000', facilities: ['Budget Hotel', 'Breakfast', 'No Transfers'] },
-      Standard: { price: 'Rs. 18,000', facilities: ['3-Star Resort', 'Breakfast', 'Airport Transfers'] },
-      Luxury: { price: 'Rs. 35,000', facilities: ['5-Star Beach Resort', 'All Meals', 'Private Cab', 'Yacht Ride'] }
+      Economy: { price: 'Rs. 3,600', facilities: ['Sahyadri Base Camps', 'Maharashtrian Village Meals', 'Certified Trek Leader'] },
+      Standard: { price: 'Rs. 4,750', facilities: ['Deluxe Campsite', 'Kalsubai Peak Summit Hike', 'Harishchandragad Konkan Kada Excursion', 'Campfire & DJ'] },
+      Luxury: { price: 'Rs. 8,200', facilities: ['Bhandardara Lake Resort', 'Private 4x4 Jeep Safari', 'All Gourmet Meals', 'Kayaking Tickets'] }
     },
     itinerary: [
-      { day: 1, title: 'Arrival & Beach Relaxation', description: 'Check into North Goa resort, evening sunset walk on the shoreline.' },
-      { day: 2, title: 'North Goa Water Sports', description: 'Parasailing, jet ski at Baga/Calangute, visit Aguada Fort and Tito\'s Lane.' },
-      { day: 3, title: 'Old Goa & Mandovi River Cruise', description: 'Basilica of Bom Jesus, colorful Fontainhas quarter, and sunset cruise.' },
-      { day: 4, title: 'Farewell Goa', description: 'Souvenir shopping and transfer to airport/railway station.' }
+      { day: 1, title: 'Mumbai/Pune to Bhandardara Lake', description: 'Scenic drive up the Western Ghats to Bhandardara lake campsite, sunset lakeside games, and campfire.' },
+      { day: 2, title: 'Everest of Maharashtra - Kalsubai Summit', description: 'Dawn trek to Kalsubai Peak (5,400 ft), highest summit in Maharashtra with ancient temple at the top.' },
+      { day: 3, title: 'Sandhan Valley & Return', description: 'Explore the Grand Canyon of Maharashtra (Sandhan Valley) before returning to Mumbai/Pune.' }
     ]
   },
 
@@ -244,62 +238,68 @@ const allPackages = [
     ]
   },
 
-  // 9. SAPUTARA ADVENTURE & NATURE CAMP (INVINCIBLE NGO)
+  // 9. ROYAL RAJASTHAN
   {
     id: 9,
-    title: 'Saputara Adventure & Nature Camp',
-    location: 'Saputara, Gujarat',
-    price: 'Rs. 2,900',
-    rating: '4.7',
-    duration: '3 Days',
-    image: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1400&q=85',
+    title: 'Royal Rajasthan',
+    location: 'Jaipur, Rajasthan',
+    price: 'Rs. 32,000',
+    rating: '4.8',
+    duration: '7 Days',
+    image: 'https://images.unsplash.com/photo-1477587458883-47145ed94245?auto=format&fit=crop&w=1400&q=85',
     isTrending: true,
-    organizer: 'Invincible NGO',
-    bestSeason: 'Monsoon & Post-Monsoon (Jul - Nov)',
-    bestMonths: ['July', 'August', 'September', 'October', 'November', 'December'],
-    weatherHighlight: '🌧️ Misty Sahyadri Peaks • 21°C',
-    tripType: 'Nature & Hills',
-    departureDates: ['23 Oct 2026', '06 Nov 2026', '20 Nov 2026', '04 Dec 2026'],
+    organizer: 'TravelMaster Signature',
+    bestSeason: 'Winter & Festive (Oct - Mar)',
+    bestMonths: ['October', 'November', 'December', 'January', 'February', 'March'],
+    weatherHighlight: '☀️ Sunny Days & Cool Nights • 18°C',
+    tripType: 'Heritage & Culture',
+    departureDates: ['10 Oct 2026', '25 Oct 2026', '12 Nov 2026', '08 Dec 2026'],
     categories: {
-      Economy: { price: 'Rs. 2,200', facilities: ['Nature Camp Tents', 'Dangi/Gujarati Meals', 'Group Hikes', 'Instructors'] },
-      Standard: { price: 'Rs. 2,900', facilities: ['Deluxe Alpine Tents', 'All Meals', 'Zipline & Commando Net', 'Gira Waterfalls Trek', 'Sunset Point', 'Campfire'] },
-      Luxury: { price: 'Rs. 5,200', facilities: ['Hilltop Resort Cottage', 'Lake Boating', 'Private Valley Excursion', 'Ropeway Tickets', 'Dangi Tribal Tasting'] }
+      Economy: { price: 'Rs. 20,000', facilities: ['Standard Room', 'Breakfast', 'Bus Transfers'] },
+      Standard: { price: 'Rs. 32,000', facilities: ['Heritage Hotel', 'Breakfast & Dinner', 'Private Sedan'] },
+      Luxury: { price: 'Rs. 55,000', facilities: ['5-Star Palace Hotel', 'All Meals', 'Luxury SUV', 'Desert Safari'] }
     },
     itinerary: [
-      { day: 1, title: 'Welcome to Saputara Sahyadri', description: 'Arrival, tent allotment, sunset hike over Maharashtra and Gujarat valleys, campfire music.' },
-      { day: 2, title: 'Governor Hill & Gira Waterfalls', description: 'High-rope zipline circuit and excursion to roaring Gira Waterfalls among dense bamboo forests.' },
-      { day: 3, title: 'Saputara Lake Boating & Crafts', description: 'Lake boating, tribal heritage museum, and rose gardens before departure.' }
+      { day: 1, title: 'Welcome to the Pink City', description: 'Check-in and evening cultural extravaganza at Chokhi Dhani with folk dances and traditional Rajasthani thali.' },
+      { day: 2, title: 'Majesty of Jaipur Forts', description: 'Amer Fort, City Palace, Jantar Mantar, and Hawa Mahal photoshoot.' },
+      { day: 3, title: 'The Blue City of Jodhpur', description: 'Mehrangarh Fort, Jaswant Thada, and stroll through old blue-painted streets.' },
+      { day: 4, title: 'Ranakpur Marble Temples to Udaipur', description: 'Admire 1,444 carved marble pillars at Ranakpur before arriving at Lake Pichola in Udaipur.' },
+      { day: 5, title: 'Udaipur City of Lakes', description: 'City Palace complex, Saheliyon Ki Bari, and sunset boat cruise.' },
+      { day: 6, title: 'Spiritual Pushkar', description: 'Brahma Temple and evening Aarti ceremonies on the sacred ghats.' },
+      { day: 7, title: 'Departure', description: 'Breakfast and airport transfer from Jaipur.' }
     ]
   },
 
-  // 10. CHOPTA TUNGNATH CHANDRASHILA TREK (INVINCIBLE NGO)
+  // 10. MAJESTIC HIMALAYAS (LADAKH)
   {
     id: 10,
-    title: 'Chopta Tungnath Chandrashila Trek',
-    location: 'Chopta, Uttarakhand',
-    price: 'Rs. 8,900',
+    title: 'Majestic Himalayas',
+    location: 'Leh Ladakh',
+    price: 'Rs. 45,000',
     rating: '5.0',
-    duration: '6 Days',
-    image: 'https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?auto=format&fit=crop&w=1400&q=85',
+    duration: '8 Days',
+    image: 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?auto=format&fit=crop&w=1400&q=85',
     isTrending: true,
-    organizer: 'Invincible NGO',
-    bestSeason: 'Autumn & Spring (Oct - Dec & Apr - Jun)',
-    bestMonths: ['April', 'May', 'June', 'October', 'November', 'December'],
-    weatherHighlight: '❄️ Highest Shiva Temple • 5°C to 12°C',
+    organizer: 'TravelMaster Signature',
+    bestSeason: 'Summer High-Passes (May - Sep)',
+    bestMonths: ['May', 'June', 'July', 'August', 'September'],
+    weatherHighlight: '🏔️ High Altitude Sun & Crisp Air • 15°C',
     tripType: 'Trek & Adventure',
-    departureDates: ['15 Nov 2026', '01 Dec 2026', '15 Dec 2026', '05 Jan 2027'],
+    departureDates: ['15 May 2027', '05 Jun 2027', '20 Jun 2027', '10 Jul 2027'],
     categories: {
-      Economy: { price: 'Rs. 7,200', facilities: ['Alpine Tents', 'All Meals', 'Forest Permits', 'Trek Leader'] },
-      Standard: { price: 'Rs. 8,900', facilities: ['Meadow Campsite', 'Trek to Tungnath Temple & Chandrashila Peak', 'Deoriatal Lake Camp', 'Bonfire & Certificates'] },
-      Luxury: { price: 'Rs. 14,500', facilities: ['Heated Wooden Chalet in Chopta', 'Private Guide', 'Crampons/Gaiters Included', 'Dedicated Vehicle Support', 'Gourmet Meals'] }
+      Economy: { price: 'Rs. 35,000', facilities: ['Standard Camps', 'Breakfast', 'Shared Tempo Traveller'] },
+      Standard: { price: 'Rs. 45,000', facilities: ['Deluxe Camps/Hotels', 'Breakfast & Dinner', 'Private Innova'] },
+      Luxury: { price: 'Rs. 75,000', facilities: ['Premium Glamping', 'All Meals', 'Luxury SUV 4x4', 'Oxygen Support'] }
     },
     itinerary: [
-      { day: 1, title: 'Rishikesh to Sari Village', description: 'Drive along holy rivers via Devprayag and Rudraprayag through Alaknanda valley to Sari.' },
-      { day: 2, title: 'Sari to Deoriatal Lake', description: 'Trek 3 km to emerald Deoriatal lake reflecting Chaukhamba snow peaks in its waters.' },
-      { day: 3, title: 'Deoriatal to Chopta Meadows', description: 'Ridge trek through oak and rhododendron canopies to alpine meadows of Chopta.' },
-      { day: 4, title: 'Tungnath Temple (12,073 ft) & Chandrashila (13,123 ft)', description: 'Ascend to world\'s highest Shiva temple and Chandrashila summit for 360-degree Garhwal views.' },
-      { day: 5, title: 'Chopta to Rishikesh Return', description: 'Descent to roadhead and drive back to Rishikesh for evening Ganga Aarti.' },
-      { day: 6, title: 'Departure', description: 'Morning breakfast and onward travel.' }
+      { day: 1, title: 'Arrival & Crucial Acclimatization', description: 'Arrive at Leh Airport (11,500 ft). Full day rest for altitude acclimatization.' },
+      { day: 2, title: 'Leh Local Sightseeing', description: 'Shanti Stupa, ancient Leh Palace, and Leh Main Bazaar.' },
+      { day: 3, title: 'Over Khardung La to Nubra Valley', description: 'Cross world-famous Khardung La Pass (18,380 ft). Camel safari at Hunder dunes.' },
+      { day: 4, title: 'Turtuk Village Expedition', description: 'Day trip to border village Turtuk, lush apricot orchards and Balti culture.' },
+      { day: 5, title: 'Pangong Tso Lake', description: 'Scenic drive along Shyok River to turquoise Pangong Lake (14,270 ft).' },
+      { day: 6, title: 'Sunrise & Return via Chang La', description: 'Sunrise at Pangong, cross Chang La Pass (17,586 ft) back to Leh.' },
+      { day: 7, title: 'Indus Valley Monasteries', description: 'Thiksey and Hemis monasteries, Rancho School.' },
+      { day: 8, title: 'Departure', description: 'Transfer to Leh Airport.' }
     ]
   },
 

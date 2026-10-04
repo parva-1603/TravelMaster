@@ -322,7 +322,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     EdgeInsets.fromLTRB(wide ? 32 : 20, 8, wide ? 32 : 20, 40),
                 child: Center(
                   child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 1240),
+                    constraints: const BoxConstraints(maxWidth: 1360),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -982,11 +982,16 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
-    final int crossAxisCount =
-        screenWidth >= 1050 ? 3 : (screenWidth >= 680 ? 2 : 1);
-    final double childAspectRatio = screenWidth >= 1050
-        ? 0.98
-        : (screenWidth >= 680 ? 0.95 : 1.02);
+    final int crossAxisCount = screenWidth >= 1200
+        ? 4
+        : (screenWidth >= 900
+            ? 3
+            : (screenWidth >= 600 ? 2 : 1));
+    final double childAspectRatio = screenWidth >= 1200
+        ? 0.63
+        : (screenWidth >= 900
+            ? 0.70
+            : (screenWidth >= 600 ? 0.72 : 0.86));
 
     return GridView.builder(
       shrinkWrap: true,
@@ -1623,7 +1628,7 @@ class _RotatingHeroBannerState extends State<_RotatingHeroBanner> {
   }
 }
 
-class _VerticalPackageCard extends StatelessWidget {
+class _VerticalPackageCard extends StatefulWidget {
   final Map<String, dynamic> package;
   final VoidCallback onThemeToggle;
   final bool isSaved;
@@ -1639,366 +1644,998 @@ class _VerticalPackageCard extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    final title = (package['title'] ?? 'Untitled escape').toString();
-    final location = (package['location'] ?? 'India').toString();
-    final image = (package['image'] ?? '').toString();
-    final duration = (package['duration'] ?? '').toString();
-    final rating = (package['rating'] ?? '4.8').toString();
-    final price = (package['price'] ?? '').toString();
-    final weatherHighlight = (package['weatherHighlight'] ?? '').toString();
-    final bestSeason = (package['bestSeason'] ?? '').toString();
-    final organizer = (package['organizer'] ?? 'Invincible NGO').toString();
-    final bestMonths = (package['bestMonths'] as List<dynamic>?)
-            ?.map((e) => e.toString())
-            .toList() ??
-        [];
+  State<_VerticalPackageCard> createState() => _VerticalPackageCardState();
+}
 
-    final theme = Theme.of(context);
+class _VerticalPackageCardState extends State<_VerticalPackageCard> {
+  int _selectedDateIndex = 0;
+  int _selectedMonthIndex = 0;
 
-    return Material(
-      color: theme.colorScheme.surface,
-      borderRadius: BorderRadius.circular(18),
-      clipBehavior: Clip.antiAlias,
-      elevation: 0,
-      child: InkWell(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => PackageDetailsScreen(
-                pkg: package,
-                onThemeToggle: onThemeToggle,
-              ),
+  static String _formatPrice(dynamic rawPrice) {
+    if (rawPrice == null) return '₹3,499';
+    final str = rawPrice.toString().trim();
+    if (str.startsWith('₹')) return str;
+    if (str.toLowerCase().startsWith('rs.')) {
+      return '₹${str.substring(3).trim()}';
+    }
+    if (str.toLowerCase().startsWith('rs')) {
+      return '₹${str.substring(2).trim()}';
+    }
+    final digits = str.replaceAll(RegExp(r'[^0-9]'), '');
+    if (digits.isNotEmpty) {
+      final val = int.tryParse(digits) ?? 0;
+      return '₹${val.toString().replaceAllMapped(RegExp(r'(\d+?)(?=(\d\d)+(\d)(?!\d))(\.\d+)?'), (Match m) => '${m[1]},')}';
+    }
+    return str;
+  }
+
+  static String _cleanLocation(dynamic rawLoc) {
+    final str = (rawLoc ?? 'India').toString().trim();
+    if (str.toLowerCase().contains('dang') || str.toLowerCase().contains('saputara')) {
+      return 'The Dang, South Gujarat';
+    }
+    if (str.contains(',')) {
+      final parts = str.split(',');
+      if (parts.length > 1) {
+        final state = parts.last.trim();
+        if (state.isNotEmpty) return state;
+      }
+    }
+    return str;
+  }
+
+  static int _getDifficultyLevel(Map<String, dynamic> pkg) {
+    final title = (pkg['title'] ?? '').toString().toLowerCase();
+    final type = (pkg['tripType'] ?? '').toString().toLowerCase();
+    final dur = int.tryParse((pkg['duration'] ?? '').toString().split(' ').first) ?? 3;
+    if (title.contains('chadar') ||
+        title.contains('roopkund') ||
+        title.contains('sandakphu') ||
+        title.contains('brahmatal') ||
+        title.contains('kedarkantha') ||
+        title.contains('spiti') ||
+        title.contains('tawang') ||
+        title.contains('kuari pass')) {
+      return 3;
+    }
+    if (type.contains('trek') ||
+        title.contains('chopta') ||
+        title.contains('kerala') ||
+        title.contains('maharashtra') ||
+        dur >= 4) {
+      return 2;
+    }
+    return 1;
+  }
+
+  static String _getPackageTagline(Map<String, dynamic> pkg) {
+    final title = (pkg['title'] ?? '').toString().toLowerCase();
+    if (title.contains('saputara')) return 'Simply Kashmir of Gujarat!';
+    if (title.contains('kerala')) return "God's Own Country!";
+    if (title.contains('chopta') || title.contains('tungnath')) {
+      return 'A Mountain Day, A Lifetime Memory';
+    }
+    if (title.contains('maharashtra') || title.contains('kalsubai')) {
+      return 'Unveil the mysterious treks of Maharashtra!';
+    }
+    if (title.contains('kedarkantha')) return 'Queen of Winter Treks & Summit Snow';
+    if (title.contains('manali')) return 'Valley of the Gods & Alpine Glades';
+    if (title.contains('polo forest')) return 'Ancient Temples & Lush Greenery!';
+    if (title.contains('beyt dwarka')) return 'Sacred Island & Marine Coral Trails';
+    if (title.contains('rajasthan') || title.contains('jaipur')) {
+      return 'Land of Kings & Royal Forts!';
+    }
+    if (title.contains('ladakh') || title.contains('himalayas')) {
+      return 'The Land of High Mountain Passes!';
+    }
+    if (title.contains('goa')) return 'Sun, Sand, Waves & Palm-lined Shores';
+    if (title.contains('spiti')) return 'The Middle Land Between Earth & Sky';
+    if (title.contains('kasol') || title.contains('kheerganga')) {
+      return 'Parvati Valley & Thermal Springs!';
+    }
+    if (title.contains('valley of flowers')) {
+      return 'UNESCO Wonderland of Alpine Blooms!';
+    }
+    if (title.contains('brahmatal')) return 'Frozen Glacial Lake & Mt. Trishul!';
+    if (title.contains('hampta')) return 'Dramatic Green to Desert Crossover';
+    if (title.contains('meghalaya')) return 'Abode of Clouds & Living Root Bridges';
+    if (title.contains('andaman')) return 'Turquoise Lagoons & Radhanagar Sunsets';
+    if (title.contains('rann of kutch')) return 'Endless White Desert Under Moonlight';
+    if (title.contains('coorg')) return 'Scotland of India & Coffee Hills!';
+    if (title.contains('varanasi')) return 'Ancient Ghats & Sacred Ganga Aarti';
+    if (title.contains('kashmir')) return 'Paradise on Earth & Dal Reflections';
+    if (title.contains('hampi')) return 'UNESCO Boulder Capital of Vijayanagara';
+    if (title.contains('jaisalmer')) return 'Golden Fort & Thar Desert Safari';
+    if (title.contains('gir')) return 'Sole Abode of the Asiatic Lion';
+    if (title.contains('rishikesh')) return 'Yoga Capital & Ganga Whitewater Rapids';
+    if (title.contains('sundarbans')) {
+      return 'World’s Largest Delta & Mangrove Trails';
+    }
+    if (title.contains('gokarna')) return 'Om Beach Coves & Arabian Sea Cliffs';
+    if (title.contains('chadar')) return 'Walking on Frozen Zanskar River';
+    if (title.contains('ooty')) return 'Queen of Hill Stations & Toy Train';
+    if (title.contains('roopkund')) return 'Glacial Mystery Lake at 15,750 ft';
+
+    final weather = (pkg['weatherHighlight'] ?? '').toString();
+    final clean = weather
+        .replaceAll(RegExp(r'[\u{1F300}-\u{1F9FF}]', unicode: true), '')
+        .trim();
+    if (clean.isNotEmpty) return clean;
+    return 'Experience pristine landscapes & authentic culture!';
+  }
+
+  static List<String> _extractMonths(Map<String, dynamic> pkg) {
+    final title = (pkg['title'] ?? '').toString().toLowerCase();
+    if (title.contains('saputara')) return ['Oct', 'Nov', 'Dec', 'Jan 2027'];
+    if (title.contains('kerala')) return ['Oct', 'Nov', 'Dec', 'Jan 2027'];
+    if (title.contains('chopta')) {
+      return ['Nov', 'Dec', 'Jan 2027', 'Feb 2027', 'Mar 2027'];
+    }
+    if (title.contains('maharashtra')) return ['Oct', 'Nov'];
+
+    final rawMonths = pkg['bestMonths'] as List<dynamic>?;
+    if (rawMonths != null && rawMonths.isNotEmpty) {
+      return rawMonths.take(4).map((m) {
+        final s = m.toString().trim();
+        if (s.length > 3) {
+          final prefix = s.substring(0, 3);
+          if (s.toLowerCase().contains('jan') || s.toLowerCase().contains('feb')) {
+            return '$prefix 2027';
+          }
+          return prefix;
+        }
+        return s;
+      }).toList();
+    }
+    return ['Oct', 'Nov', 'Dec', 'Jan 2027'];
+  }
+
+  static List<String> _extractDates(Map<String, dynamic> pkg) {
+    final title = (pkg['title'] ?? '').toString().toLowerCase();
+    if (title.contains('saputara')) return ['09', '16', '23', '30'];
+    if (title.contains('kerala')) return ['10', '17', '24', '31'];
+    if (title.contains('chopta')) return ['24'];
+    if (title.contains('maharashtra')) return ['09', '16', '23', '30'];
+
+    final dates = pkg['departureDates'] as List<dynamic>?;
+    if (dates != null && dates.isNotEmpty) {
+      final days = dates.map((d) {
+        final str = d.toString().trim();
+        final match = RegExp(r'^(\d{1,2})').firstMatch(str);
+        if (match != null) {
+          final n = int.tryParse(match.group(1)!) ?? 9;
+          return n.toString().padLeft(2, '0');
+        }
+        return '09';
+      }).toList();
+      return days.take(4).toList();
+    }
+    return ['09', '16', '23', '30'];
+  }
+
+  void _openPdfBrochureModal() {
+    final title = (widget.package['title'] ?? 'Trip Itinerary').toString();
+    final price = _formatPrice(widget.package['price']);
+    final duration = (widget.package['duration'] ?? '3 Days').toString();
+    final location = _cleanLocation(widget.package['location']);
+    final months = _extractMonths(widget.package);
+    final dates = _extractDates(widget.package);
+    final selectedBatch = dates.isNotEmpty
+        ? '${dates[_selectedDateIndex]} ${months.isNotEmpty ? months[_selectedMonthIndex] : ''}'
+        : 'Open Batch';
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        final theme = Theme.of(ctx);
+        final isDark = theme.brightness == Brightness.dark;
+
+        return Center(
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 580, maxHeight: 680),
+            margin: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1E2633) : Colors.white,
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.3),
+                  blurRadius: 30,
+                  offset: const Offset(0, 10),
+                ),
+              ],
             ),
-          );
-        },
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(
-              color: theme.colorScheme.outlineVariant.withValues(alpha: 0.55),
-              width: 1,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: theme.colorScheme.shadow.withValues(alpha: 0.04),
-                blurRadius: 16,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Top Image Container with season, heart, weather and duration badges
-              Stack(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  SizedBox(
-                    height: 185,
-                    width: double.infinity,
-                    child: Hero(
-                      tag: 'image_$title',
-                      child: Image.network(
-                        image,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) =>
-                            const ColoredBox(color: Color(0xFF31594E)),
-                      ),
-                    ),
-                  ),
-                  Positioned.fill(
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            Colors.black.withValues(alpha: 0.38),
-                            Colors.transparent,
-                            Colors.black.withValues(alpha: 0.55),
-                          ],
-                          stops: const [0.0, 0.45, 1.0],
+                  // Modal Header
+                  Container(
+                    padding: const EdgeInsets.fromLTRB(22, 18, 16, 16),
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF151D28) : const Color(0xFFF8FAFC),
+                      border: Border(
+                        bottom: BorderSide(
+                          color: isDark ? const Color(0xFF283446) : const Color(0xFFE2E8F0),
                         ),
                       ),
                     ),
-                  ),
-                  // Season Badge (Top Left - cleanly isolated)
-                  if (bestSeason.isNotEmpty)
-                    Positioned(
-                      top: 10,
-                      left: 10,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 9, vertical: 4.5),
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.primaryContainer
-                              .withValues(alpha: 0.95),
-                          borderRadius: BorderRadius.circular(14),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.2),
-                              blurRadius: 4,
-                            ),
-                          ],
-                        ),
-                        child: Text(
-                          bestSeason,
-                          style: TextStyle(
-                            color: theme.colorScheme.onPrimaryContainer,
-                            fontSize: 10.5,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 0.2,
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFFF0EC),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Icon(
+                            Icons.picture_as_pdf_rounded,
+                            color: Color(0xFFE5533D),
+                            size: 22,
                           ),
                         ),
-                      ),
-                    ),
-                  // Wishlist Heart button (Top Right alone - never collides)
-                  Positioned(
-                    top: 10,
-                    right: 10,
-                    child: Material(
-                      color: Colors.black.withValues(alpha: 0.65),
-                      shape: const CircleBorder(),
-                      child: InkWell(
-                        customBorder: const CircleBorder(),
-                        onTap: onToggleSave,
-                        child: Padding(
-                          padding: const EdgeInsets.all(6.0),
-                          child: Icon(
-                            isSaved
-                                ? Icons.favorite_rounded
-                                : Icons.favorite_border_rounded,
-                            color: isSaved ? Colors.redAccent : Colors.white,
-                            size: 17,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  // Weather Badge (Bottom Left of Image)
-                  if (weatherHighlight.isNotEmpty)
-                    Positioned(
-                      bottom: 10,
-                      left: 10,
-                      right: duration.isNotEmpty ? 92 : 10,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 3.5),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.72),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.25),
-                            width: 0.8,
-                          ),
-                        ),
-                        child: Text(
-                          weatherHighlight,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 10.5,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-                  // Duration Pill (Bottom Right of Image)
-                  if (duration.isNotEmpty)
-                    Positioned(
-                      bottom: 10,
-                      right: 10,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 3.5),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.68),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.schedule_rounded,
-                                size: 12, color: Colors.white70),
-                            const SizedBox(width: 4),
-                            Text(
-                              duration,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Official Trip Itinerary & PDF',
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 16,
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-              // Body Details
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Location & Rating Row
-                      Row(
-                        children: [
-                          Icon(Icons.place_outlined,
-                              size: 15, color: theme.colorScheme.primary),
-                          const SizedBox(width: 4),
-                          Expanded(
-                            child: Text(
-                              location,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: theme.textTheme.labelMedium?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                          const Icon(Icons.star_rounded,
-                              size: 16, color: Color(0xFFE49C39)),
-                          const SizedBox(width: 3),
-                          Text(
-                            rating,
-                            style: theme.textTheme.labelMedium?.copyWith(
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 5),
-                      // Trip Title
-                      Text(
-                        title,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w800,
-                          fontSize: 15.5,
-                          height: 1.22,
-                        ),
-                      ),
-                      const SizedBox(height: 5),
-                      // Best Months preview
-                      if (bestMonths.isNotEmpty) ...[
-                        Row(
-                          children: [
-                            Icon(Icons.calendar_today_rounded,
-                                size: 12,
-                                color: theme.colorScheme.primary
-                                    .withValues(alpha: 0.8)),
-                            const SizedBox(width: 5),
-                            Expanded(
-                              child: Text(
-                                'Best: ${bestMonths.take(3).join(', ')}${bestMonths.length > 3 ? '...' : ''}',
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: theme.textTheme.labelSmall?.copyWith(
+                              Text(
+                                'Verified by Invincible NGO • Digital Brochure',
+                                style: TextStyle(
+                                  fontSize: 11.5,
                                   color: theme.colorScheme.onSurfaceVariant,
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                        const SizedBox(height: 3),
+                        IconButton(
+                          icon: const Icon(Icons.close_rounded),
+                          onPressed: () => Navigator.pop(ctx),
+                        ),
                       ],
-                      // Organizer tag
-                      Text(
-                        'Verified by $organizer',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: theme.colorScheme.primary,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 10.5,
+                    ),
+                  ),
+
+                  // Modal Content
+                  Flexible(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(22),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      title,
+                                      style: theme.textTheme.titleLarge?.copyWith(
+                                        fontWeight: FontWeight.w900,
+                                        fontSize: 20,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      _getPackageTagline(widget.package),
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        color: isDark ? Colors.white70 : const Color(0xFF475569),
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFFF1EE),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: const Color(0xFFE5533D).withValues(alpha: 0.3),
+                                  ),
+                                ),
+                                child: Column(
+                                  children: [
+                                    const Text(
+                                      'STARTING FROM',
+                                      style: TextStyle(
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.w700,
+                                        color: Color(0xFF94A3B8),
+                                      ),
+                                    ),
+                                    Text(
+                                      price,
+                                      style: const TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w900,
+                                        color: Color(0xFFE5533D),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+
+                          // Badges Row
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: [
+                              _buildModalBadge(Icons.calendar_today_rounded, duration, isDark),
+                              _buildModalBadge(Icons.place_rounded, location, isDark),
+                              _buildModalBadge(Icons.event_available_rounded, 'Batch: $selectedBatch', isDark, isHighlight: true),
+                            ],
+                          ),
+                          const SizedBox(height: 20),
+
+                          Text(
+                            'Package Inclusions',
+                            style: theme.textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w800,
+                              fontSize: 14,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          _buildInclusionItem(Icons.verified_user_rounded, 'Certified Trek Leaders, Guides & Wilderness Instructors', isDark),
+                          _buildInclusionItem(Icons.night_shelter_rounded, 'Deluxe Alpine Tents & Campsite Accommodations', isDark),
+                          _buildInclusionItem(Icons.restaurant_rounded, 'Nutritious High-Energy Vegetarian Meals (B/L/D + Snacks)', isDark),
+                          _buildInclusionItem(Icons.card_membership_rounded, 'Official Invincible NGO Certificate of Participation', isDark),
+                          _buildInclusionItem(Icons.medical_services_rounded, 'First Aid Kit, Stretcher & Emergency Mountain Evacuation Support', isDark),
+                          _buildInclusionItem(Icons.confirmation_number_rounded, 'All Forest Department Permits & Environmental Sanctuary Passes', isDark),
+
+                          const SizedBox(height: 18),
+                          Text(
+                            'Brochure Details',
+                            style: theme.textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w800,
+                              fontSize: 14,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'This comprehensive brochure includes full gear checklist, daily altitude profiles, reporting instructions, travel advisory, and emergency contacts.',
+                            style: TextStyle(
+                              fontSize: 12.5,
+                              height: 1.45,
+                              color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  // Modal Actions
+                  Container(
+                    padding: const EdgeInsets.all(18),
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF151D28) : const Color(0xFFF8FAFC),
+                      border: Border(
+                        top: BorderSide(
+                          color: isDark ? const Color(0xFF283446) : const Color(0xFFE2E8F0),
                         ),
                       ),
-                      const Spacer(),
-                      const Divider(height: 12),
-                      // Price & Action Button
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  'Per Person',
-                                  style: theme.textTheme.labelSmall?.copyWith(
-                                    color: theme.colorScheme.onSurfaceVariant,
-                                    fontSize: 10,
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () {
+                              Navigator.pop(ctx);
+                              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Row(
+                                    children: [
+                                      const Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
+                                      const SizedBox(width: 10),
+                                      Expanded(
+                                        child: Text(
+                                          'Brochure downloaded! "$title - Itinerary.pdf" (3.2 MB) saved to Downloads.',
+                                        ),
+                                      ),
+                                    ],
                                   ),
+                                  backgroundColor: const Color(0xFF16A34A),
+                                  duration: const Duration(seconds: 3),
+                                  behavior: SnackBarBehavior.floating,
                                 ),
-                                Text(
-                                  price,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: theme.textTheme.titleMedium?.copyWith(
-                                    color: theme.colorScheme.primary,
-                                    fontWeight: FontWeight.w900,
-                                    fontSize: 17,
-                                  ),
-                                ),
-                              ],
+                              );
+                            },
+                            icon: const Icon(Icons.file_download_outlined, size: 18, color: Color(0xFFE5533D)),
+                            label: const Text(
+                              'Download PDF',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w800,
+                                color: Color(0xFFE5533D),
+                              ),
+                            ),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              side: const BorderSide(color: Color(0xFFE5533D)),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
                             ),
                           ),
-                          IconButton(
-                            tooltip: 'Share Trip',
-                            icon: const Icon(Icons.share_outlined, size: 18),
-                            color: theme.colorScheme.onSurfaceVariant,
-                            onPressed: onShare,
-                          ),
-                          const SizedBox(width: 4),
-                          FilledButton.tonal(
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ElevatedButton.icon(
                             onPressed: () {
+                              Navigator.pop(ctx);
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                   builder: (_) => PackageDetailsScreen(
-                                    pkg: package,
-                                    onThemeToggle: onThemeToggle,
+                                    pkg: widget.package,
+                                    onThemeToggle: widget.onThemeToggle,
                                   ),
                                 ),
                               );
                             },
-                            style: FilledButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 14, vertical: 8),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
+                            icon: const Icon(Icons.arrow_forward_rounded, size: 18, color: Colors.white),
+                            label: const Text(
+                              'Book Batch',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w800,
+                                color: Colors.white,
                               ),
-                              visualDensity: VisualDensity.compact,
                             ),
-                            child: const Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text('View Trip',
-                                    style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w700)),
-                                SizedBox(width: 4),
-                                Icon(Icons.arrow_forward_rounded, size: 14),
-                              ],
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFFE5533D),
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
                             ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildModalBadge(IconData icon, String text, bool isDark, {bool isHighlight = false}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: isHighlight
+            ? const Color(0xFFFFF0EC)
+            : (isDark ? const Color(0xFF283446) : const Color(0xFFF1F5F9)),
+        borderRadius: BorderRadius.circular(8),
+        border: isHighlight
+            ? Border.all(color: const Color(0xFFE5533D).withValues(alpha: 0.3))
+            : null,
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            size: 13,
+            color: isHighlight ? const Color(0xFFE5533D) : const Color(0xFF64748B),
+          ),
+          const SizedBox(width: 5),
+          Text(
+            text,
+            style: TextStyle(
+              fontSize: 11.5,
+              fontWeight: isHighlight ? FontWeight.w700 : FontWeight.w600,
+              color: isHighlight ? const Color(0xFFE5533D) : (isDark ? Colors.white70 : const Color(0xFF334155)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInclusionItem(IconData icon, String text, bool isDark) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 7),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 16, color: const Color(0xFF16A34A)),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(
+                fontSize: 12.5,
+                color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF334155),
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    final title = (widget.package['title'] ?? 'Trip').toString();
+    final location = _cleanLocation(widget.package['location']);
+    final image = (widget.package['image'] ?? '').toString();
+    final duration = (widget.package['duration'] ?? '3 Days').toString();
+    final price = _formatPrice(widget.package['price']);
+    final tagline = _getPackageTagline(widget.package);
+    final difficulty = _getDifficultyLevel(widget.package);
+    final months = _extractMonths(widget.package);
+    final dates = _extractDates(widget.package);
+
+    final selectedMonthSafe = _selectedMonthIndex < months.length ? _selectedMonthIndex : 0;
+    final selectedDateSafe = _selectedDateIndex < dates.length ? _selectedDateIndex : 0;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E2632) : Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: isDark ? const Color(0xFF2B3747) : const Color(0xFFE2E8F0),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.max,
+        children: [
+          // 1. TOP IMAGE with Carousel Dots & Wishlist Heart
+          ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
+            child: Stack(
+              children: [
+                SizedBox(
+                  height: 175,
+                  width: double.infinity,
+                  child: Hero(
+                    tag: 'img_${widget.package['id']}_$title',
+                    child: Image.network(
+                      image,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) =>
+                          const ColoredBox(color: Color(0xFF31594E)),
+                    ),
+                  ),
+                ),
+                Positioned.fill(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.black.withValues(alpha: 0.15),
+                          Colors.transparent,
+                          Colors.black.withValues(alpha: 0.25),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+
+                // Carousel Dots (Center Bottom of Image)
+                Positioned(
+                  bottom: 8,
+                  left: 0,
+                  right: 0,
+                  child: Center(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.28),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: List.generate(8, (dotIdx) {
+                          // Dot #4 is active orange like in the user's screenshot
+                          final isActive = dotIdx == 4;
+                          return Container(
+                            margin: const EdgeInsets.symmetric(horizontal: 2.2),
+                            width: isActive ? 6.5 : 5.0,
+                            height: isActive ? 6.5 : 5.0,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: isActive
+                                  ? const Color(0xFFE5533D)
+                                  : Colors.white.withValues(alpha: 0.8),
+                            ),
+                          );
+                        }),
+                      ),
+                    ),
+                  ),
+                ),
+
+                // Wishlist Heart Button (Top Right of Image)
+                Positioned(
+                  top: 9,
+                  right: 9,
+                  child: Material(
+                    color: Colors.black.withValues(alpha: 0.42),
+                    shape: const CircleBorder(),
+                    child: InkWell(
+                      customBorder: const CircleBorder(),
+                      onTap: widget.onToggleSave,
+                      child: Padding(
+                        padding: const EdgeInsets.all(5.5),
+                        child: Icon(
+                          widget.isSaved
+                              ? Icons.favorite_rounded
+                              : Icons.favorite_border_rounded,
+                          color: widget.isSaved ? Colors.redAccent : Colors.white,
+                          size: 16,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // 2. CARD CONTENT
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Row A: Duration & Location
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.calendar_today_outlined,
+                        size: 13.5,
+                        color: Color(0xFF64748B),
+                      ),
+                      const SizedBox(width: 5),
+                      Text(
+                        duration,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
+                        ),
+                      ),
+                      const Spacer(),
+                      const Icon(
+                        Icons.place_outlined,
+                        size: 14,
+                        color: Color(0xFF64748B),
+                      ),
+                      const SizedBox(width: 4),
+                      Flexible(
+                        child: Text(
+                          location,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  // Row B: Title & Tagline
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          color: isDark ? Colors.white : const Color(0xFF0F172A),
+                          letterSpacing: -0.2,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        tagline,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  // Row C: STARTING FROM & DIFFICULTY
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text(
+                            'STARTING FROM',
+                            style: TextStyle(
+                              fontSize: 9.5,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.5,
+                              color: Color(0xFF94A3B8),
+                            ),
+                          ),
+                          const SizedBox(height: 1),
+                          Text(
+                            price,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w900,
+                              color: Color(0xFFE5533D),
+                              letterSpacing: -0.2,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text(
+                            'DIFFICULTY',
+                            style: TextStyle(
+                              fontSize: 9.5,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.5,
+                              color: Color(0xFF94A3B8),
+                            ),
+                          ),
+                          const SizedBox(height: 5),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: List.generate(3, (barIdx) {
+                              final isFilled = barIdx < difficulty;
+                              return Container(
+                                margin: const EdgeInsets.only(left: 3),
+                                width: 14,
+                                height: 4,
+                                decoration: BoxDecoration(
+                                  color: isFilled
+                                      ? const Color(0xFFE5533D)
+                                      : (isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0)),
+                                  borderRadius: BorderRadius.circular(2),
+                                ),
+                              );
+                            }),
                           ),
                         ],
                       ),
                     ],
                   ),
-                ),
+
+                  // Row D: Months Tabs
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: List.generate(months.length, (mIdx) {
+                        final isSelected = mIdx == selectedMonthSafe;
+                        return GestureDetector(
+                          onTap: () => setState(() => _selectedMonthIndex = mIdx),
+                          child: Padding(
+                            padding: const EdgeInsets.only(right: 12),
+                            child: Text(
+                              months[mIdx],
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
+                                color: isSelected
+                                    ? const Color(0xFFE5533D)
+                                    : (isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B)),
+                              ),
+                            ),
+                          ),
+                        );
+                      }),
+                    ),
+                  ),
+
+                  // Row E: Circular Departure Date Badges
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: List.generate(dates.length, (dIdx) {
+                        final isSelected = dIdx == selectedDateSafe;
+                        return GestureDetector(
+                          onTap: () {
+                            setState(() => _selectedDateIndex = dIdx);
+                            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  'Selected Batch: ${dates[dIdx]} ${months.isNotEmpty ? months[selectedMonthSafe] : ''} ($title)',
+                                ),
+                                duration: const Duration(seconds: 1),
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                          },
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 160),
+                            margin: const EdgeInsets.only(right: 8),
+                            width: 32,
+                            height: 32,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: isSelected
+                                  ? const Color(0xFFE5533D)
+                                  : (isDark ? const Color(0xFF1E293B) : Colors.white),
+                              border: isSelected
+                                  ? null
+                                  : Border.all(
+                                      color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1),
+                                      width: 1,
+                                    ),
+                              boxShadow: isSelected
+                                  ? [
+                                      BoxShadow(
+                                        color: const Color(0xFFE5533D).withValues(alpha: 0.35),
+                                        blurRadius: 5,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ]
+                                  : null,
+                            ),
+                            child: Center(
+                              child: Text(
+                                dates[dIdx],
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                                  color: isSelected
+                                      ? Colors.white
+                                      : (isDark ? const Color(0xFFE2E8F0) : const Color(0xFF1E293B)),
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      }),
+                    ),
+                  ),
+
+                  // Row F: Bottom Action Buttons (More Details & Get PDF)
+                  Row(
+                    children: [
+                      // More Details Button
+                      Expanded(
+                        child: SizedBox(
+                          height: 36,
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => PackageDetailsScreen(
+                                    pkg: widget.package,
+                                    onThemeToggle: widget.onThemeToggle,
+                                  ),
+                                ),
+                              );
+                            },
+                            icon: Icon(
+                              Icons.info_outline_rounded,
+                              size: 15,
+                              color: isDark ? Colors.white : const Color(0xFF0F172A),
+                            ),
+                            label: Text(
+                              'More Details',
+                              style: TextStyle(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w700,
+                                color: isDark ? Colors.white : const Color(0xFF0F172A),
+                              ),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: isDark
+                                  ? const Color(0xFF283446)
+                                  : const Color(0xFFF1F5F9),
+                              elevation: 0,
+                              padding: const EdgeInsets.symmetric(horizontal: 4),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+
+                      // Get PDF Button
+                      Expanded(
+                        child: SizedBox(
+                          height: 36,
+                          child: ElevatedButton.icon(
+                            onPressed: _openPdfBrochureModal,
+                            icon: const Icon(
+                              Icons.file_download_outlined,
+                              size: 16,
+                              color: Color(0xFFE5533D),
+                            ),
+                            label: const Text(
+                              'Get PDF',
+                              style: TextStyle(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w800,
+                                color: Color(0xFFE5533D),
+                              ),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: isDark
+                                  ? const Color(0xFF2E1C18)
+                                  : const Color(0xFFFFF1EE),
+                              elevation: 0,
+                              padding: const EdgeInsets.symmetric(horizontal: 4),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                                side: BorderSide(
+                                  color: const Color(0xFFE5533D).withValues(alpha: 0.25),
+                                  width: 1,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
