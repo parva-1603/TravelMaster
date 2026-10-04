@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'customize_package_sheet.dart';
 
 class PackageDetailsScreen extends StatefulWidget {
@@ -29,6 +30,38 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
   String _startingCity = '';
   int _customAdditionPrice = 0;
   String _customDetails = '';
+  Map<String, dynamic>? _selectedCustomTransport;
+  Map<String, dynamic>? _selectedCustomHotel;
+
+  Future<void> _openExternalUrl(String? urlString) async {
+    if (urlString == null || urlString.isEmpty) return;
+    var target = urlString.trim();
+    if (!target.startsWith('http://') &&
+        !target.startsWith('https://') &&
+        !target.startsWith('tel:')) {
+      target = 'https://$target';
+    }
+    final uri = Uri.tryParse(target);
+    if (uri != null) {
+      try {
+        final launched =
+            await launchUrl(uri, mode: LaunchMode.externalApplication);
+        if (!launched) {
+          await launchUrl(uri, mode: LaunchMode.platformDefault);
+        }
+      } catch (e) {
+        try {
+          await launchUrl(uri, mode: LaunchMode.platformDefault);
+        } catch (e2) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Could not open link: $target')),
+            );
+          }
+        }
+      }
+    }
+  }
 
   @override
   void initState() {
@@ -181,10 +214,12 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
       builder: (context) => CustomizePackageSheet(
         pkg: widget.pkg,
         startingCity: _startingCity,
-        onCustomizationComplete: (additionalPrice, details) {
+        onCustomizationComplete: (additionalPrice, details, transport, hotel) {
           setState(() {
             _customAdditionPrice = additionalPrice;
             _customDetails = details;
+            _selectedCustomTransport = transport;
+            _selectedCustomHotel = hotel;
           });
         },
       ),
@@ -610,23 +645,135 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
                           if (_customDetails.isNotEmpty) ...[
                             const SizedBox(height: 12),
                             Container(
-                              padding: const EdgeInsets.all(12),
+                              padding: const EdgeInsets.all(14),
                               decoration: BoxDecoration(
-                                color: Colors.green.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(12),
+                                color: Colors.green.withValues(alpha: 0.08),
+                                borderRadius: BorderRadius.circular(14),
                                 border: Border.all(
-                                    color: Colors.green.withValues(alpha: 0.3)),
+                                    color: Colors.green.withValues(alpha: 0.35)),
                               ),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text('✓ Customizations Applied',
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.green)),
-                                  const SizedBox(height: 4),
+                                  Row(
+                                    children: [
+                                      const Icon(Icons.check_circle_rounded,
+                                          color: Colors.green, size: 18),
+                                      const SizedBox(width: 8),
+                                      const Text(
+                                          '✓ Customizations & Direct Portals Ready',
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 14.5,
+                                              color: Colors.green)),
+                                      const Spacer(),
+                                      TextButton(
+                                        onPressed: _showCustomizeSheet,
+                                        child: const Text('Edit Options',
+                                            style: TextStyle(fontSize: 12)),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 6),
                                   Text(_customDetails,
-                                      style: const TextStyle(fontSize: 14)),
+                                      style: const TextStyle(fontSize: 13.5)),
+                                  const SizedBox(height: 12),
+                                  const Divider(height: 1),
+                                  const SizedBox(height: 10),
+                                  const Text('Direct Booking Links:',
+                                      style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w700)),
+                                  const SizedBox(height: 8),
+                                  Wrap(
+                                    spacing: 8,
+                                    runSpacing: 8,
+                                    children: [
+                                      if (_selectedCustomTransport != null) ...[
+                                        FilledButton.tonalIcon(
+                                          onPressed: () {
+                                            final url =
+                                                _selectedCustomTransport![
+                                                        'bookingUrl']
+                                                    ?.toString() ??
+                                                'https://www.irctc.co.in/nget/train-search';
+                                            _openExternalUrl(url);
+                                          },
+                                          icon: Icon(
+                                            _selectedCustomTransport![
+                                                        'airline'] !=
+                                                    null
+                                                ? Icons.flight_takeoff_rounded
+                                                : Icons.train_rounded,
+                                            size: 14,
+                                          ),
+                                          label: Text(
+                                            _selectedCustomTransport![
+                                                        'airline'] !=
+                                                    null
+                                                ? 'Book Flight Online ↗'
+                                                : 'Book on IRCTC ↗',
+                                            style: const TextStyle(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w700),
+                                          ),
+                                        ),
+                                        if (_selectedCustomTransport![
+                                                'confirmTktUrl'] !=
+                                            null)
+                                          OutlinedButton.icon(
+                                            onPressed: () => _openExternalUrl(
+                                                _selectedCustomTransport![
+                                                        'confirmTktUrl']
+                                                    .toString()),
+                                            icon: const Icon(
+                                                Icons.confirmation_number_outlined,
+                                                size: 14),
+                                            label: const Text(
+                                                'Live Seats & PNR ↗',
+                                                style: TextStyle(fontSize: 12)),
+                                          ),
+                                      ],
+                                      if (_selectedCustomHotel != null) ...[
+                                        FilledButton.tonalIcon(
+                                          onPressed: () {
+                                            final url = _selectedCustomHotel![
+                                                        'bookingUrl']
+                                                    ?.toString() ??
+                                                _selectedCustomHotel![
+                                                        'websiteUrl']
+                                                    ?.toString();
+                                            _openExternalUrl(url);
+                                          },
+                                          icon: const Icon(Icons.hotel_rounded,
+                                              size: 14),
+                                          label: const Text(
+                                            'Book Hotel on Official Site ↗',
+                                            style: TextStyle(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w700),
+                                          ),
+                                        ),
+                                        if (_selectedCustomHotel!['contact'] !=
+                                                null &&
+                                            _selectedCustomHotel!['contact']
+                                                .toString()
+                                                .isNotEmpty)
+                                          OutlinedButton.icon(
+                                            onPressed: () => _openExternalUrl(
+                                                'tel:${_selectedCustomHotel!['contact']}'),
+                                            icon: const Icon(
+                                                Icons.phone_outlined,
+                                                size: 14),
+                                            label: Text(
+                                              'Call: ${_selectedCustomHotel!['contact']}',
+                                              style:
+                                                  const TextStyle(fontSize: 12),
+                                            ),
+                                          ),
+                                      ],
+                                    ],
+                                  ),
                                 ],
                               ),
                             ),
@@ -781,12 +928,8 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
                                   const SizedBox(width: 8),
                                   ElevatedButton(
                                     onPressed: () {
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
-                                        SnackBar(
-                                            content: Text(
-                                                'Booking flow initiated for $_selectedCategory...')),
-                                      );
+                                      _showBookingSummaryModal(
+                                          finalPriceFormatted);
                                     },
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor:
@@ -818,6 +961,250 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  void _showBookingSummaryModal(String finalPriceFormatted) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        final theme = Theme.of(ctx);
+        final loc = widget.pkg['location'].toString();
+        final startCity =
+            _startingCity.trim().isEmpty ? 'Selected City' : _startingCity.trim();
+
+        return Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surface,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.outlineVariant,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Ready to Book Your Journey',
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primaryContainer,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      _selectedCategory,
+                      style: TextStyle(
+                        color: theme.colorScheme.onPrimaryContainer,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Text(
+                '${widget.pkg['title']} • $loc',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Route: $startCity ➔ $loc  |  Departure: ${_selectedDate ?? 'Flexible dates'}  |  Duration: ${widget.pkg['duration']}',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Divider(),
+              const SizedBox(height: 10),
+
+              // Direct connected portals
+              const Text(
+                'Direct Connected Portals for this Trip:',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+              ),
+              const SizedBox(height: 8),
+
+              // Train link
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1E3A8A).withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.train_rounded,
+                      color: Color(0xFF1E3A8A), size: 20),
+                ),
+                title: Text(
+                  _selectedCustomTransport != null &&
+                          _selectedCustomTransport!['airline'] == null
+                      ? _selectedCustomTransport!['name'].toString()
+                      : 'Official IRCTC Indian Railways Portal',
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w600, fontSize: 13.5),
+                ),
+                subtitle: const Text(
+                    'Book e-Tickets, verify PNR & live berth availability on IRCTC',
+                    style: TextStyle(fontSize: 11.5)),
+                trailing: FilledButton.tonal(
+                  onPressed: () {
+                    final url =
+                        _selectedCustomTransport?['bookingUrl']?.toString() ??
+                            'https://www.irctc.co.in/nget/train-search';
+                    _openExternalUrl(url);
+                  },
+                  child: const Text('Open IRCTC ↗',
+                      style: TextStyle(fontSize: 12)),
+                ),
+              ),
+
+              // Flight link
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(Icons.flight_takeoff_rounded,
+                      color: theme.colorScheme.primary, size: 20),
+                ),
+                title: Text(
+                  _selectedCustomTransport != null &&
+                          _selectedCustomTransport!['airline'] != null
+                      ? _selectedCustomTransport!['name'].toString()
+                      : 'Live Flights Search (Google Flights / Airlines)',
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w600, fontSize: 13.5),
+                ),
+                subtitle: const Text(
+                    'Book directly on Google Flights, MakeMyTrip or airline portal',
+                    style: TextStyle(fontSize: 11.5)),
+                trailing: FilledButton.tonal(
+                  onPressed: () {
+                    final url =
+                        _selectedCustomTransport?['bookingUrl']?.toString() ??
+                            'https://www.google.com/travel/flights?q=flights+from+${Uri.encodeComponent(startCity)}+to+${Uri.encodeComponent(loc)}';
+                    _openExternalUrl(url);
+                  },
+                  child: const Text('Book Flight ↗',
+                      style: TextStyle(fontSize: 12)),
+                ),
+              ),
+
+              // Hotel link
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF003580).withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.hotel_rounded,
+                      color: Color(0xFF003580), size: 20),
+                ),
+                title: Text(
+                  _selectedCustomHotel != null
+                      ? _selectedCustomHotel!['name'].toString()
+                      : 'Official Hotels & Verified Stays ($loc)',
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w600, fontSize: 13.5),
+                ),
+                subtitle: const Text(
+                    'Direct instant booking via Booking.com & official hotel sites',
+                    style: TextStyle(fontSize: 11.5)),
+                trailing: FilledButton.tonal(
+                  onPressed: () {
+                    final url =
+                        _selectedCustomHotel?['bookingUrl']?.toString() ??
+                            'https://www.booking.com/searchresults.html?ss=${Uri.encodeComponent(loc)}';
+                    _openExternalUrl(url);
+                  },
+                  child: const Text('Book Hotel ↗',
+                      style: TextStyle(fontSize: 12)),
+                ),
+              ),
+
+              const SizedBox(height: 16),
+              const Divider(),
+              const SizedBox(height: 12),
+
+              Row(
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Total Package Price',
+                          style: TextStyle(fontSize: 12, color: Colors.grey)),
+                      Text(
+                        finalPriceFormatted,
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.w900,
+                          color: theme.colorScheme.primary,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const Spacer(),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.pop(ctx);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          backgroundColor: Colors.green.shade700,
+                          content: Text(
+                              '🎉 Trip confirmed! Confirmation for ${widget.pkg['title']} generated.'),
+                          duration: const Duration(seconds: 4),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.check_circle_outline_rounded),
+                    label: const Text('Confirm Package Booking'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: theme.colorScheme.primary,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
