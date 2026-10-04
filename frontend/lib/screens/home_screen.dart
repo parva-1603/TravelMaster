@@ -23,6 +23,8 @@ class _HomeScreenState extends State<HomeScreen> {
   String _leavingFrom = '';
   String _goingTo = '';
   String _selectedMonth = 'Any month';
+  String _selectedSeasonFilter = 'All';
+  String _selectedSort = 'Recommended';
   bool _isLoading = true;
 
   static const _months = [
@@ -40,6 +42,44 @@ class _HomeScreenState extends State<HomeScreen> {
     'November',
     'December',
   ];
+
+  static const _seasonFilters = [
+    {'label': 'All Trips', 'value': 'All', 'icon': Icons.public_rounded},
+    {'label': '❄️ Winter & Snow (Dec–Feb)', 'value': 'Winter & Snow', 'icon': Icons.ac_unit_rounded},
+    {'label': '☀️ Spring & Summer (Mar–Jun)', 'value': 'Spring & Summer', 'icon': Icons.wb_sunny_rounded},
+    {'label': '🌧️ Monsoon Greens (Jul–Sep)', 'value': 'Monsoon Greens', 'icon': Icons.water_drop_rounded},
+    {'label': '🍂 Autumn & Festive (Oct–Nov)', 'value': 'Autumn & Festive', 'icon': Icons.eco_rounded},
+    {'label': '🏔️ Treks & Summits', 'value': 'Treks', 'icon': Icons.terrain_rounded},
+    {'label': '🏖️ Beaches & Islands', 'value': 'Beaches', 'icon': Icons.beach_access_rounded},
+    {'label': '🏛️ Heritage & Culture', 'value': 'Heritage', 'icon': Icons.temple_hindu_rounded},
+    {'label': '🌿 Wildlife & Nature', 'value': 'Wildlife', 'icon': Icons.pets_rounded},
+  ];
+
+  static const _sortOptions = [
+    'Recommended',
+    'Price: Low to High',
+    'Price: High to Low',
+    'Top Rated',
+    'Duration: Short to Long',
+    'Duration: Long to Short',
+  ];
+
+  int _extractPrice(dynamic priceStr) {
+    if (priceStr == null) return 0;
+    final digits = priceStr.toString().replaceAll(RegExp(r'[^0-9]'), '');
+    return int.tryParse(digits) ?? 0;
+  }
+
+  double _extractRating(dynamic ratingStr) {
+    if (ratingStr == null) return 0.0;
+    return double.tryParse(ratingStr.toString()) ?? 0.0;
+  }
+
+  int _extractDuration(dynamic durStr) {
+    if (durStr == null) return 0;
+    final parts = durStr.toString().trim().split(' ');
+    return int.tryParse(parts.first) ?? 0;
+  }
 
   List<Map<String, dynamic>> _allPackages = [];
 
@@ -101,11 +141,52 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final query = _goingTo.trim().toLowerCase();
     final filteredPackages = _allPackages.where((package) {
-      if (query.isEmpty) return true;
-      final location = (package['location'] ?? '').toString().toLowerCase();
-      final title = (package['title'] ?? '').toString().toLowerCase();
-      return location.contains(query) || title.contains(query);
+      if (query.isNotEmpty) {
+        final location = (package['location'] ?? '').toString().toLowerCase();
+        final title = (package['title'] ?? '').toString().toLowerCase();
+        if (!location.contains(query) && !title.contains(query)) return false;
+      }
+
+      // Check month filter from top search panel
+      if (_selectedMonth != 'Any month') {
+        final bestMonths = (package['bestMonths'] as List<dynamic>?)
+            ?.map((m) => m.toString().toLowerCase())
+            .toList() ?? [];
+        if (bestMonths.isNotEmpty &&
+            !bestMonths.contains(_selectedMonth.toLowerCase())) {
+          return false;
+        }
+      }
+
+      // Check season / trip type filter
+      if (_selectedSeasonFilter != 'All') {
+        final season = (package['bestSeason'] ?? '').toString();
+        final type = (package['tripType'] ?? '').toString().toLowerCase();
+        if (_selectedSeasonFilter == 'Winter & Snow' && !season.contains('Winter')) return false;
+        if (_selectedSeasonFilter == 'Spring & Summer' && !season.contains('Summer') && !season.contains('Spring')) return false;
+        if (_selectedSeasonFilter == 'Monsoon Greens' && !season.contains('Monsoon')) return false;
+        if (_selectedSeasonFilter == 'Autumn & Festive' && !season.contains('Autumn') && !season.contains('Festive')) return false;
+        if (_selectedSeasonFilter == 'Treks' && !type.contains('trek')) return false;
+        if (_selectedSeasonFilter == 'Beaches' && !type.contains('beach') && !type.contains('island')) return false;
+        if (_selectedSeasonFilter == 'Heritage' && !type.contains('heritage') && !type.contains('culture')) return false;
+        if (_selectedSeasonFilter == 'Wildlife' && !type.contains('wildlife')) return false;
+      }
+
+      return true;
     }).toList();
+
+    // Apply sorting
+    if (_selectedSort == 'Price: Low to High') {
+      filteredPackages.sort((a, b) => _extractPrice(a['price']).compareTo(_extractPrice(b['price'])));
+    } else if (_selectedSort == 'Price: High to Low') {
+      filteredPackages.sort((a, b) => _extractPrice(b['price']).compareTo(_extractPrice(a['price'])));
+    } else if (_selectedSort == 'Top Rated') {
+      filteredPackages.sort((a, b) => _extractRating(b['rating']).compareTo(_extractRating(a['rating'])));
+    } else if (_selectedSort == 'Duration: Short to Long') {
+      filteredPackages.sort((a, b) => _extractDuration(a['duration']).compareTo(_extractDuration(b['duration'])));
+    } else if (_selectedSort == 'Duration: Long to Short') {
+      filteredPackages.sort((a, b) => _extractDuration(b['duration']).compareTo(_extractDuration(a['duration'])));
+    }
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -140,10 +221,12 @@ class _HomeScreenState extends State<HomeScreen> {
                         _buildHero(wide: wide),
                         const SizedBox(height: 20),
                         _buildSearchPanel(wide: wide),
-                        const SizedBox(height: 42),
-                        _buildPackageHeading(context, filteredPackages.length),
-                        const SizedBox(height: 16),
-                        _buildPackageRail(context, filteredPackages),
+                        const SizedBox(height: 36),
+                        _buildSeasonFilterBar(context),
+                        const SizedBox(height: 18),
+                        _buildSortAndSummaryBar(context, filteredPackages.length, wide),
+                        const SizedBox(height: 20),
+                        _buildVerticalPackageGrid(context, filteredPackages, viewport.maxWidth),
                       ],
                     ),
                   ),
@@ -482,40 +565,183 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildPackageHeading(BuildContext context, int count) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.end,
+  Widget _buildSeasonFilterBar(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'A good place to start',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w800,
-                    ),
+        Row(
+          children: [
+            Icon(Icons.wb_twilight_rounded,
+                size: 20, color: theme.colorScheme.primary),
+            const SizedBox(width: 8),
+            Text(
+              'Explore by Season & Weather',
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w800,
               ),
-              const SizedBox(height: 4),
-              Text(
-                queryLabel,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
+            ),
+            const Spacer(),
+            Text(
+              'Weather-Curated',
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: theme.colorScheme.primary,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.5,
               ),
-            ],
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          height: 44,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: _seasonFilters.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 8),
+            itemBuilder: (context, index) {
+              final filter = _seasonFilters[index];
+              final isSelected = _selectedSeasonFilter == filter['value'];
+              return FilterChip(
+                selected: isSelected,
+                showCheckmark: false,
+                label: Text(
+                  filter['label'] as String,
+                  style: TextStyle(
+                    color: isSelected
+                        ? Colors.white
+                        : theme.colorScheme.onSurface,
+                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                    fontSize: 13,
+                  ),
+                ),
+                backgroundColor: theme.colorScheme.surface,
+                selectedColor: theme.colorScheme.primary,
+                side: BorderSide(
+                  color: isSelected
+                      ? theme.colorScheme.primary
+                      : theme.colorScheme.outlineVariant.withValues(alpha: 0.7),
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(22),
+                ),
+                onSelected: (selected) {
+                  setState(() {
+                    _selectedSeasonFilter = filter['value'] as String;
+                  });
+                },
+              );
+            },
           ),
         ),
-        if (!_isLoading)
-          Text(
-            '$count ${count == 1 ? 'trip' : 'trips'}',
-            style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  color: Theme.of(context).colorScheme.primary,
-                  fontWeight: FontWeight.w700,
-                ),
-          ),
       ],
     );
+  }
+
+  Widget _buildSortAndSummaryBar(
+    BuildContext context,
+    int count,
+    bool wide,
+  ) {
+    final theme = Theme.of(context);
+
+    final summaryWidget = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.primary.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            '$count ${count == 1 ? 'Trip' : 'Trips'}',
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: theme.colorScheme.primary,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Flexible(
+          child: Text(
+            queryLabel,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+      ],
+    );
+
+    final sortWidget = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(Icons.sort_rounded, size: 18, color: theme.colorScheme.primary),
+        const SizedBox(width: 8),
+        Text(
+          'Sort by:',
+          style: theme.textTheme.labelMedium?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Container(
+          height: 38,
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surface,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: theme.colorScheme.outlineVariant.withValues(alpha: 0.7),
+            ),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: _selectedSort,
+              icon: const Icon(Icons.arrow_drop_down_rounded, size: 20),
+              style: theme.textTheme.labelMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+                color: theme.colorScheme.onSurface,
+              ),
+              items: _sortOptions.map((opt) {
+                return DropdownMenuItem<String>(
+                  value: opt,
+                  child: Text(opt),
+                );
+              }).toList(),
+              onChanged: (newSort) {
+                if (newSort != null) {
+                  setState(() => _selectedSort = newSort);
+                }
+              },
+            ),
+          ),
+        ),
+      ],
+    );
+
+    if (wide) {
+      return Row(
+        children: [
+          Expanded(child: summaryWidget),
+          const SizedBox(width: 16),
+          sortWidget,
+        ],
+      );
+    } else {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          summaryWidget,
+          const SizedBox(height: 12),
+          sortWidget,
+        ],
+      );
+    }
   }
 
   String get queryLabel {
@@ -523,196 +749,422 @@ class _HomeScreenState extends State<HomeScreen> {
       if (_leavingFrom.trim().isNotEmpty) _leavingFrom.trim(),
       if (_goingTo.trim().isNotEmpty) _goingTo.trim(),
     ].join(' to ');
-    if (route.isEmpty) {
-      return 'Handpicked escapes, from quiet coastlines to high country.';
-    }
     final month = _selectedMonth == 'Any month' ? '' : ' in $_selectedMonth';
-    return 'Trips from $route$month';
+    final season = _selectedSeasonFilter == 'All' ? '' : ' • $_selectedSeasonFilter';
+
+    if (route.isEmpty && month.isEmpty && season.isEmpty) {
+      return 'Handpicked escapes with optimal weather, seasonal views, and vetted routes.';
+    }
+    return 'Trips${route.isNotEmpty ? ' for $route' : ''}$month$season';
   }
 
-  Widget _buildPackageRail(
+  Widget _buildVerticalPackageGrid(
     BuildContext context,
     List<Map<String, dynamic>> packages,
+    double screenWidth,
   ) {
     if (_isLoading) {
       return const SizedBox(
-        height: 280,
+        height: 300,
         child: Center(child: CircularProgressIndicator()),
       );
     }
     if (packages.isEmpty) {
       return Container(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 34),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 48),
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(16),
-          border:
-              Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+          border: Border.all(
+            color: Theme.of(context).colorScheme.outlineVariant,
+          ),
         ),
         child: Column(
           children: [
-            const Icon(Icons.travel_explore_rounded, size: 30),
-            const SizedBox(height: 10),
+            const Icon(Icons.travel_explore_rounded, size: 40),
+            const SizedBox(height: 12),
             Text(
-              'No trips found for that search.',
-              style: Theme.of(context).textTheme.titleMedium,
+              'No trips found matching your weather and filter criteria.',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+              textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 4),
-            TextButton(
-              onPressed: () => setState(() => _goingTo = ''),
-              child: const Text('Clear destination'),
+            const SizedBox(height: 6),
+            Text(
+              'Try selecting another season, changing the month, or resetting filters.',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            FilledButton.tonal(
+              onPressed: () {
+                setState(() {
+                  _goingTo = '';
+                  _selectedMonth = 'Any month';
+                  _selectedSeasonFilter = 'All';
+                  _selectedSort = 'Recommended';
+                });
+              },
+              child: const Text('Reset All Filters'),
             ),
           ],
         ),
       );
     }
 
-    return SizedBox(
-      height: 332,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.only(bottom: 6),
-        itemCount: packages.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 14),
-        itemBuilder: (context, index) => _PackageCard(
-          package: packages[index],
-          onThemeToggle: widget.onThemeToggle,
-        )
-            .animate()
-            .fadeIn(delay: Duration(milliseconds: 90 * index))
-            .slideY(begin: 0.06),
+    final int crossAxisCount =
+        screenWidth >= 1050 ? 3 : (screenWidth >= 680 ? 2 : 1);
+    final double childAspectRatio = screenWidth >= 1050
+        ? 0.73
+        : (screenWidth >= 680 ? 0.75 : 0.88);
+
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: packages.length,
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: crossAxisCount,
+        crossAxisSpacing: 20,
+        mainAxisSpacing: 22,
+        childAspectRatio: childAspectRatio,
       ),
+      itemBuilder: (context, index) => _VerticalPackageCard(
+        package: packages[index],
+        onThemeToggle: widget.onThemeToggle,
+      )
+          .animate()
+          .fadeIn(delay: Duration(milliseconds: 35 * (index % 12)))
+          .slideY(begin: 0.04),
     );
   }
 }
 
-class _PackageCard extends StatelessWidget {
+class _VerticalPackageCard extends StatelessWidget {
   final Map<String, dynamic> package;
   final VoidCallback onThemeToggle;
 
-  const _PackageCard({required this.package, required this.onThemeToggle});
+  const _VerticalPackageCard({
+    required this.package,
+    required this.onThemeToggle,
+  });
 
   @override
   Widget build(BuildContext context) {
     final title = (package['title'] ?? 'Untitled escape').toString();
-    final location =
-        (package['location'] ?? 'Somewhere worth going').toString();
+    final location = (package['location'] ?? 'India').toString();
     final image = (package['image'] ?? '').toString();
     final duration = (package['duration'] ?? '').toString();
-    final rating = (package['rating'] ?? '').toString();
+    final rating = (package['rating'] ?? '4.8').toString();
+    final price = (package['price'] ?? '').toString();
+    final weatherHighlight = (package['weatherHighlight'] ?? '').toString();
+    final bestSeason = (package['bestSeason'] ?? '').toString();
+    final organizer = (package['organizer'] ?? 'Invincible NGO').toString();
+    final bestMonths = (package['bestMonths'] as List<dynamic>?)
+            ?.map((e) => e.toString())
+            .toList() ??
+        [];
 
-    return SizedBox(
-      width: 268,
-      child: Material(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => PackageDetailsScreen(
-                  pkg: package,
-                  onThemeToggle: onThemeToggle,
-                ),
+    final theme = Theme.of(context);
+
+    return Material(
+      color: theme.colorScheme.surface,
+      borderRadius: BorderRadius.circular(18),
+      clipBehavior: Clip.antiAlias,
+      elevation: 0,
+      child: InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => PackageDetailsScreen(
+                pkg: package,
+                onThemeToggle: onThemeToggle,
               ),
-            );
-          },
+            ),
+          );
+        },
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: theme.colorScheme.outlineVariant.withValues(alpha: 0.55),
+              width: 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: theme.colorScheme.shadow.withValues(alpha: 0.04),
+                blurRadius: 16,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(
-                height: 192,
-                width: double.infinity,
-                child: Hero(
-                  tag: 'image_$title',
-                  child: Image.network(
-                    image,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) =>
-                        const ColoredBox(color: Color(0xFF31594E)),
+              // Top Image Container with weather and season badges
+              Stack(
+                children: [
+                  SizedBox(
+                    height: 190,
+                    width: double.infinity,
+                    child: Hero(
+                      tag: 'image_$title',
+                      child: Image.network(
+                        image,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) =>
+                            const ColoredBox(color: Color(0xFF31594E)),
+                      ),
+                    ),
                   ),
-                ),
+                  Positioned.fill(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.black.withValues(alpha: 0.35),
+                            Colors.transparent,
+                            Colors.black.withValues(alpha: 0.45),
+                          ],
+                          stops: const [0.0, 0.4, 1.0],
+                        ),
+                      ),
+                    ),
+                  ),
+                  // Weather Badge (Top Left)
+                  if (weatherHighlight.isNotEmpty)
+                    Positioned(
+                      top: 10,
+                      left: 10,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 9, vertical: 4.5),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.72),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.25),
+                            width: 0.8,
+                          ),
+                        ),
+                        child: Text(
+                          weatherHighlight,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                  // Season Badge (Top Right)
+                  if (bestSeason.isNotEmpty)
+                    Positioned(
+                      top: 10,
+                      right: 10,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 9, vertical: 4.5),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.primaryContainer
+                              .withValues(alpha: 0.92),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Text(
+                          bestSeason,
+                          style: TextStyle(
+                            color: theme.colorScheme.onPrimaryContainer,
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.2,
+                          ),
+                        ),
+                      ),
+                    ),
+                  // Duration Pill (Bottom Right of Image)
+                  if (duration.isNotEmpty)
+                    Positioned(
+                      bottom: 10,
+                      right: 10,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 3.5),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.65),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.schedule_rounded,
+                                size: 12, color: Colors.white70),
+                            const SizedBox(width: 4),
+                            Text(
+                              duration,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                ],
               ),
+              // Body Details
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(15, 13, 15, 13),
+                  padding: const EdgeInsets.fromLTRB(15, 12, 15, 14),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // Location & Rating Row
                       Row(
                         children: [
                           Icon(Icons.place_outlined,
-                              size: 15,
-                              color: Theme.of(context).colorScheme.primary),
+                              size: 15, color: theme.colorScheme.primary),
                           const SizedBox(width: 4),
                           Expanded(
                             child: Text(
                               location,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .labelMedium
-                                  ?.copyWith(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onSurfaceVariant,
-                                  ),
+                              style: theme.textTheme.labelMedium?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
-                          if (rating.isNotEmpty) ...[
-                            const Icon(Icons.star_rounded,
-                                size: 16, color: Color(0xFFE49C39)),
-                            const SizedBox(width: 3),
-                            Text(rating,
-                                style: Theme.of(context).textTheme.labelMedium),
-                          ],
+                          const Icon(Icons.star_rounded,
+                              size: 17, color: Color(0xFFE49C39)),
+                          const SizedBox(width: 3),
+                          Text(
+                            rating,
+                            style: theme.textTheme.labelMedium?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
                         ],
                       ),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 7),
+                      // Trip Title
                       Text(
                         title,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 16,
+                          height: 1.25,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      // Best Months preview
+                      if (bestMonths.isNotEmpty) ...[
+                        Row(
+                          children: [
+                            Icon(Icons.calendar_today_rounded,
+                                size: 12,
+                                color: theme.colorScheme.primary
+                                    .withValues(alpha: 0.8)),
+                            const SizedBox(width: 5),
+                            Expanded(
+                              child: Text(
+                                'Best: ${bestMonths.take(3).join(', ')}${bestMonths.length > 3 ? '...' : ''}',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                      ],
+                      // Organizer tag
+                      Text(
+                        'Verified by $organizer',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style:
-                            Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.w800,
-                                ),
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.primary,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 10.5,
+                        ),
                       ),
                       const Spacer(),
+                      const Divider(height: 14),
+                      // Price & Action Button
                       Row(
-                        crossAxisAlignment: CrossAxisAlignment.end,
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Expanded(
-                            child: Text(
-                              (package['price'] ?? '').toString(),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleMedium
-                                  ?.copyWith(
-                                    color:
-                                        Theme.of(context).colorScheme.primary,
-                                    fontWeight: FontWeight.w800,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  'Per Person',
+                                  style: theme.textTheme.labelSmall?.copyWith(
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                    fontSize: 10,
                                   ),
+                                ),
+                                Text(
+                                  price,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: theme.textTheme.titleMedium?.copyWith(
+                                    color: theme.colorScheme.primary,
+                                    fontWeight: FontWeight.w900,
+                                    fontSize: 17,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                          if (duration.isNotEmpty)
-                            Text(
-                              duration,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .labelSmall
-                                  ?.copyWith(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onSurfaceVariant,
+                          FilledButton.tonal(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => PackageDetailsScreen(
+                                    pkg: package,
+                                    onThemeToggle: onThemeToggle,
                                   ),
+                                ),
+                              );
+                            },
+                            style: FilledButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 14, vertical: 8),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              visualDensity: VisualDensity.compact,
                             ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text('View Trip',
+                                    style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w700)),
+                                SizedBox(width: 4),
+                                Icon(Icons.arrow_forward_rounded, size: 14),
+                              ],
+                            ),
+                          ),
                         ],
                       ),
                     ],
