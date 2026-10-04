@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
+import 'package:markdown/markdown.dart' as md;
+import 'package:url_launcher/url_launcher.dart';
 import '../widgets/live_background.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -43,12 +45,13 @@ class _ChatScreenState extends State<ChatScreen> {
   ];
 
   static const String _systemInstruction =
-      'You are TravelMaster AI, an expert, deeply knowledgeable travel planner and concierge.\n'
-      'When answering travel queries, search and plan in a deep, thorough, and highly specific manner:\n'
-      '1. Provide rich, practical details including top attractions, hidden gems, day-by-day itineraries, and transit routes.\n'
-      '2. When suggesting hotels/stays, always provide categorized options (e.g., Luxury Resort, Boutique Heritage, Mid-Range, Budget Inn) with exact property names, specific location/neighborhood, approximate prices (in INR and USD), contact details (phone, email, or website), and key rules (check-in/out times, visitor/pet policies).\n'
-      '3. Include actionable recommendations such as the best season/month to visit, weather tips, local food recommendations, and budget guidance.\n'
-      '4. Format your output cleanly and efficiently using clear Markdown headers (###), bold highlights, and structured bullet points so it is effortless to read.';
+      'You are TravelMaster AI, an expert, deeply knowledgeable, real-world travel planner and concierge.\n'
+      'Strict Guidelines for Real Data & Working Links:\n'
+      '1. REAL & AUTHENTIC DATA ONLY: Never invent, make up, or hallucinate fictitious hotel names, fake contact numbers, or non-existent attractions. Recommend only famous, genuinely existing, verified properties (e.g., authentic Taj, Oberoi, CGH Earth, ITC, Neemrana, Zostel, Sterling, or recognized boutique/heritage homestays).\n'
+      '2. WORKING & PROPER LINKS: Every website link you provide MUST be a valid, real, and currently working URL with full "https://" protocol (for example, official domain links like [Official Website](https://www.tajhotels.com), [Oberoi Hotels](https://www.oberoihotels.com), [CGH Earth](https://www.cghearth.com), or verified booking portals like [Google Travel](https://www.google.com/travel), [MakeMyTrip](https://www.makemytrip.com), or [Booking.com](https://www.booking.com)). Always use verified top-level domains or official homepages rather than invented subpaths that could lead to 404 errors. Always format links as proper Markdown: [Link Title](https://example.com).\n'
+      '3. ACCURATE PRICING & CONTACTS: Provide realistic, current price estimates (in INR and USD), genuine reservation phone numbers (e.g. hotel reception or toll-free), and official reservation emails or website booking pages.\n'
+      '4. SPECIFIC & ACTIONABLE DETAILS: For each recommendation, provide exact neighborhood/location, check-in/out policies, key property rules, best season to visit, and local transit routes (airports, railway station codes, cab/bus routes).\n'
+      '5. DEEP & STRUCTURED FORMAT: Structure your answer cleanly using bold headings (###), categorized sections (Luxury, Boutique Heritage, Mid-Range, Budget), and bullet points so every detail is immediately clear and usable.';
 
   int _currentModelIndex = 0;
   GenerativeModel? _model;
@@ -460,7 +463,50 @@ class _ChatScreenState extends State<ChatScreen> {
           child: MarkdownBody(
             data: text,
             selectable: true,
+            extensionSet: md.ExtensionSet.gitHubFlavored,
+            onTapLink: (linkText, href, title) async {
+              if (href == null || href.trim().isEmpty) return;
+              String targetUrl = href.trim();
+              if (!targetUrl.startsWith('http://') &&
+                  !targetUrl.startsWith('https://') &&
+                  !targetUrl.startsWith('mailto:') &&
+                  !targetUrl.startsWith('tel:')) {
+                targetUrl = 'https://$targetUrl';
+              }
+              final uri = Uri.tryParse(targetUrl);
+              if (uri != null) {
+                try {
+                  final launched = await launchUrl(
+                    uri,
+                    mode: LaunchMode.externalApplication,
+                  );
+                  if (!launched) {
+                    await launchUrl(uri, mode: LaunchMode.platformDefault);
+                  }
+                } catch (e) {
+                  try {
+                    await launchUrl(uri, mode: LaunchMode.platformDefault);
+                  } catch (e2) {
+                    debugPrint('Could not open link $targetUrl: $e2');
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Could not open link: $targetUrl'),
+                          duration: const Duration(seconds: 3),
+                        ),
+                      );
+                    }
+                  }
+                }
+              }
+            },
             styleSheet: MarkdownStyleSheet(
+              a: TextStyle(
+                color: colors.primary,
+                decoration: TextDecoration.underline,
+                decorationColor: colors.primary,
+                fontWeight: FontWeight.w600,
+              ),
               p: TextStyle(
                 height: 1.6,
                 color: colors.onSurface,
