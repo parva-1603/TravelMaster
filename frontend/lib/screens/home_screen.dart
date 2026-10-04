@@ -127,147 +127,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   List<Map<String, dynamic>> _allPackages = [];
 
-  Timer? _heroTimer;
-  late final PageController _heroPageController;
-  int _currentHeroIndex = 0;
-
-  static const List<_HeroPlaceSlide> _defaultHeroSlides = [
-    _HeroPlaceSlide(
-      image:
-          'https://images.unsplash.com/photo-1593693397690-362cb9666fc2?auto=format&fit=crop&w=1800&q=85',
-      title: 'More world.\nLess routine.',
-      subtitle: 'Drift through serene palm lagoons & emerald backwaters',
-      location: 'Alleppey, Kerala',
-      tag: '🌴 TROPICAL OASIS • 26°C',
-    ),
-    _HeroPlaceSlide(
-      image:
-          'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1800&q=85',
-      title: 'Touch the clouds.\nWalk on snow.',
-      subtitle:
-          'Winter summit trail & snow-covered pine ridges at 12,500 ft',
-      location: 'Kedarkantha, Uttarakhand',
-      tag: '❄️ SUB-ZERO SNOW • -4°C',
-    ),
-    _HeroPlaceSlide(
-      image:
-          'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1800&q=85',
-      title: 'The Middle Land.\nPure wilderness.',
-      subtitle:
-          'Ancient high-altitude monasteries & trans-Himalayan valleys',
-      location: 'Spiti Valley, Himachal',
-      tag: '🏔️ HIGH PASSES • 14°C',
-    ),
-    _HeroPlaceSlide(
-      image:
-          'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?auto=format&fit=crop&w=1800&q=85',
-      title: 'Golden sunsets.\nOcean breeze.',
-      subtitle: 'Hidden secluded coves, palm shores & coastal adventures',
-      location: 'Palolem Beach, South Goa',
-      tag: '🏖️ COASTAL BREEZE • 29°C',
-    ),
-    _HeroPlaceSlide(
-      image:
-          'https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=1800&q=85',
-      title: 'Starry skies.\nGolden dunes.',
-      subtitle:
-          'Camel safaris, folklore music & desert camps under the stars',
-      location: 'Jaisalmer, Thar Desert',
-      tag: '✨ DESERT NIGHTS • 22°C',
-    ),
-    _HeroPlaceSlide(
-      image:
-          'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?auto=format&fit=crop&w=1800&q=85',
-      title: 'Living root bridges.\nMisty gorges.',
-      subtitle:
-          'Centuries-old bio-root engineering & thundering emerald falls',
-      location: 'Cherrapunji, Meghalaya',
-      tag: '🌧️ MONSOON RAIN • 19°C',
-    ),
-    _HeroPlaceSlide(
-      image:
-          'https://images.unsplash.com/photo-1589182373726-e4f658ab50f0?auto=format&fit=crop&w=1800&q=85',
-      title: 'Turquoise sea.\nCoral reefs.',
-      subtitle:
-          'Radhanagar white sands & world-class deep coral reef diving',
-      location: 'Havelock, Andaman Islands',
-      tag: '🌊 ISLAND RETREAT • 28°C',
-    ),
-    _HeroPlaceSlide(
-      image:
-          'https://images.unsplash.com/photo-1561361513-2d000a50f0dc?auto=format&fit=crop&w=1800&q=85',
-      title: 'Eternal city.\nSacred riverbanks.',
-      subtitle: 'Evening Ganga Aarti lights & timeless spiritual heritage',
-      location: 'Varanasi, Uttar Pradesh',
-      tag: '🪔 SPIRITUAL HERITAGE • 21°C',
-    ),
-    _HeroPlaceSlide(
-      image:
-          'https://images.unsplash.com/photo-1570789210967-2cac24afeb00?auto=format&fit=crop&w=1800&q=85',
-      title: 'Morning mist.\nKanchenjunga.',
-      subtitle: 'Rolling emerald tea hills & panoramic golden sunrises',
-      location: 'Darjeeling, West Bengal',
-      tag: '☕ ALPINE DAWN • 13°C',
-    ),
-  ];
-
-  List<_HeroPlaceSlide> _getHeroSlides() {
-    if (_allPackages.isEmpty) return _defaultHeroSlides;
-
-    final dynamicSlides = _allPackages.take(12).map((pkg) {
-      final title = (pkg['title'] ?? 'Scenic Escape').toString();
-      final loc = (pkg['location'] ?? 'India').toString();
-      final image = (pkg['image'] ?? '').toString();
-      final weather =
-          (pkg['weatherHighlight'] ?? 'Optimal Travel Season').toString();
-      final season = (pkg['bestSeason'] ?? 'All Seasons').toString();
-
-      String heroTitle = 'More world.\nLess routine.';
-      final lower = title.toLowerCase();
-      if (lower.contains('trek') ||
-          lower.contains('pass') ||
-          lower.contains('peak')) {
-        heroTitle = 'Walk the heights.\nReach the peak.';
-      } else if (lower.contains('beach') ||
-          lower.contains('coast') ||
-          lower.contains('island')) {
-        heroTitle = 'Golden shores.\nOcean breeze.';
-      } else if (lower.contains('desert') ||
-          lower.contains('kutch') ||
-          lower.contains('dunes')) {
-        heroTitle = 'Starry skies.\nEndless horizon.';
-      } else if (lower.contains('waterfall') ||
-          lower.contains('forest') ||
-          lower.contains('meghalaya')) {
-        heroTitle = 'Lush canopies.\nMisty cascades.';
-      } else if (lower.contains('heritage') ||
-          lower.contains('kashi') ||
-          lower.contains('temple') ||
-          lower.contains('hampi')) {
-        heroTitle = 'Timeless tales.\nAncient stones.';
-      } else if (lower.contains('backwaters') || lower.contains('kerala')) {
-        heroTitle = 'More world.\nLess routine.';
-      }
-
-      return _HeroPlaceSlide(
-        image: image,
-        title: heroTitle,
-        subtitle: '$title • $loc',
-        location: loc,
-        tag: '$weather • $season',
-        package: pkg,
-      );
-    }).toList();
-
-    return dynamicSlides.isNotEmpty ? dynamicSlides : _defaultHeroSlides;
-  }
-
   @override
   void initState() {
     super.initState();
     _scrollController = ScrollController()..addListener(_onScroll);
-    _heroPageController = PageController();
-    _startHeroAutoPlay();
     _fetchPackages();
   }
 
@@ -278,55 +141,8 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  void _startHeroAutoPlay() {
-    _heroTimer?.cancel();
-    _heroTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
-      if (!mounted) return;
-      final slides = _getHeroSlides();
-      if (slides.isEmpty) return;
-      final nextIndex = (_currentHeroIndex + 1) % slides.length;
-      if (_heroPageController.hasClients) {
-        _heroPageController.animateToPage(
-          nextIndex,
-          duration: const Duration(milliseconds: 850),
-          curve: Curves.easeInOutCubic,
-        );
-      }
-    });
-  }
-
-  void _nextHeroSlide() {
-    final slides = _getHeroSlides();
-    if (slides.isEmpty) return;
-    final nextIndex = (_currentHeroIndex + 1) % slides.length;
-    if (_heroPageController.hasClients) {
-      _heroPageController.animateToPage(
-        nextIndex,
-        duration: const Duration(milliseconds: 650),
-        curve: Curves.easeInOutCubic,
-      );
-    }
-    _startHeroAutoPlay();
-  }
-
-  void _prevHeroSlide() {
-    final slides = _getHeroSlides();
-    if (slides.isEmpty) return;
-    final prevIndex = (_currentHeroIndex - 1 + slides.length) % slides.length;
-    if (_heroPageController.hasClients) {
-      _heroPageController.animateToPage(
-        prevIndex,
-        duration: const Duration(milliseconds: 650),
-        curve: Curves.easeInOutCubic,
-      );
-    }
-    _startHeroAutoPlay();
-  }
-
   @override
   void dispose() {
-    _heroTimer?.cancel();
-    _heroPageController.dispose();
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     super.dispose();
@@ -512,7 +328,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       children: [
                         _buildHeader(context),
                         const SizedBox(height: 24),
-                        _buildHero(wide: wide),
+                        _RotatingHeroBanner(
+                          allPackages: _allPackages,
+                          wide: wide,
+                          onThemeToggle: widget.onThemeToggle,
+                        ),
                         const SizedBox(height: 20),
                         _buildSearchPanel(wide: wide),
                         const SizedBox(height: 36),
@@ -585,357 +405,6 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ],
     ).animate().fadeIn(duration: 450.ms).slideY(begin: -0.08);
-  }
-
-  Widget _buildHero({required bool wide}) {
-    final slides = _getHeroSlides();
-
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(24),
-      child: SizedBox(
-        height: wide ? 400 : 360,
-        width: double.infinity,
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            // PageView cycling through all places every 5 seconds
-            PageView.builder(
-              controller: _heroPageController,
-              itemCount: slides.length,
-              onPageChanged: (index) {
-                setState(() => _currentHeroIndex = index);
-              },
-              itemBuilder: (context, index) {
-                final slide = slides[index];
-                return Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    Image.network(
-                      slide.image,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) =>
-                          const ColoredBox(color: Color(0xFF31594E)),
-                    ),
-                    const DecoratedBox(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            Color(0x35000000),
-                            Color(0x18000000),
-                            Color(0xC8000000),
-                          ],
-                          stops: [0, 0.42, 1],
-                        ),
-                      ),
-                    ),
-                    // Slide content
-                    Positioned(
-                      left: wide ? 38 : 20,
-                      right: wide ? 280 : 20,
-                      bottom: 42,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // Location Tag & Weather
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 3.5),
-                                decoration: BoxDecoration(
-                                  color: Colors.black.withValues(alpha: 0.55),
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(
-                                    color: Colors.white.withValues(alpha: 0.25),
-                                  ),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Icon(Icons.place_rounded,
-                                        size: 13, color: Colors.white),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      slide.location,
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Flexible(
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 8, vertical: 3.5),
-                                  decoration: BoxDecoration(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .primaryContainer
-                                        .withValues(alpha: 0.9),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Text(
-                                    slide.tag,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .onPrimaryContainer,
-                                      fontSize: 10.5,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 10),
-                          Text(
-                            slide.title,
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: wide ? 46 : 34,
-                              height: 1.05,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: -0.5,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            slide.subtitle,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 14.5,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                );
-              },
-            ),
-
-            // Top Bar
-            Positioned(
-              top: 20,
-              left: 20,
-              right: 20,
-              child: Row(
-                children: [
-                  DecoratedBox(
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.4),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.35)),
-                    ),
-                    child: const Padding(
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.auto_awesome_rounded,
-                              size: 13, color: Colors.white),
-                          SizedBox(width: 5),
-                          Text(
-                            'FEATURED DESTINATIONS',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 10.5,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 1.1,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const Spacer(),
-                  // 5-second indicator & Slide counter
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 5),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.45),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.25)),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.timer_outlined,
-                            size: 13, color: Colors.white70),
-                        const SizedBox(width: 5),
-                        Text(
-                          '${_currentHeroIndex + 1} / ${slides.length} • 5s',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // Left & Right manual navigation buttons
-            if (wide) ...[
-              Positioned(
-                left: 14,
-                top: 0,
-                bottom: 0,
-                child: Center(
-                  child: Material(
-                    color: Colors.black.withValues(alpha: 0.38),
-                    shape: const CircleBorder(),
-                    child: InkWell(
-                      customBorder: const CircleBorder(),
-                      onTap: _prevHeroSlide,
-                      child: const Padding(
-                        padding: EdgeInsets.all(8.0),
-                        child: Icon(Icons.chevron_left_rounded,
-                            color: Colors.white, size: 28),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              Positioned(
-                right: 14,
-                top: 0,
-                bottom: 0,
-                child: Center(
-                  child: Material(
-                    color: Colors.black.withValues(alpha: 0.38),
-                    shape: const CircleBorder(),
-                    child: InkWell(
-                      customBorder: const CircleBorder(),
-                      onTap: _nextHeroSlide,
-                      child: const Padding(
-                        padding: EdgeInsets.all(8.0),
-                        child: Icon(Icons.chevron_right_rounded,
-                            color: Colors.white, size: 28),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-
-            // Bottom Right Action Button: "Explore Place"
-            Positioned(
-              right: 22,
-              bottom: 24,
-              child: Material(
-                color: Theme.of(context).colorScheme.primary,
-                borderRadius: BorderRadius.circular(14),
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(14),
-                  onTap: () {
-                    final currentSlide = slides[_currentHeroIndex];
-                    if (currentSlide.package != null) {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => PackageDetailsScreen(
-                            pkg: currentSlide.package!,
-                            onThemeToggle: widget.onThemeToggle,
-                          ),
-                        ),
-                      );
-                    } else if (_allPackages.isNotEmpty) {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => PackageDetailsScreen(
-                            pkg: _allPackages.first,
-                            onThemeToggle: widget.onThemeToggle,
-                          ),
-                        ),
-                      );
-                    }
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 10),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Text(
-                          'Explore Place',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        const SizedBox(width: 5),
-                        Icon(
-                          Icons.arrow_forward_rounded,
-                          color: Theme.of(context).colorScheme.secondary,
-                          size: 16,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-
-            // Bottom Indicators (Line / Dots that advance)
-            Positioned(
-              bottom: 14,
-              left: 24,
-              child: Row(
-                children: List.generate(slides.length, (i) {
-                  final isCurrent = i == _currentHeroIndex;
-                  return GestureDetector(
-                    onTap: () {
-                      _heroPageController.animateToPage(
-                        i,
-                        duration: const Duration(milliseconds: 650),
-                        curve: Curves.easeInOutCubic,
-                      );
-                      _startHeroAutoPlay();
-                    },
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 300),
-                      margin: const EdgeInsets.only(right: 5),
-                      height: 4.5,
-                      width: isCurrent ? 24 : 7,
-                      decoration: BoxDecoration(
-                        color: isCurrent
-                            ? Colors.white
-                            : Colors.white.withValues(alpha: 0.35),
-                        borderRadius: BorderRadius.circular(3),
-                      ),
-                    ),
-                  );
-                }),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 
   Widget _buildSearchPanel({required bool wide}) {
@@ -1516,8 +985,8 @@ class _HomeScreenState extends State<HomeScreen> {
     final int crossAxisCount =
         screenWidth >= 1050 ? 3 : (screenWidth >= 680 ? 2 : 1);
     final double childAspectRatio = screenWidth >= 1050
-        ? 0.73
-        : (screenWidth >= 680 ? 0.75 : 0.88);
+        ? 0.98
+        : (screenWidth >= 680 ? 0.95 : 1.02);
 
     return GridView.builder(
       shrinkWrap: true,
@@ -1526,7 +995,7 @@ class _HomeScreenState extends State<HomeScreen> {
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: crossAxisCount,
         crossAxisSpacing: 20,
-        mainAxisSpacing: 22,
+        mainAxisSpacing: 20,
         childAspectRatio: childAspectRatio,
       ),
       itemBuilder: (context, index) {
@@ -1585,6 +1054,571 @@ class _HomeScreenState extends State<HomeScreen> {
             .fadeIn(delay: Duration(milliseconds: 35 * (index % 12)))
             .slideY(begin: 0.04);
       },
+    );
+  }
+}
+
+class _RotatingHeroBanner extends StatefulWidget {
+  final List<Map<String, dynamic>> allPackages;
+  final bool wide;
+  final VoidCallback onThemeToggle;
+
+  const _RotatingHeroBanner({
+    required this.allPackages,
+    required this.wide,
+    required this.onThemeToggle,
+  });
+
+  @override
+  State<_RotatingHeroBanner> createState() => _RotatingHeroBannerState();
+}
+
+class _RotatingHeroBannerState extends State<_RotatingHeroBanner> {
+  late final PageController _heroPageController;
+  Timer? _heroTimer;
+  int _currentHeroIndex = 0;
+
+  static const List<_HeroPlaceSlide> _defaultHeroSlides = [
+    _HeroPlaceSlide(
+      image:
+          'https://images.unsplash.com/photo-1593693397690-362cb9666fc2?auto=format&fit=crop&w=1800&q=85',
+      title: 'More world.\nLess routine.',
+      subtitle: 'Drift through serene palm lagoons & emerald backwaters',
+      location: 'Alleppey, Kerala',
+      tag: '🌴 TROPICAL OASIS • 26°C',
+    ),
+    _HeroPlaceSlide(
+      image:
+          'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1800&q=85',
+      title: 'Touch the clouds.\nWalk on snow.',
+      subtitle:
+          'Winter summit trail & snow-covered pine ridges at 12,500 ft',
+      location: 'Kedarkantha, Uttarakhand',
+      tag: '❄️ SUB-ZERO SNOW • -4°C',
+    ),
+    _HeroPlaceSlide(
+      image:
+          'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1800&q=85',
+      title: 'The Middle Land.\nPure wilderness.',
+      subtitle:
+          'Ancient high-altitude monasteries & trans-Himalayan valleys',
+      location: 'Spiti Valley, Himachal',
+      tag: '🏔️ HIGH PASSES • 14°C',
+    ),
+    _HeroPlaceSlide(
+      image:
+          'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?auto=format&fit=crop&w=1800&q=85',
+      title: 'Golden sunsets.\nOcean breeze.',
+      subtitle: 'Hidden secluded coves, palm shores & coastal adventures',
+      location: 'Palolem Beach, South Goa',
+      tag: '🏖️ COASTAL BREEZE • 29°C',
+    ),
+    _HeroPlaceSlide(
+      image:
+          'https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=1800&q=85',
+      title: 'Starry skies.\nGolden dunes.',
+      subtitle:
+          'Camel safaris, folklore music & desert camps under the stars',
+      location: 'Jaisalmer, Thar Desert',
+      tag: '✨ DESERT NIGHTS • 22°C',
+    ),
+    _HeroPlaceSlide(
+      image:
+          'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?auto=format&fit=crop&w=1800&q=85',
+      title: 'Living root bridges.\nMisty gorges.',
+      subtitle:
+          'Centuries-old bio-root engineering & thundering emerald falls',
+      location: 'Cherrapunji, Meghalaya',
+      tag: '🌧️ MONSOON RAIN • 19°C',
+    ),
+    _HeroPlaceSlide(
+      image:
+          'https://images.unsplash.com/photo-1589182373726-e4f658ab50f0?auto=format&fit=crop&w=1800&q=85',
+      title: 'Turquoise sea.\nCoral reefs.',
+      subtitle:
+          'Radhanagar white sands & world-class deep coral reef diving',
+      location: 'Havelock, Andaman Islands',
+      tag: '🌊 ISLAND RETREAT • 28°C',
+    ),
+    _HeroPlaceSlide(
+      image:
+          'https://images.unsplash.com/photo-1561361513-2d000a50f0dc?auto=format&fit=crop&w=1800&q=85',
+      title: 'Eternal city.\nSacred riverbanks.',
+      subtitle: 'Evening Ganga Aarti lights & timeless spiritual heritage',
+      location: 'Varanasi, Uttar Pradesh',
+      tag: '🪔 SPIRITUAL HERITAGE • 21°C',
+    ),
+    _HeroPlaceSlide(
+      image:
+          'https://images.unsplash.com/photo-1570789210967-2cac24afeb00?auto=format&fit=crop&w=1800&q=85',
+      title: 'Morning mist.\nKanchenjunga.',
+      subtitle: 'Rolling emerald tea hills & panoramic golden sunrises',
+      location: 'Darjeeling, West Bengal',
+      tag: '☕ ALPINE DAWN • 13°C',
+    ),
+  ];
+
+  List<_HeroPlaceSlide> _getHeroSlides() {
+    if (widget.allPackages.isEmpty) return _defaultHeroSlides;
+
+    final dynamicSlides = widget.allPackages.take(12).map((pkg) {
+      final title = (pkg['title'] ?? 'Scenic Escape').toString();
+      final loc = (pkg['location'] ?? 'India').toString();
+      final image = (pkg['image'] ?? '').toString();
+      final weather =
+          (pkg['weatherHighlight'] ?? 'Optimal Travel Season').toString();
+      final season = (pkg['bestSeason'] ?? 'All Seasons').toString();
+
+      String heroTitle = 'More world.\nLess routine.';
+      final lower = title.toLowerCase();
+      if (lower.contains('trek') ||
+          lower.contains('pass') ||
+          lower.contains('peak')) {
+        heroTitle = 'Walk the heights.\nReach the peak.';
+      } else if (lower.contains('beach') ||
+          lower.contains('coast') ||
+          lower.contains('island')) {
+        heroTitle = 'Golden shores.\nOcean breeze.';
+      } else if (lower.contains('desert') ||
+          lower.contains('kutch') ||
+          lower.contains('dunes')) {
+        heroTitle = 'Starry skies.\nEndless horizon.';
+      } else if (lower.contains('waterfall') ||
+          lower.contains('forest') ||
+          lower.contains('meghalaya')) {
+        heroTitle = 'Lush canopies.\nMisty cascades.';
+      } else if (lower.contains('heritage') ||
+          lower.contains('kashi') ||
+          lower.contains('temple') ||
+          lower.contains('hampi')) {
+        heroTitle = 'Timeless tales.\nAncient stones.';
+      } else if (lower.contains('backwaters') || lower.contains('kerala')) {
+        heroTitle = 'More world.\nLess routine.';
+      }
+
+      return _HeroPlaceSlide(
+        image: image,
+        title: heroTitle,
+        subtitle: '$title • $loc',
+        location: loc,
+        tag: '$weather • $season',
+        package: pkg,
+      );
+    }).toList();
+
+    return dynamicSlides.isNotEmpty ? dynamicSlides : _defaultHeroSlides;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _heroPageController = PageController();
+    _startHeroAutoPlay();
+  }
+
+  void _startHeroAutoPlay() {
+    _heroTimer?.cancel();
+    _heroTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+      if (!mounted) return;
+      final slides = _getHeroSlides();
+      if (slides.isEmpty) return;
+      final nextIndex = (_currentHeroIndex + 1) % slides.length;
+      if (_heroPageController.hasClients) {
+        _heroPageController.animateToPage(
+          nextIndex,
+          duration: const Duration(milliseconds: 700),
+          curve: Curves.easeInOutCubic,
+        );
+      }
+    });
+  }
+
+  void _nextHeroSlide() {
+    final slides = _getHeroSlides();
+    if (slides.isEmpty) return;
+    final nextIndex = (_currentHeroIndex + 1) % slides.length;
+    if (_heroPageController.hasClients) {
+      _heroPageController.animateToPage(
+        nextIndex,
+        duration: const Duration(milliseconds: 550),
+        curve: Curves.easeInOutCubic,
+      );
+    }
+    _startHeroAutoPlay();
+  }
+
+  void _prevHeroSlide() {
+    final slides = _getHeroSlides();
+    if (slides.isEmpty) return;
+    final prevIndex = (_currentHeroIndex - 1 + slides.length) % slides.length;
+    if (_heroPageController.hasClients) {
+      _heroPageController.animateToPage(
+        prevIndex,
+        duration: const Duration(milliseconds: 550),
+        curve: Curves.easeInOutCubic,
+      );
+    }
+    _startHeroAutoPlay();
+  }
+
+  @override
+  void dispose() {
+    _heroTimer?.cancel();
+    _heroPageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final slides = _getHeroSlides();
+    final wide = widget.wide;
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(24),
+      child: SizedBox(
+        height: wide ? 400 : 360,
+        width: double.infinity,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            // PageView cycling through all places every 5 seconds without triggering parent rebuilds
+            PageView.builder(
+              controller: _heroPageController,
+              itemCount: slides.length,
+              onPageChanged: (index) {
+                setState(() => _currentHeroIndex = index);
+                _startHeroAutoPlay(); // Reset timer so full 5s is given after manual swipe
+              },
+              itemBuilder: (context, index) {
+                final slide = slides[index];
+                return Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Image.network(
+                      slide.image,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) =>
+                          const ColoredBox(color: Color(0xFF31594E)),
+                    ),
+                    const DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Color(0x35000000),
+                            Color(0x18000000),
+                            Color(0xC8000000),
+                          ],
+                          stops: [0, 0.42, 1],
+                        ),
+                      ),
+                    ),
+                    // Slide content
+                    Positioned(
+                      left: wide ? 38 : 20,
+                      right: wide ? 280 : 20,
+                      bottom: 42,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Location Tag & Weather
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 3.5),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withValues(alpha: 0.55),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color: Colors.white.withValues(alpha: 0.25),
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(Icons.place_rounded,
+                                        size: 13, color: Colors.white),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      slide.location,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Flexible(
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 3.5),
+                                  decoration: BoxDecoration(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .primaryContainer
+                                        .withValues(alpha: 0.9),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Text(
+                                    slide.tag,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onPrimaryContainer,
+                                      fontSize: 10.5,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            slide.title,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: wide ? 46 : 34,
+                              height: 1.05,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: -0.5,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            slide.subtitle,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 14.5,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+
+            // Top Bar
+            Positioned(
+              top: 20,
+              left: 20,
+              right: 20,
+              child: Row(
+                children: [
+                  DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.4),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.35)),
+                    ),
+                    child: const Padding(
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.auto_awesome_rounded,
+                              size: 13, color: Colors.white),
+                          SizedBox(width: 5),
+                          Text(
+                            'FEATURED DESTINATIONS',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 1.1,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const Spacer(),
+                  // 5-second indicator & Slide counter
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.45),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.25)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.timer_outlined,
+                            size: 13, color: Colors.white70),
+                        const SizedBox(width: 5),
+                        Text(
+                          '${_currentHeroIndex + 1} / ${slides.length} • 5s',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Left & Right manual navigation buttons
+            if (wide) ...[
+              Positioned(
+                left: 14,
+                top: 0,
+                bottom: 0,
+                child: Center(
+                  child: Material(
+                    color: Colors.black.withValues(alpha: 0.38),
+                    shape: const CircleBorder(),
+                    child: InkWell(
+                      customBorder: const CircleBorder(),
+                      onTap: _prevHeroSlide,
+                      child: const Padding(
+                        padding: EdgeInsets.all(8.0),
+                        child: Icon(Icons.chevron_left_rounded,
+                            color: Colors.white, size: 28),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              Positioned(
+                right: 14,
+                top: 0,
+                bottom: 0,
+                child: Center(
+                  child: Material(
+                    color: Colors.black.withValues(alpha: 0.38),
+                    shape: const CircleBorder(),
+                    child: InkWell(
+                      customBorder: const CircleBorder(),
+                      onTap: _nextHeroSlide,
+                      child: const Padding(
+                        padding: EdgeInsets.all(8.0),
+                        child: Icon(Icons.chevron_right_rounded,
+                            color: Colors.white, size: 28),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+
+            // Bottom Right Action Button: "Explore Place"
+            Positioned(
+              right: 22,
+              bottom: 24,
+              child: Material(
+                color: Theme.of(context).colorScheme.primary,
+                borderRadius: BorderRadius.circular(14),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(14),
+                  onTap: () {
+                    final currentSlide = slides[_currentHeroIndex];
+                    if (currentSlide.package != null) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => PackageDetailsScreen(
+                            pkg: currentSlide.package!,
+                            onThemeToggle: widget.onThemeToggle,
+                          ),
+                        ),
+                      );
+                    } else if (widget.allPackages.isNotEmpty) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => PackageDetailsScreen(
+                            pkg: widget.allPackages.first,
+                            onThemeToggle: widget.onThemeToggle,
+                          ),
+                        ),
+                      );
+                    }
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 10),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text(
+                          'Explore Place',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(width: 5),
+                        Icon(
+                          Icons.arrow_forward_rounded,
+                          color: Theme.of(context).colorScheme.secondary,
+                          size: 16,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            // Bottom Indicators (Line / Dots that advance)
+            Positioned(
+              bottom: 14,
+              left: 24,
+              child: Row(
+                children: List.generate(slides.length, (i) {
+                  final isCurrent = i == _currentHeroIndex;
+                  return GestureDetector(
+                    onTap: () {
+                      _heroPageController.animateToPage(
+                        i,
+                        duration: const Duration(milliseconds: 650),
+                        curve: Curves.easeInOutCubic,
+                      );
+                      _startHeroAutoPlay();
+                    },
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      margin: const EdgeInsets.only(right: 5),
+                      height: 4.5,
+                      width: isCurrent ? 24 : 7,
+                      decoration: BoxDecoration(
+                        color: isCurrent
+                            ? Colors.white
+                            : Colors.white.withValues(alpha: 0.35),
+                        borderRadius: BorderRadius.circular(3),
+                      ),
+                    ),
+                  );
+                }),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -1657,11 +1691,11 @@ class _VerticalPackageCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Top Image Container with weather and season badges
+              // Top Image Container with season, heart, weather and duration badges
               Stack(
                 children: [
                   SizedBox(
-                    height: 190,
+                    height: 185,
                     width: double.infinity,
                     child: Hero(
                       tag: 'image_$title',
@@ -1680,17 +1714,17 @@ class _VerticalPackageCard extends StatelessWidget {
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,
                           colors: [
-                            Colors.black.withValues(alpha: 0.35),
+                            Colors.black.withValues(alpha: 0.38),
                             Colors.transparent,
-                            Colors.black.withValues(alpha: 0.45),
+                            Colors.black.withValues(alpha: 0.55),
                           ],
-                          stops: const [0.0, 0.4, 1.0],
+                          stops: const [0.0, 0.45, 1.0],
                         ),
                       ),
                     ),
                   ),
-                  // Weather Badge (Top Left)
-                  if (weatherHighlight.isNotEmpty)
+                  // Season Badge (Top Left - cleanly isolated)
+                  if (bestSeason.isNotEmpty)
                     Positioned(
                       top: 10,
                       left: 10,
@@ -1698,8 +1732,62 @@ class _VerticalPackageCard extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 9, vertical: 4.5),
                         decoration: BoxDecoration(
+                          color: theme.colorScheme.primaryContainer
+                              .withValues(alpha: 0.95),
+                          borderRadius: BorderRadius.circular(14),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.2),
+                              blurRadius: 4,
+                            ),
+                          ],
+                        ),
+                        child: Text(
+                          bestSeason,
+                          style: TextStyle(
+                            color: theme.colorScheme.onPrimaryContainer,
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.2,
+                          ),
+                        ),
+                      ),
+                    ),
+                  // Wishlist Heart button (Top Right alone - never collides)
+                  Positioned(
+                    top: 10,
+                    right: 10,
+                    child: Material(
+                      color: Colors.black.withValues(alpha: 0.65),
+                      shape: const CircleBorder(),
+                      child: InkWell(
+                        customBorder: const CircleBorder(),
+                        onTap: onToggleSave,
+                        child: Padding(
+                          padding: const EdgeInsets.all(6.0),
+                          child: Icon(
+                            isSaved
+                                ? Icons.favorite_rounded
+                                : Icons.favorite_border_rounded,
+                            color: isSaved ? Colors.redAccent : Colors.white,
+                            size: 17,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  // Weather Badge (Bottom Left of Image)
+                  if (weatherHighlight.isNotEmpty)
+                    Positioned(
+                      bottom: 10,
+                      left: 10,
+                      right: duration.isNotEmpty ? 92 : 10,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 3.5),
+                        decoration: BoxDecoration(
                           color: Colors.black.withValues(alpha: 0.72),
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius: BorderRadius.circular(12),
                           border: Border.all(
                             color: Colors.white.withValues(alpha: 0.25),
                             width: 0.8,
@@ -1707,65 +1795,16 @@ class _VerticalPackageCard extends StatelessWidget {
                         ),
                         child: Text(
                           weatherHighlight,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                             color: Colors.white,
-                            fontSize: 11,
+                            fontSize: 10.5,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
                       ),
                     ),
-                  // Top Right badges: Season & Wishlist Heart button
-                  Positioned(
-                    top: 10,
-                    right: 10,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (bestSeason.isNotEmpty) ...[
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 9, vertical: 4.5),
-                            decoration: BoxDecoration(
-                              color: theme.colorScheme.primaryContainer
-                                  .withValues(alpha: 0.92),
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: Text(
-                              bestSeason,
-                              style: TextStyle(
-                                color: theme.colorScheme.onPrimaryContainer,
-                                fontSize: 10.5,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: 0.2,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                        ],
-                        Material(
-                          color: Colors.black.withValues(alpha: 0.65),
-                          shape: const CircleBorder(),
-                          child: InkWell(
-                            customBorder: const CircleBorder(),
-                            onTap: onToggleSave,
-                            child: Padding(
-                              padding: const EdgeInsets.all(5.5),
-                              child: Icon(
-                                isSaved
-                                    ? Icons.favorite_rounded
-                                    : Icons.favorite_border_rounded,
-                                color: isSaved
-                                    ? Colors.redAccent
-                                    : Colors.white,
-                                size: 16,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
                   // Duration Pill (Bottom Right of Image)
                   if (duration.isNotEmpty)
                     Positioned(
@@ -1775,7 +1814,7 @@ class _VerticalPackageCard extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 8, vertical: 3.5),
                         decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.65),
+                          color: Colors.black.withValues(alpha: 0.68),
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Row(
@@ -1801,7 +1840,7 @@ class _VerticalPackageCard extends StatelessWidget {
               // Body Details
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(15, 12, 15, 14),
+                  padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -1823,7 +1862,7 @@ class _VerticalPackageCard extends StatelessWidget {
                             ),
                           ),
                           const Icon(Icons.star_rounded,
-                              size: 17, color: Color(0xFFE49C39)),
+                              size: 16, color: Color(0xFFE49C39)),
                           const SizedBox(width: 3),
                           Text(
                             rating,
@@ -1833,7 +1872,7 @@ class _VerticalPackageCard extends StatelessWidget {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 7),
+                      const SizedBox(height: 5),
                       // Trip Title
                       Text(
                         title,
@@ -1841,11 +1880,11 @@ class _VerticalPackageCard extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w800,
-                          fontSize: 16,
-                          height: 1.25,
+                          fontSize: 15.5,
+                          height: 1.22,
                         ),
                       ),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 5),
                       // Best Months preview
                       if (bestMonths.isNotEmpty) ...[
                         Row(
@@ -1868,7 +1907,7 @@ class _VerticalPackageCard extends StatelessWidget {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 3),
                       ],
                       // Organizer tag
                       Text(
@@ -1882,7 +1921,7 @@ class _VerticalPackageCard extends StatelessWidget {
                         ),
                       ),
                       const Spacer(),
-                      const Divider(height: 14),
+                      const Divider(height: 12),
                       // Price & Action Button
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
