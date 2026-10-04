@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_map/flutter_map.dart';
@@ -138,6 +139,18 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
     if (loc.contains('ooty') || loc.contains('nilgiris')) return const LatLng(11.4102, 76.6950);
     if (loc.contains('pondicherry') || loc.contains('auroville')) return const LatLng(11.9416, 79.8083);
     if (loc.contains('kuari pass') || loc.contains('joshimath')) return const LatLng(30.5566, 79.5670);
+    if (loc.contains('brahmatal') || loc.contains('bekaltal')) return const LatLng(30.1800, 79.5900);
+    if (loc.contains('dzukou') || loc.contains('kohima')) return const LatLng(25.6751, 94.1086);
+    if (loc.contains('tawang') || loc.contains('sela')) return const LatLng(27.5860, 91.8594);
+    if (loc.contains('wayanad') || loc.contains('chembra')) return const LatLng(11.6854, 76.1320);
+    if (loc.contains('amritsar') || loc.contains('wagah')) return const LatLng(31.6200, 74.8765);
+    if (loc.contains('majuli') || loc.contains('kaziranga') || loc.contains('jorhat')) return const LatLng(26.9500, 94.2167);
+    if (loc.contains('sandakphu') || loc.contains('manebhanjan')) return const LatLng(27.1065, 88.0016);
+    if (loc.contains('puri') || loc.contains('konark')) return const LatLng(19.8135, 85.8312);
+    if (loc.contains('mount abu') || loc.contains('dilwara')) return const LatLng(24.5926, 72.7156);
+    if (loc.contains('khajuraho') || loc.contains('orchha')) return const LatLng(24.8318, 79.9199);
+    if (loc.contains('dandeli')) return const LatLng(15.2427, 74.6230);
+    if (loc.contains('bodh gaya') || loc.contains('nalanda')) return const LatLng(24.6961, 84.9869);
     return const LatLng(20.5937, 78.9629); // Default India
   }
 
@@ -310,6 +323,34 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
                           icon:
                               const Icon(Icons.arrow_back, color: Colors.white),
                           onPressed: () => Navigator.pop(context),
+                        ),
+                      ),
+                      const Spacer(),
+                      DecoratedBox(
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.35),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: IconButton(
+                          tooltip: 'Share Itinerary',
+                          icon: const Icon(Icons.share_rounded,
+                              color: Colors.white),
+                          onPressed: () {
+                            final title = widget.pkg['title'] ?? 'Trip';
+                            final loc = widget.pkg['location'] ?? 'India';
+                            final price = widget.pkg['price'] ?? '';
+                            final duration = widget.pkg['duration'] ?? '';
+                            Clipboard.setData(ClipboardData(
+                              text:
+                                  'Check out "$title" in $loc ($duration, $price) on TravelMaster! Direct hotel and transport booking included: http://localhost:3000',
+                            ));
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Copied "$title" details to clipboard! 📋'),
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                          },
                         ),
                       ),
                     ],

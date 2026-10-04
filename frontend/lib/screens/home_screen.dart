@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:http/http.dart' as http;
 
@@ -25,8 +26,14 @@ class _HomeScreenState extends State<HomeScreen> {
   String _goingTo = '';
   String _selectedMonth = 'Any month';
   String _selectedSeasonFilter = 'All';
+  String _selectedBudgetFilter = 'All';
+  String _selectedDurationFilter = 'All';
   String _selectedSort = 'Recommended';
   bool _isLoading = true;
+
+  final Set<int> _savedPackageIds = {};
+  late final ScrollController _scrollController;
+  bool _showBackToTop = false;
 
   static const _months = [
     'Any month',
@@ -55,6 +62,42 @@ class _HomeScreenState extends State<HomeScreen> {
     {'label': '🏛️ Heritage & Culture', 'value': 'Heritage', 'icon': Icons.temple_hindu_rounded},
     {'label': '🌿 Wildlife & Nature', 'value': 'Wildlife', 'icon': Icons.pets_rounded},
   ];
+
+  static const _budgetFilters = [
+    'All',
+    'Under ₹10,000',
+    '₹10,000 - ₹20,000',
+    '₹20,000 - ₹35,000',
+    'Above ₹35,000',
+  ];
+
+  static const _durationFilters = [
+    'All',
+    '1-3 Days',
+    '4-7 Days',
+    '8+ Days',
+  ];
+
+  bool get _hasActiveFilters =>
+      _leavingFrom.isNotEmpty ||
+      _goingTo.isNotEmpty ||
+      _selectedMonth != 'Any month' ||
+      _selectedSeasonFilter != 'All' ||
+      _selectedBudgetFilter != 'All' ||
+      _selectedDurationFilter != 'All' ||
+      _selectedSort != 'Recommended';
+
+  void _resetAllFilters() {
+    setState(() {
+      _leavingFrom = '';
+      _goingTo = '';
+      _selectedMonth = 'Any month';
+      _selectedSeasonFilter = 'All';
+      _selectedBudgetFilter = 'All';
+      _selectedDurationFilter = 'All';
+      _selectedSort = 'Recommended';
+    });
+  }
 
   static const _sortOptions = [
     'Recommended',
@@ -222,9 +265,17 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    _scrollController = ScrollController()..addListener(_onScroll);
     _heroPageController = PageController();
     _startHeroAutoPlay();
     _fetchPackages();
+  }
+
+  void _onScroll() {
+    final show = _scrollController.hasClients && _scrollController.offset > 450;
+    if (show != _showBackToTop) {
+      setState(() => _showBackToTop = show);
+    }
   }
 
   void _startHeroAutoPlay() {
@@ -276,6 +327,8 @@ class _HomeScreenState extends State<HomeScreen> {
   void dispose() {
     _heroTimer?.cancel();
     _heroPageController.dispose();
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -331,6 +384,15 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final query = _goingTo.trim().toLowerCase();
     final filteredPackages = _allPackages.where((package) {
+      final pkgId = package['id'] is int
+          ? package['id'] as int
+          : int.tryParse(package['id'].toString()) ?? 0;
+
+      // Check Saved (Wishlist) filter
+      if (_selectedSeasonFilter == 'Saved') {
+        if (!_savedPackageIds.contains(pkgId)) return false;
+      }
+
       if (query.isNotEmpty) {
         final location = (package['location'] ?? '').toString().toLowerCase();
         final title = (package['title'] ?? '').toString().toLowerCase();
@@ -349,7 +411,7 @@ class _HomeScreenState extends State<HomeScreen> {
       }
 
       // Check season / trip type filter
-      if (_selectedSeasonFilter != 'All') {
+      if (_selectedSeasonFilter != 'All' && _selectedSeasonFilter != 'Saved') {
         final season = (package['bestSeason'] ?? '').toString();
         final type = (package['tripType'] ?? '').toString().toLowerCase();
         if (_selectedSeasonFilter == 'Winter & Snow' && !season.contains('Winter')) return false;
@@ -359,7 +421,24 @@ class _HomeScreenState extends State<HomeScreen> {
         if (_selectedSeasonFilter == 'Treks' && !type.contains('trek')) return false;
         if (_selectedSeasonFilter == 'Beaches' && !type.contains('beach') && !type.contains('island')) return false;
         if (_selectedSeasonFilter == 'Heritage' && !type.contains('heritage') && !type.contains('culture')) return false;
-        if (_selectedSeasonFilter == 'Wildlife' && !type.contains('wildlife')) return false;
+        if (_selectedSeasonFilter == 'Wildlife' && !type.contains('wildlife') && !type.contains('nature')) return false;
+      }
+
+      // Check budget filter
+      if (_selectedBudgetFilter != 'All') {
+        final price = _extractPrice(package['price']);
+        if (_selectedBudgetFilter == 'Under ₹10,000' && price > 10000) return false;
+        if (_selectedBudgetFilter == '₹10,000 - ₹20,000' && (price < 10000 || price > 20000)) return false;
+        if (_selectedBudgetFilter == '₹20,000 - ₹35,000' && (price < 20000 || price > 35000)) return false;
+        if (_selectedBudgetFilter == 'Above ₹35,000' && price <= 35000) return false;
+      }
+
+      // Check duration filter
+      if (_selectedDurationFilter != 'All') {
+        final days = _extractDuration(package['duration']);
+        if (_selectedDurationFilter == '1-3 Days' && (days < 1 || days > 3)) return false;
+        if (_selectedDurationFilter == '4-7 Days' && (days < 4 || days > 7)) return false;
+        if (_selectedDurationFilter == '8+ Days' && days < 8) return false;
       }
 
       return true;
@@ -380,17 +459,41 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       backgroundColor: Colors.transparent,
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const ChatScreen()),
-          );
-        },
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Colors.white,
-        icon: const Icon(Icons.chat_bubble_outline_rounded),
-        label: const Text('Ask a local'),
+      floatingActionButton: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          if (_showBackToTop) ...[
+            FloatingActionButton.small(
+              heroTag: 'fab_scroll_top',
+              onPressed: () {
+                _scrollController.animateTo(
+                  0,
+                  duration: const Duration(milliseconds: 550),
+                  curve: Curves.easeOutCubic,
+                );
+              },
+              backgroundColor: Theme.of(context).colorScheme.surface,
+              foregroundColor: Theme.of(context).colorScheme.primary,
+              tooltip: 'Scroll to top',
+              child: const Icon(Icons.arrow_upward_rounded),
+            ),
+            const SizedBox(height: 12),
+          ],
+          FloatingActionButton.extended(
+            heroTag: 'fab_ask_local',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ChatScreen()),
+              );
+            },
+            backgroundColor: Theme.of(context).colorScheme.primary,
+            foregroundColor: Colors.white,
+            icon: const Icon(Icons.chat_bubble_outline_rounded),
+            label: const Text('Ask a local'),
+          ),
+        ],
       ),
       body: LiveBackground(
         child: SafeArea(
@@ -398,6 +501,7 @@ class _HomeScreenState extends State<HomeScreen> {
             builder: (context, viewport) {
               final wide = viewport.maxWidth >= 760;
               return SingleChildScrollView(
+                controller: _scrollController,
                 padding:
                     EdgeInsets.fromLTRB(wide ? 32 : 20, 8, wide ? 32 : 20, 40),
                 child: Center(
@@ -960,6 +1064,22 @@ class _HomeScreenState extends State<HomeScreen> {
                   color: Theme.of(context).colorScheme.primary,
                   size: 20,
                 ),
+                suffixIcon: (isOrigin ? _leavingFrom : _goingTo).isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear_rounded, size: 18),
+                        tooltip: 'Clear',
+                        onPressed: () {
+                          controller.clear();
+                          setState(() {
+                            if (isOrigin) {
+                              _leavingFrom = '';
+                            } else {
+                              _goingTo = '';
+                            }
+                          });
+                        },
+                      )
+                    : null,
               ),
             );
           },
@@ -1011,6 +1131,17 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildSeasonFilterBar(BuildContext context) {
     final theme = Theme.of(context);
+    final activeFilters = [
+      _seasonFilters[0],
+      if (_savedPackageIds.isNotEmpty)
+        {
+          'label': '❤️ Saved (${_savedPackageIds.length})',
+          'value': 'Saved',
+          'icon': Icons.favorite_rounded,
+        },
+      ..._seasonFilters.sublist(1),
+    ];
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1027,7 +1158,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const Spacer(),
             Text(
-              'Weather-Curated',
+              '55 Verified Trips',
               style: theme.textTheme.labelSmall?.copyWith(
                 color: theme.colorScheme.primary,
                 fontWeight: FontWeight.w700,
@@ -1041,10 +1172,10 @@ class _HomeScreenState extends State<HomeScreen> {
           height: 44,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
-            itemCount: _seasonFilters.length,
+            itemCount: activeFilters.length,
             separatorBuilder: (_, __) => const SizedBox(width: 8),
             itemBuilder: (context, index) {
-              final filter = _seasonFilters[index];
+              final filter = activeFilters[index];
               final isSelected = _selectedSeasonFilter == filter['value'];
               return FilterChip(
                 selected: isSelected,
@@ -1078,6 +1209,123 @@ class _HomeScreenState extends State<HomeScreen> {
             },
           ),
         ),
+        const SizedBox(height: 12),
+        // Secondary Filter Bar: Budget, Duration, and Reset Filters
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: [
+              // Budget Dropdown / Filter
+              Container(
+                height: 36,
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surface,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: _selectedBudgetFilter != 'All'
+                        ? theme.colorScheme.primary
+                        : theme.colorScheme.outlineVariant.withValues(alpha: 0.7),
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.currency_rupee_rounded,
+                        size: 15,
+                        color: _selectedBudgetFilter != 'All'
+                            ? theme.colorScheme.primary
+                            : theme.colorScheme.onSurfaceVariant),
+                    const SizedBox(width: 4),
+                    DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        value: _selectedBudgetFilter,
+                        isDense: true,
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: theme.colorScheme.onSurface,
+                        ),
+                        items: _budgetFilters.map((b) {
+                          return DropdownMenuItem<String>(
+                            value: b,
+                            child: Text(b == 'All' ? 'Budget: Any' : b),
+                          );
+                        }).toList(),
+                        onChanged: (val) {
+                          if (val != null) {
+                            setState(() => _selectedBudgetFilter = val);
+                          }
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 10),
+
+              // Duration Dropdown / Filter
+              Container(
+                height: 36,
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surface,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: _selectedDurationFilter != 'All'
+                        ? theme.colorScheme.primary
+                        : theme.colorScheme.outlineVariant.withValues(alpha: 0.7),
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.timelapse_rounded,
+                        size: 15,
+                        color: _selectedDurationFilter != 'All'
+                            ? theme.colorScheme.primary
+                            : theme.colorScheme.onSurfaceVariant),
+                    const SizedBox(width: 4),
+                    DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        value: _selectedDurationFilter,
+                        isDense: true,
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: theme.colorScheme.onSurface,
+                        ),
+                        items: _durationFilters.map((d) {
+                          return DropdownMenuItem<String>(
+                            value: d,
+                            child: Text(d == 'All' ? 'Duration: Any' : d),
+                          );
+                        }).toList(),
+                        onChanged: (val) {
+                          if (val != null) {
+                            setState(() => _selectedDurationFilter = val);
+                          }
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 10),
+
+              // Reset All Filters button
+              if (_hasActiveFilters)
+                ActionChip(
+                  avatar: const Icon(Icons.restart_alt_rounded, size: 16),
+                  label: const Text('Reset All',
+                      style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12)),
+                  backgroundColor: theme.colorScheme.errorContainer.withValues(alpha: 0.3),
+                  side: BorderSide(
+                    color: theme.colorScheme.error.withValues(alpha: 0.3),
+                  ),
+                  onPressed: _resetAllFilters,
+                ),
+            ],
+          ),
+        ),
       ],
     );
   }
@@ -1099,7 +1347,7 @@ class _HomeScreenState extends State<HomeScreen> {
             borderRadius: BorderRadius.circular(8),
           ),
           child: Text(
-            '$count ${count == 1 ? 'Trip' : 'Trips'}',
+            '$count ${_allPackages.isNotEmpty ? 'of ${_allPackages.length} ' : ''}${count == 1 ? 'Trip' : 'Trips'}',
             style: theme.textTheme.labelMedium?.copyWith(
               color: theme.colorScheme.primary,
               fontWeight: FontWeight.w800,
@@ -1194,12 +1442,24 @@ class _HomeScreenState extends State<HomeScreen> {
       if (_goingTo.trim().isNotEmpty) _goingTo.trim(),
     ].join(' to ');
     final month = _selectedMonth == 'Any month' ? '' : ' in $_selectedMonth';
-    final season = _selectedSeasonFilter == 'All' ? '' : ' • $_selectedSeasonFilter';
+    final season = _selectedSeasonFilter == 'All'
+        ? ''
+        : (_selectedSeasonFilter == 'Saved'
+            ? ' • Saved Wishlist ❤️'
+            : ' • $_selectedSeasonFilter');
+    final budget =
+        _selectedBudgetFilter == 'All' ? '' : ' • $_selectedBudgetFilter';
+    final duration =
+        _selectedDurationFilter == 'All' ? '' : ' • $_selectedDurationFilter';
 
-    if (route.isEmpty && month.isEmpty && season.isEmpty) {
-      return 'Handpicked escapes with optimal weather, seasonal views, and vetted routes.';
+    if (route.isEmpty &&
+        month.isEmpty &&
+        season.isEmpty &&
+        budget.isEmpty &&
+        duration.isEmpty) {
+      return '55 Handpicked escapes with optimal weather, seasonal views, and vetted routes.';
     }
-    return 'Trips${route.isNotEmpty ? ' for $route' : ''}$month$season';
+    return 'Trips${route.isNotEmpty ? ' for $route' : ''}$month$season$budget$duration';
   }
 
   Widget _buildVerticalPackageGrid(
@@ -1245,14 +1505,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 16),
             FilledButton.tonal(
-              onPressed: () {
-                setState(() {
-                  _goingTo = '';
-                  _selectedMonth = 'Any month';
-                  _selectedSeasonFilter = 'All';
-                  _selectedSort = 'Recommended';
-                });
-              },
+              onPressed: _resetAllFilters,
               child: const Text('Reset All Filters'),
             ),
           ],
@@ -1276,13 +1529,62 @@ class _HomeScreenState extends State<HomeScreen> {
         mainAxisSpacing: 22,
         childAspectRatio: childAspectRatio,
       ),
-      itemBuilder: (context, index) => _VerticalPackageCard(
-        package: packages[index],
-        onThemeToggle: widget.onThemeToggle,
-      )
-          .animate()
-          .fadeIn(delay: Duration(milliseconds: 35 * (index % 12)))
-          .slideY(begin: 0.04),
+      itemBuilder: (context, index) {
+        final pkg = packages[index];
+        final pkgId = pkg['id'] is int
+            ? pkg['id'] as int
+            : int.tryParse(pkg['id'].toString()) ?? 0;
+        final title = (pkg['title'] ?? 'Trip').toString();
+        final loc = (pkg['location'] ?? 'India').toString();
+        final price = (pkg['price'] ?? '').toString();
+        final duration = (pkg['duration'] ?? '').toString();
+
+        return _VerticalPackageCard(
+          package: pkg,
+          onThemeToggle: widget.onThemeToggle,
+          isSaved: _savedPackageIds.contains(pkgId),
+          onToggleSave: () {
+            final willSave = !_savedPackageIds.contains(pkgId);
+            setState(() {
+              if (willSave) {
+                _savedPackageIds.add(pkgId);
+              } else {
+                _savedPackageIds.remove(pkgId);
+              }
+            });
+            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  willSave
+                      ? 'Saved "$title" to your Wishlist ❤️'
+                      : 'Removed "$title" from your Wishlist',
+                ),
+                duration: const Duration(seconds: 2),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          },
+          onShare: () {
+            Clipboard.setData(ClipboardData(
+              text:
+                  'Check out "$title" in $loc ($duration, $price) on TravelMaster! Book now: http://localhost:3000',
+            ));
+            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content:
+                    Text('Trip details copied to clipboard! 📋 Ready to share.'),
+                duration: Duration(seconds: 2),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          },
+        )
+            .animate()
+            .fadeIn(delay: Duration(milliseconds: 35 * (index % 12)))
+            .slideY(begin: 0.04);
+      },
     );
   }
 }
@@ -1290,10 +1592,16 @@ class _HomeScreenState extends State<HomeScreen> {
 class _VerticalPackageCard extends StatelessWidget {
   final Map<String, dynamic> package;
   final VoidCallback onThemeToggle;
+  final bool isSaved;
+  final VoidCallback onToggleSave;
+  final VoidCallback onShare;
 
   const _VerticalPackageCard({
     required this.package,
     required this.onThemeToggle,
+    required this.isSaved,
+    required this.onToggleSave,
+    required this.onShare,
   });
 
   @override
@@ -1407,30 +1715,57 @@ class _VerticalPackageCard extends StatelessWidget {
                         ),
                       ),
                     ),
-                  // Season Badge (Top Right)
-                  if (bestSeason.isNotEmpty)
-                    Positioned(
-                      top: 10,
-                      right: 10,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 9, vertical: 4.5),
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.primaryContainer
-                              .withValues(alpha: 0.92),
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Text(
-                          bestSeason,
-                          style: TextStyle(
-                            color: theme.colorScheme.onPrimaryContainer,
-                            fontSize: 10.5,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 0.2,
+                  // Top Right badges: Season & Wishlist Heart button
+                  Positioned(
+                    top: 10,
+                    right: 10,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (bestSeason.isNotEmpty) ...[
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 9, vertical: 4.5),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.primaryContainer
+                                  .withValues(alpha: 0.92),
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Text(
+                              bestSeason,
+                              style: TextStyle(
+                                color: theme.colorScheme.onPrimaryContainer,
+                                fontSize: 10.5,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.2,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                        ],
+                        Material(
+                          color: Colors.black.withValues(alpha: 0.65),
+                          shape: const CircleBorder(),
+                          child: InkWell(
+                            customBorder: const CircleBorder(),
+                            onTap: onToggleSave,
+                            child: Padding(
+                              padding: const EdgeInsets.all(5.5),
+                              child: Icon(
+                                isSaved
+                                    ? Icons.favorite_rounded
+                                    : Icons.favorite_border_rounded,
+                                color: isSaved
+                                    ? Colors.redAccent
+                                    : Colors.white,
+                                size: 16,
+                              ),
+                            ),
                           ),
                         ),
-                      ),
+                      ],
                     ),
+                  ),
                   // Duration Pill (Bottom Right of Image)
                   if (duration.isNotEmpty)
                     Positioned(
@@ -1577,6 +1912,13 @@ class _VerticalPackageCard extends StatelessWidget {
                               ],
                             ),
                           ),
+                          IconButton(
+                            tooltip: 'Share Trip',
+                            icon: const Icon(Icons.share_outlined, size: 18),
+                            color: theme.colorScheme.onSurfaceVariant,
+                            onPressed: onShare,
+                          ),
+                          const SizedBox(width: 4),
                           FilledButton.tonal(
                             onPressed: () {
                               Navigator.push(

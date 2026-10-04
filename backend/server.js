@@ -87,8 +87,24 @@ app.post('/api/seed', async (req, res) => {
 // APIs
 // =======================
 
-// 35 Comprehensive Packages (including authentic Invincible NGO camps, Himalayan expeditions & coastal getaways)
+// 55 Comprehensive Packages (including authentic Invincible NGO camps, Himalayan expeditions & coastal getaways)
 const allPackages = require('./packagesData');
+
+// Health Check API
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'healthy',
+    uptimeSeconds: Math.floor(process.uptime()),
+    totalPackages: allPackages.length,
+    timestamp: new Date().toISOString(),
+    services: {
+      packages: 'online',
+      weather: 'online',
+      hotels: 'online',
+      transport: 'online'
+    }
+  });
+});
 
 // 1. Get Trending Packages
 app.get('/api/packages/trending', async (req, res) => {
@@ -99,11 +115,12 @@ app.get('/api/packages/trending', async (req, res) => {
   }
 });
 
-// 2. Search Packages
+// 2. Search Packages with Multi-parameter Filtering
 app.get('/api/packages/search', async (req, res) => {
   try {
-    const { from, to, month } = req.query;
+    const { from, to, month, season, tripType, maxPrice } = req.query;
     let results = allPackages;
+
     if (to && to.trim().length > 0) {
       const query = to.trim().toLowerCase();
       results = results.filter(pkg =>
@@ -111,13 +128,46 @@ app.get('/api/packages/search', async (req, res) => {
         pkg.title.toLowerCase().includes(query)
       );
     }
+
+    if (month && month !== 'Any month') {
+      const m = month.toLowerCase();
+      results = results.filter(pkg =>
+        Array.isArray(pkg.bestMonths) &&
+        pkg.bestMonths.some(bm => bm.toLowerCase() === m)
+      );
+    }
+
+    if (season && season !== 'All') {
+      results = results.filter(pkg =>
+        (pkg.bestSeason && pkg.bestSeason.toLowerCase().includes(season.toLowerCase())) ||
+        (pkg.tripType && pkg.tripType.toLowerCase().includes(season.toLowerCase()))
+      );
+    }
+
+    if (tripType && tripType !== 'All') {
+      results = results.filter(pkg =>
+        pkg.tripType && pkg.tripType.toLowerCase().includes(tripType.toLowerCase())
+      );
+    }
+
+    if (maxPrice) {
+      const max = parseInt(maxPrice, 10);
+      if (!isNaN(max)) {
+        results = results.filter(pkg => {
+          const digits = (pkg.price || '').replace(/[^0-9]/g, '');
+          const p = parseInt(digits, 10);
+          return isNaN(p) || p <= max;
+        });
+      }
+    }
+
     res.json(results);
   } catch (error) {
     res.status(500).json({ error: 'Server error' });
   }
 });
 
-// 3. Search/Autocomplete Locations (using LatLng API with robust destination fallback)
+// 3. Search/Autocomplete Locations (with comprehensive 55-destination Indian coverage)
 const fallbackLocations = [
   { name: 'Delhi', state: 'Delhi', country: 'India' },
   { name: 'Mumbai', state: 'Maharashtra', country: 'India' },
@@ -126,25 +176,59 @@ const fallbackLocations = [
   { name: 'Vadodara', state: 'Gujarat', country: 'India' },
   { name: 'Bangalore', state: 'Karnataka', country: 'India' },
   { name: 'Kochi', state: 'Kerala', country: 'India' },
-  { name: 'Kerala', state: 'Kerala', country: 'India' },
+  { name: 'Alleppey', state: 'Kerala', country: 'India' },
+  { name: 'Munnar', state: 'Kerala', country: 'India' },
+  { name: 'Wayanad', state: 'Kerala', country: 'India' },
   { name: 'Goa', state: 'Goa', country: 'India' },
+  { name: 'Palolem Beach', state: 'Goa', country: 'India' },
+  { name: 'Gokarna', state: 'Karnataka', country: 'India' },
+  { name: 'Coorg', state: 'Karnataka', country: 'India' },
+  { name: 'Hampi', state: 'Karnataka', country: 'India' },
+  { name: 'Dandeli', state: 'Karnataka', country: 'India' },
   { name: 'Jaipur', state: 'Rajasthan', country: 'India' },
   { name: 'Udaipur', state: 'Rajasthan', country: 'India' },
+  { name: 'Jaisalmer', state: 'Rajasthan', country: 'India' },
+  { name: 'Mount Abu', state: 'Rajasthan', country: 'India' },
+  { name: 'Ranthambore', state: 'Rajasthan', country: 'India' },
   { name: 'Leh', state: 'Ladakh', country: 'India' },
   { name: 'Ladakh', state: 'Ladakh', country: 'India' },
   { name: 'Sankri', state: 'Uttarakhand', country: 'India' },
   { name: 'Kedarkantha', state: 'Uttarakhand', country: 'India' },
-  { name: 'Manali', state: 'Himachal Pradesh', country: 'India' },
-  { name: 'Polo Forest', state: 'Gujarat', country: 'India' },
-  { name: 'Beyt Dwarka', state: 'Gujarat', country: 'India' },
-  { name: 'Dwarka', state: 'Gujarat', country: 'India' },
-  { name: 'Saputara', state: 'Gujarat', country: 'India' },
+  { name: 'Rishikesh', state: 'Uttarakhand', country: 'India' },
   { name: 'Chopta', state: 'Uttarakhand', country: 'India' },
-  { name: 'Tungnath', state: 'Uttarakhand', country: 'India' },
+  { name: 'Joshimath', state: 'Uttarakhand', country: 'India' },
+  { name: 'Auli', state: 'Uttarakhand', country: 'India' },
+  { name: 'Lohajung', state: 'Uttarakhand', country: 'India' },
+  { name: 'Manali', state: 'Himachal Pradesh', country: 'India' },
+  { name: 'Shimla', state: 'Himachal Pradesh', country: 'India' },
   { name: 'Spiti Valley', state: 'Himachal Pradesh', country: 'India' },
   { name: 'Kaza', state: 'Himachal Pradesh', country: 'India' },
   { name: 'Kasol', state: 'Himachal Pradesh', country: 'India' },
-  { name: 'Kheerganga', state: 'Himachal Pradesh', country: 'India' }
+  { name: 'Dhordo', state: 'Gujarat', country: 'India' },
+  { name: 'Kutch', state: 'Gujarat', country: 'India' },
+  { name: 'Sasan Gir', state: 'Gujarat', country: 'India' },
+  { name: 'Polo Forest', state: 'Gujarat', country: 'India' },
+  { name: 'Dwarka', state: 'Gujarat', country: 'India' },
+  { name: 'Saputara', state: 'Gujarat', country: 'India' },
+  { name: 'Cherrapunji', state: 'Meghalaya', country: 'India' },
+  { name: 'Shillong', state: 'Meghalaya', country: 'India' },
+  { name: 'Tawang', state: 'Arunachal Pradesh', country: 'India' },
+  { name: 'Kohima', state: 'Nagaland', country: 'India' },
+  { name: 'Kaziranga', state: 'Assam', country: 'India' },
+  { name: 'Jorhat', state: 'Assam', country: 'India' },
+  { name: 'Sandakphu', state: 'West Bengal', country: 'India' },
+  { name: 'Darjeeling', state: 'West Bengal', country: 'India' },
+  { name: 'Varanasi', state: 'Uttar Pradesh', country: 'India' },
+  { name: 'Amritsar', state: 'Punjab', country: 'India' },
+  { name: 'Puri', state: 'Odisha', country: 'India' },
+  { name: 'Konark', state: 'Odisha', country: 'India' },
+  { name: 'Khajuraho', state: 'Madhya Pradesh', country: 'India' },
+  { name: 'Orchha', state: 'Madhya Pradesh', country: 'India' },
+  { name: 'Ooty', state: 'Tamil Nadu', country: 'India' },
+  { name: 'Pondicherry', state: 'Pondicherry', country: 'India' },
+  { name: 'Havelock Island', state: 'Andaman & Nicobar', country: 'India' },
+  { name: 'Port Blair', state: 'Andaman & Nicobar', country: 'India' },
+  { name: 'Bodh Gaya', state: 'Bihar', country: 'India' }
 ];
 
 app.get('/api/locations', async (req, res) => {

@@ -1051,6 +1051,591 @@ const allPackages = [
       { day: 5, title: 'Khullara to Auli Ski Slopes & Joshimath', description: 'Trek down to Auli snow ski slopes and cable car to Joshimath.' },
       { day: 6, title: 'Departure to Rishikesh', description: 'Drive back to Rishikesh with memories of Nanda Devi.' }
     ]
+  },
+
+  // 36. BRAHMATAL FROZEN ALPINE LAKE TREK
+  {
+    id: 36,
+    title: 'Brahmatal Frozen Alpine Lake Trek',
+    location: 'Lohajung, Uttarakhand',
+    price: 'Rs. 9,200',
+    rating: '4.9',
+    duration: '6 Days',
+    image: 'https://images.unsplash.com/photo-1517411032315-54ef2cb783bb?auto=format&fit=crop&w=1400&q=85',
+    isTrending: true,
+    organizer: 'Invincible NGO',
+    bestSeason: 'Winter Snow (Dec - Mar)',
+    bestMonths: ['December', 'January', 'February', 'March'],
+    weatherHighlight: '❄️ Sub-zero Frozen Lake & Trishul View • -6°C to 7°C',
+    tripType: 'Trek & Adventure',
+    departureDates: ['20 Dec 2026', '28 Dec 2026', '10 Jan 2027', '24 Jan 2027', '08 Feb 2027'],
+    categories: {
+      Economy: { price: 'Rs. 7,200', facilities: ['Alpine Snow Tents', 'High-Calorie Mountain Meals', 'Forest Permits', 'Guide'] },
+      Standard: { price: 'Rs. 9,200', facilities: ['Insulated Snow Tents', 'Crampons & Gaiters', 'Oxygen Cylinder', 'Trek Certificate'] },
+      Luxury: { price: 'Rs. 15,000', facilities: ['Lohajung Luxury Homestay', 'Private Snow Porter', 'Heated Tents', 'All Meals'] }
+    },
+    itinerary: [
+      { day: 1, title: 'Kathgodam to Lohajung Base Camp', description: 'Scenic drive through Kumaon and Garhwal hills alongside Pindar River to Lohajung.' },
+      { day: 2, title: 'Lohajung to Bekaltal Lake', description: 'Ascend through thick rhododendron and oak forest to the serene Bekaltal campsite.' },
+      { day: 3, title: 'Bekaltal to Brahmatal Meadow', description: 'Trek out of the treeline onto snow-draped ridge lines with breathtaking views of Mt. Trishul and Nanda Ghunti.' },
+      { day: 4, title: 'Brahmatal Top Summit (12,250 ft)', description: 'Climb to the summit for a 360-degree Himalayan panorama before descending past the frozen Brahmatal lake.' },
+      { day: 5, title: 'Brahmatal to Lohajung', description: 'Gentle snow descent back to base camp with celebratory evening bonfire.' },
+      { day: 6, title: 'Lohajung to Kathgodam', description: 'Return mountain drive to Kathgodam railway station.' }
+    ]
+  },
+
+  // 37. MUNNAR TEA TRAILS & KOLUKKUMALAI
+  {
+    id: 37,
+    title: 'Munnar Tea Hills & Kolukkumalai Sunrise',
+    location: 'Munnar, Kerala',
+    price: 'Rs. 13,800',
+    rating: '4.8',
+    duration: '4 Days',
+    image: 'https://images.unsplash.com/photo-1596176530529-78163a4f7af2?auto=format&fit=crop&w=1400&q=85',
+    isTrending: true,
+    organizer: 'TravelMaster Signature',
+    bestSeason: 'Autumn & Winter (Sep - Mar)',
+    bestMonths: ['September', 'October', 'November', 'December', 'January', 'February', 'March'],
+    weatherHighlight: '☕ Cloud Sea Sunrise & Tea Mist • 16°C',
+    tripType: 'Nature & Wildlife',
+    departureDates: ['18 Oct 2026', '08 Nov 2026', '05 Dec 2026', '22 Dec 2026', '12 Jan 2027'],
+    categories: {
+      Economy: { price: 'Rs. 9,500', facilities: ['Tea Estate Homestay', 'Breakfast', 'Shared Jeep Transfer'] },
+      Standard: { price: 'Rs. 13,800', facilities: ['Boutique Hill Cottage', 'Breakfast & Dinner', 'Private 4x4 Jeep Safari'] },
+      Luxury: { price: 'Rs. 26,000', facilities: ['5-Star Luxury Resort (Fragrant Nature)', 'All Meals', 'Private Tea Tasting & Spa'] }
+    },
+    itinerary: [
+      { day: 1, title: 'Kochi to Munnar Waterfalls', description: 'Scenic drive past Cheeyappara and Valara falls to Munnar hill station.' },
+      { day: 2, title: 'Kolukkumalai Sunrise 4x4 Jeep Expedition', description: 'Early 4 AM off-road jeep drive to the world’s highest organic tea estate (7,900 ft) for sunrise above the clouds.' },
+      { day: 3, title: 'Eravikulam & Tea Tasting Tour', description: 'Spot endangered Nilgiri Tahr at Eravikulam National Park and visit Lockhart Tea Factory.' },
+      { day: 4, title: 'Mattupetty Lake & Departure', description: 'Boating at Mattupetty dam and Echo Point before return transfer to Kochi.' }
+    ]
+  },
+
+  // 38. COORG COFFEE ESTATES & ABBEY FALLS
+  {
+    id: 38,
+    title: 'Coorg Coffee Estates & Abbey Falls',
+    location: 'Madikeri, Karnataka',
+    price: 'Rs. 11,500',
+    rating: '4.7',
+    duration: '3 Days',
+    image: 'https://images.unsplash.com/photo-1590050752117-238cb0fb12b1?auto=format&fit=crop&w=1400&q=85',
+    isTrending: false,
+    organizer: 'TravelMaster Signature',
+    bestSeason: 'Monsoon Greens & Winter (Jul - Mar)',
+    bestMonths: ['July', 'August', 'September', 'October', 'November', 'December', 'January', 'February'],
+    weatherHighlight: '🌿 Coffee Blossom Aroma & Mist • 20°C',
+    tripType: 'Nature & Wildlife',
+    departureDates: ['25 Oct 2026', '15 Nov 2026', '10 Dec 2026', '15 Jan 2027'],
+    categories: {
+      Economy: { price: 'Rs. 7,800', facilities: ['Plantation Homestay', 'South Indian Breakfast', 'Sightseeing Shared Cab'] },
+      Standard: { price: 'Rs. 11,500', facilities: ['Heritage Coffee Estate Villa', 'Breakfast & Dinner', 'Private Cab Transfers'] },
+      Luxury: { price: 'Rs. 22,000', facilities: ['5-Star Luxury Resort (Evolve Back / Tamara)', 'All Gourmet Meals', 'Private Plantation Walk & Spa'] }
+    },
+    itinerary: [
+      { day: 1, title: 'Bangalore to Madikeri & Abbey Falls', description: 'Drive from Bangalore through lush Western Ghats. Visit roaring Abbey Falls and sunset at Raja’s Seat.' },
+      { day: 2, title: 'Dubare Elephant Camp & Golden Temple', description: 'Bathe elephants at Dubare Camp along Cauvery river and explore Namdroling Tibetan Monastery.' },
+      { day: 3, title: 'Mandalpatti Peak 4x4 Jeep Safari & Return', description: 'Thrilling off-road jeep drive to Mandalpatti viewpoint before return drive to Bangalore.' }
+    ]
+  },
+
+  // 39. GOKARNA BEACH TREK & SECLUDED COVES
+  {
+    id: 39,
+    title: 'Gokarna Beach Trek & Secluded Coves',
+    location: 'Gokarna, Karnataka',
+    price: 'Rs. 8,900',
+    rating: '4.8',
+    duration: '3 Days',
+    image: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1400&q=85',
+    isTrending: true,
+    organizer: 'Invincible NGO',
+    bestSeason: 'Autumn & Winter Coastal (Oct - Apr)',
+    bestMonths: ['October', 'November', 'December', 'January', 'February', 'March', 'April'],
+    weatherHighlight: '🏖️ Coastal Cliff Walks & Sunset Shacks • 28°C',
+    tripType: 'Beach & Island',
+    departureDates: ['24 Oct 2026', '14 Nov 2026', '04 Dec 2026', '25 Dec 2026', '08 Jan 2027'],
+    categories: {
+      Economy: { price: 'Rs. 6,200', facilities: ['Beachfront Camps', 'All Coastal Meals', 'Guided 5-Beach Trek', 'Campfire'] },
+      Standard: { price: 'Rs. 8,900', facilities: ['Beach Cottage / Boutique Stay', 'Breakfast & Dinner', 'Water Sports intro'] },
+      Luxury: { price: 'Rs. 17,500', facilities: ['5-Star Wellness Eco Resort (SwaSwara)', 'Ayurvedic Yoga', 'All Organic Meals'] }
+    },
+    itinerary: [
+      { day: 1, title: 'Arrival & Mahabaleshwar Temple', description: 'Arrive at Gokarna, visit ancient Atmalinga temple, and watch sunset at Kudle Beach.' },
+      { day: 2, title: 'Famous 5-Beach Cliff Trek', description: 'Trek across rugged coastal cliffs from Paradise Beach to Half Moon, Om Beach, Kudle, and Main Beach.' },
+      { day: 3, title: 'Mirjan Fort Heritage & Departure', description: 'Explore laterite stone architecture of Mirjan Fort before departure towards Goa/Bangalore.' }
+    ]
+  },
+
+  // 40. DZUKOU VALLEY TREK & HORNBILL TRAIL
+  {
+    id: 40,
+    title: 'Dzukou Valley & Hornbill Festival Trail',
+    location: 'Kohima, Nagaland',
+    price: 'Rs. 19,500',
+    rating: '4.9',
+    duration: '6 Days',
+    image: 'https://images.unsplash.com/photo-1533240332313-0db49b459ad6?auto=format&fit=crop&w=1400&q=85',
+    isTrending: true,
+    organizer: 'Invincible NGO',
+    bestSeason: 'Summer Greens & Festive Winter (Jun - Dec)',
+    bestMonths: ['June', 'July', 'August', 'September', 'October', 'November', 'December'],
+    weatherHighlight: '🌸 Rolling Lily Hills & Tribal Culture • 15°C',
+    tripType: 'Trek & Adventure',
+    departureDates: ['25 Nov 2026', '01 Dec 2026', '06 Dec 2026', '15 Dec 2026'],
+    categories: {
+      Economy: { price: 'Rs. 14,500', facilities: ['Trek Rest House Tents', 'Campfire Meals', 'Inner Line Permits', 'Local Angami Guide'] },
+      Standard: { price: 'Rs. 19,500', facilities: ['Deluxe Alpine Tents & Kohima Hotel', 'All Meals', 'Hornbill Festival Pass', '4x4 Cab Transfers'] },
+      Luxury: { price: 'Rs. 32,000', facilities: ['Luxury Heritage Camp', 'Private Naga Cultural Host', 'All Gourmet Meals'] }
+    },
+    itinerary: [
+      { day: 1, title: 'Dimapur to Kohima Heritage Town', description: 'Arrival at Dimapur airport, scenic drive to Kohima. Visit World War II War Cemetery.' },
+      { day: 2, title: 'Trek to Dzukou Valley (8,000 ft)', description: 'Trek from Viswema village through lush rainforest ascending to the boundless dwarf bamboo meadows of Dzukou.' },
+      { day: 3, title: 'Exploring Frozen Brooks & Natural Caves', description: 'Explore crystal clear mountain brooks, ghost cave, and scenic valley trails.' },
+      { day: 4, title: 'Descend to Jakhama & Kisama Village', description: 'Descend through Jakhama route and check into Kisama village.' },
+      { day: 5, title: 'Hornbill Festival Extravaganza', description: 'Experience the 16 Naga tribes coming together with traditional war dances, archery, folk songs, and food.' },
+      { day: 6, title: 'Departure via Dimapur', description: 'Transfer to Dimapur airport for homeward journey.' }
+    ]
+  },
+
+  // 41. TAWANG MONASTERY & SELA PASS EXPEDITION
+  {
+    id: 41,
+    title: 'Tawang Monastery & Sela Pass Expedition',
+    location: 'Tawang, Arunachal Pradesh',
+    price: 'Rs. 24,000',
+    rating: '4.9',
+    duration: '7 Days',
+    image: 'https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=1400&q=85',
+    isTrending: true,
+    organizer: 'TravelMaster Signature',
+    bestSeason: 'Spring & Autumn (Mar - Jun, Sep - Nov)',
+    bestMonths: ['March', 'April', 'May', 'September', 'October', 'November'],
+    weatherHighlight: '🏔️ High Pass at 13,700 ft & Buddhist Chants • -2°C to 12°C',
+    tripType: 'Heritage & Culture',
+    departureDates: ['10 Oct 2026', '24 Oct 2026', '07 Nov 2026', '18 Mar 2027', '08 Apr 2027'],
+    categories: {
+      Economy: { price: 'Rs. 17,500', facilities: ['Monastery Guesthouses', 'Local Meals', 'ILP Permits', 'Shared Sumo Transfers'] },
+      Standard: { price: 'Rs. 24,000', facilities: ['3-Star Boutique Hotel', 'Breakfast & Dinner', 'Private Bolero / Scorpio SUV'] },
+      Luxury: { price: 'Rs. 42,000', facilities: ['Premium Himalayan Resort', 'All Meals', 'Private Innova Crysta', 'Special Bum La Pass Permit'] }
+    },
+    itinerary: [
+      { day: 1, title: 'Guwahati to Bhalukpong', description: 'Drive alongside Jia Bhoroli river into Arunachal Pradesh border at Bhalukpong.' },
+      { day: 2, title: 'Bhalukpong to Dirang Valley', description: 'Visit apple orchards, Dirang Dzong (fort), and kiwi plantations.' },
+      { day: 3, title: 'Sela Pass (13,700 ft) to Tawang', description: 'Cross snow-covered Sela Pass with frozen Sela Lake and pay homage at Jaswant Garh War Memorial.' },
+      { day: 4, title: 'Majesty of Tawang Monastery', description: 'Explore India’s largest monastery founded in 1680, housing an 26-foot golden Buddha statue.' },
+      { day: 5, title: 'Madhuri Lake & Bum La Pass (China Border)', description: 'Excursion to Sangetsar Lake (Madhuri Lake) and Indo-China border at Bum La Pass (15,200 ft).' },
+      { day: 6, title: 'Tawang to Bomdila', description: 'Drive down to Bomdila monastery with sweeping Himalayan viewpoint.' },
+      { day: 7, title: 'Bomdila to Guwahati Departure', description: 'Return transfer to Guwahati airport.' }
+    ]
+  },
+
+  // 42. RANN OF KUTCH WHITE DESERT & MOON CAMP
+  {
+    id: 42,
+    title: 'Rann of Kutch White Desert & Moon Camp',
+    location: 'Dhordo, Kutch, Gujarat',
+    price: 'Rs. 14,200',
+    rating: '4.8',
+    duration: '4 Days',
+    image: 'https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?auto=format&fit=crop&w=1400&q=85',
+    isTrending: true,
+    organizer: 'Invincible NGO',
+    bestSeason: 'Winter Festive (Nov - Feb)',
+    bestMonths: ['November', 'December', 'January', 'February'],
+    weatherHighlight: '✨ Endless Salt Crust & Moonlit Desert • 18°C',
+    tripType: 'Heritage & Culture',
+    departureDates: ['14 Nov 2026', '28 Nov 2026', '12 Dec 2026', '26 Dec 2026', '10 Jan 2027'],
+    categories: {
+      Economy: { price: 'Rs. 9,800', facilities: ['Traditional Bhunga Mud Cottages', 'Authentic Kutchi Meals', 'Rann Permits'] },
+      Standard: { price: 'Rs. 14,200', facilities: ['Deluxe AC Swiss Tents at Tent City', 'All Meals Included', 'Camel Cart Ride'] },
+      Luxury: { price: 'Rs. 26,500', facilities: ['Premium Darbari Suite Tent', 'VIP Cultural Access', 'Private SUV & Desert Safari'] }
+    },
+    itinerary: [
+      { day: 1, title: 'Bhuj to Dhordo Tent City', description: 'Arrival in Bhuj, visit Aina Mahal & Prag Mahal, then drive to white desert resort.' },
+      { day: 2, title: 'Full Moon Splendor on the Great Rann', description: 'Visit handicraft villages of Nirona (Rogan art) and Hodka, followed by moonlit camel safari across endless white salt.' },
+      { day: 3, title: 'Kalo Dungar (Black Hill) & Sunset', description: 'Visit the highest point in Kutch with panoramic views of the Indo-Pak border and Dattatreya Temple.' },
+      { day: 4, title: 'Mandvi Beach & Vijay Vilas Palace', description: 'Visit ship-building yards and Vijay Vilas palace before departure from Bhuj.' }
+    ]
+  },
+
+  // 43. GIR FOREST ASIATIC LION SAFARI
+  {
+    id: 43,
+    title: 'Gir Forest Asiatic Lion Safari',
+    location: 'Sasan Gir, Gujarat',
+    price: 'Rs. 13,500',
+    rating: '4.8',
+    duration: '3 Days',
+    image: 'https://images.unsplash.com/photo-1546182990-dffeafbe841d?auto=format&fit=crop&w=1400&q=85',
+    isTrending: false,
+    organizer: 'Invincible NGO',
+    bestSeason: 'Winter & Spring (Nov - May)',
+    bestMonths: ['November', 'December', 'January', 'February', 'March', 'April', 'May'],
+    weatherHighlight: '🦁 Sole Home of Wild Asiatic Lions • 23°C',
+    tripType: 'Nature & Wildlife',
+    departureDates: ['20 Oct 2026', '10 Nov 2026', '05 Dec 2026', '18 Jan 2027', '12 Feb 2027'],
+    categories: {
+      Economy: { price: 'Rs. 8,800', facilities: ['Jungle Safari Resort', 'Buffet Meals', '1 Open Gypsy Safari Permit'] },
+      Standard: { price: 'Rs. 13,500', facilities: ['Eco Jungle Cottages', 'All Meals', '2 Guaranteed Gypsy Safari Tracks', 'Naturalist Guide'] },
+      Luxury: { price: 'Rs. 24,000', facilities: ['5-Star Luxury Safari Lodge (Woods at Sasan)', 'Private Naturalist', 'Pool Villa'] }
+    },
+    itinerary: [
+      { day: 1, title: 'Arrival at Sasan Gir', description: 'Check-in to jungle resort. Evening crocodile breeding farm visit and tribal Siddi folk dance.' },
+      { day: 2, title: 'Morning & Afternoon Open Gypsy Lion Safaris', description: 'Deep forest safaris in search of the Asiatic Lion pride, leopards, spotted deer, and Indian cobras.' },
+      { day: 3, title: 'Devalia Safari Park & Somnath Visit', description: 'Short morning safari at Devalia Interpretation Zone, followed by Somnath sea temple visit and departure.' }
+    ]
+  },
+
+  // 44. WAYANAD RAINFOREST & CHEMBRA PEAK
+  {
+    id: 44,
+    title: 'Wayanad Rainforest & Chembra Peak',
+    location: 'Wayanad, Kerala',
+    price: 'Rs. 12,000',
+    rating: '4.7',
+    duration: '4 Days',
+    image: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1400&q=85',
+    isTrending: false,
+    organizer: 'TravelMaster Signature',
+    bestSeason: 'Monsoon Greens & Winter (Jul - Feb)',
+    bestMonths: ['July', 'August', 'September', 'October', 'November', 'December', 'January', 'February'],
+    weatherHighlight: '🌿 Mist-Clad Rainforest & Heart-Shaped Lake • 21°C',
+    tripType: 'Nature & Wildlife',
+    departureDates: ['22 Oct 2026', '12 Nov 2026', '10 Dec 2026', '14 Jan 2027'],
+    categories: {
+      Economy: { price: 'Rs. 8,200', facilities: ['Rainforest Homestay', 'Kerala Breakfast', 'Shared Transfers'] },
+      Standard: { price: 'Rs. 12,000', facilities: ['Treehouse / Plantation Resort', 'Breakfast & Dinner', 'Private Cab', 'Trek Permits'] },
+      Luxury: { price: 'Rs. 25,000', facilities: ['5-Star Luxury Rainforest Villa (Vythiri)', 'Private Pool & Treehouse', 'All Meals'] }
+    },
+    itinerary: [
+      { day: 1, title: 'Calicut to Wayanad Ghats', description: 'Climb 9 hairpin bends of Thamarassery Churam into misty Wayanad. Visit Pookode Lake.' },
+      { day: 2, title: 'Chembra Peak & Heart Lake Trek', description: 'Trek through aromatic tea bushes to Chembra Peak (6,890 ft) and the natural heart-shaped lake (Hridaya Saras).' },
+      { day: 3, title: 'Edakkal Neolithic Caves & Bamboo Rafting', description: 'Examine 6,000-year-old rock engravings in Edakkal Caves and enjoy bamboo rafting in Kuruva Island.' },
+      { day: 4, title: 'Banasura Sagar Dam & Departure', description: 'Speedboating at India’s largest earth dam before return transfer to Calicut.' }
+    ]
+  },
+
+  // 45. AMRITSAR GOLDEN TEMPLE & WAGAH RETREAT
+  {
+    id: 45,
+    title: 'Amritsar Golden Temple & Wagah Retreat',
+    location: 'Amritsar, Punjab',
+    price: 'Rs. 9,800',
+    rating: '4.9',
+    duration: '3 Days',
+    image: 'https://images.unsplash.com/photo-1589182373726-e4f658ab50f0?auto=format&fit=crop&w=1400&q=85',
+    isTrending: true,
+    organizer: 'TravelMaster Signature',
+    bestSeason: 'Autumn, Winter & Spring (Oct - Mar)',
+    bestMonths: ['October', 'November', 'December', 'January', 'February', 'March'],
+    weatherHighlight: '🪔 Golden Sanctum Glow & Patriotic Cheers • 17°C',
+    tripType: 'Heritage & Culture',
+    departureDates: ['24 Oct 2026', '07 Nov 2026', '21 Nov 2026', '12 Dec 2026', '16 Jan 2027'],
+    categories: {
+      Economy: { price: 'Rs. 6,500', facilities: ['Standard Hotel near Heritage Street', 'Breakfast', 'Shared Cab to Wagah'] },
+      Standard: { price: 'Rs. 9,800', facilities: ['Boutique Heritage Hotel', 'Breakfast & Amritsari Kulcha Dinner', 'Private AC Cab'] },
+      Luxury: { price: 'Rs. 18,500', facilities: ['5-Star Luxury (Taj Swarna / Hyatt)', 'All Meals', 'VIP Seats at Wagah Ceremony', 'Private Historian'] }
+    },
+    itinerary: [
+      { day: 1, title: 'Harmandir Sahib Golden Temple & Palki Sahib', description: 'Arrive in Amritsar. Visit the illuminated Golden Temple, volunteer at the world’s largest community kitchen (Langar), and attend night Palki ceremony.' },
+      { day: 2, title: 'Jallianwala Bagh & Wagah Border Ceremony', description: 'Pay respects at Jallianwala Bagh, explore Partition Museum, and witness the thunderous Beating Retreat ceremony at Wagah Border.' },
+      { day: 3, title: 'Gobindgarh Fort & Amritsari Food Trail', description: 'Explore Maharaja Ranjit Singh’s fort, savor famous Amritsari Kulchas and creamy Lassi, before flight/train departure.' }
+    ]
+  },
+
+  // 46. RISHIKESH YOGA & WHITE WATER RAFTING
+  {
+    id: 46,
+    title: 'Rishikesh Yoga & White Water Rafting',
+    location: 'Rishikesh, Uttarakhand',
+    price: 'Rs. 8,500',
+    rating: '4.8',
+    duration: '3 Days',
+    image: 'https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=1400&q=85',
+    isTrending: true,
+    organizer: 'Invincible NGO',
+    bestSeason: 'Autumn, Winter & Spring (Sep - Jun)',
+    bestMonths: ['September', 'October', 'November', 'December', 'January', 'February', 'March', 'April', 'May'],
+    weatherHighlight: '🌊 Holy Ganga Rapids & Morning Ashram Yoga • 20°C',
+    tripType: 'Trek & Adventure',
+    departureDates: ['20 Oct 2026', '03 Nov 2026', '17 Nov 2026', '01 Dec 2026', '15 Jan 2027'],
+    categories: {
+      Economy: { price: 'Rs. 5,800', facilities: ['Riverside Camping Tents', 'Buffet Meals', '16km Rafting', 'Cliff Jump'] },
+      Standard: { price: 'Rs. 8,500', facilities: ['Luxury Swiss Cottage Camp', 'All Meals', '24km Marine Drive Rafting', 'Evening Bonfire'] },
+      Luxury: { price: 'Rs. 22,000', facilities: ['5-Star Ganga Spa Resort (Ananda in Himalayas / Aloha)', 'Ayurvedic Yoga', 'All Gourmet Meals'] }
+    },
+    itinerary: [
+      { day: 1, title: 'Arrival & Parmarth Niketan Ganga Aarti', description: 'Check-in to riverside camp. Walk across Ram Jhula and attend mesmerizing sunset Ganga Aarti at Triveni Ghat.' },
+      { day: 2, title: 'Ganga White Water Rafting & Cliff Jump', description: 'Navigate Grade III & IV rapids (Roller Coaster, Golf Course), body surfing, and cliff jumping into holy emerald waters.' },
+      { day: 3, title: 'Beatles Ashram & Sunrise Yoga', description: 'Sunrise yoga session on the Ganga beach, visit historic Beatles Ashram (Chaurasi Kutia), and departure.' }
+    ]
+  },
+
+  // 47. MAJULI RIVER ISLAND & KAZIRANGA SAFARI
+  {
+    id: 47,
+    title: 'Majuli River Island & Kaziranga Safari',
+    location: 'Jorhat, Assam',
+    price: 'Rs. 21,500',
+    rating: '4.9',
+    duration: '5 Days',
+    image: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=1400&q=85',
+    isTrending: false,
+    organizer: 'TravelMaster Signature',
+    bestSeason: 'Winter Wildlife (Nov - Apr)',
+    bestMonths: ['November', 'December', 'January', 'February', 'March', 'April'],
+    weatherHighlight: '🦏 Wild One-Horned Rhinos & River Island • 20°C',
+    tripType: 'Nature & Wildlife',
+    departureDates: ['15 Nov 2026', '05 Dec 2026', '20 Dec 2026', '10 Jan 2027', '05 Feb 2027'],
+    categories: {
+      Economy: { price: 'Rs. 15,000', facilities: ['Mishing Bamboo Cottage', 'Assamese Meals', 'Shared Ferry & Gypsy Safari'] },
+      Standard: { price: 'Rs. 21,500', facilities: ['Boutique Tea Estate Bungalow', 'All Meals', '2 Jeep Safaris in Kaziranga Central & Western Range'] },
+      Luxury: { price: 'Rs. 38,000', facilities: ['5-Star Luxury Safari Lodge (Diphlu River Lodge)', 'Private Naturalist', 'Elephant Safari', 'All Meals'] }
+    },
+    itinerary: [
+      { day: 1, title: 'Jorhat to Majuli Ferry Cruise', description: 'Ferry ride across massive Brahmaputra River to world’s largest inhabited river island.' },
+      { day: 2, title: 'Satra Vaishnavite Monasteries & Mask Making', description: 'Visit ancient Satras (Kamalabari, Samaguri), watch traditional bamboo mask-making, and hear Ankiya Bhaona music.' },
+      { day: 3, title: 'Majuli to Kaziranga National Park', description: 'Ferry back to mainland and drive to UNESCO World Heritage Kaziranga National Park.' },
+      { day: 4, title: 'Elephant & Jeep Safaris for One-Horned Rhinos', description: 'Spot great Indian one-horned rhinos, wild water buffaloes, swamp deer, and Bengal tigers.' },
+      { day: 5, title: 'Assam Tea Garden Tour & Departure', description: 'Walk through historic emerald tea plantations and depart from Guwahati or Jorhat airport.' }
+    ]
+  },
+
+  // 48. SANDAKPHU SINGALILA RIDGE TREK
+  {
+    id: 48,
+    title: 'Sandakphu Singalila Ridge Trek',
+    location: 'Manebhanjan, West Bengal',
+    price: 'Rs. 14,500',
+    rating: '4.9',
+    duration: '6 Days',
+    image: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1400&q=85',
+    isTrending: true,
+    organizer: 'Invincible NGO',
+    bestSeason: 'Autumn & Spring (Oct - May)',
+    bestMonths: ['October', 'November', 'December', 'March', 'April', 'May'],
+    weatherHighlight: '🏔️ View Mt. Everest & Kanchenjunga • -3°C to 10°C',
+    tripType: 'Trek & Adventure',
+    departureDates: ['18 Oct 2026', '08 Nov 2026', '25 Nov 2026', '20 Mar 2027', '10 Apr 2027'],
+    categories: {
+      Economy: { price: 'Rs. 10,500', facilities: ['Trekker Huts', 'Nutritious Mountain Meals', 'Forest Permits', 'Sherpa Guide'] },
+      Standard: { price: 'Rs. 14,500', facilities: ['Cozy Wooden Lodges', 'Breakfast, Lunch & Dinner', 'Sleeping Bags', 'Trek Certificate'] },
+      Luxury: { price: 'Rs. 24,000', facilities: ['Vintage Land Rover 4x4 Support', 'Deluxe Private Rooms', 'Dedicated Porter'] }
+    },
+    itinerary: [
+      { day: 1, title: 'NJP to Manebhanjan & Tumling', description: 'Drive from New Jalpaiguri into Singalila National Park, trekking through pine forests to Indo-Nepal border village Tumling.' },
+      { day: 2, title: 'Tumling to Kalipokhri', description: 'Scenic high-ridge walk through rhododendron forests with views of Kanchenjunga to sacred black water lake Kalipokhri.' },
+      { day: 3, title: 'Kalipokhri to Sandakphu Summit (11,930 ft)', description: 'Ascend to West Bengal’s highest point with unmatched views of the "Sleeping Buddha" (Kanchenjunga massif).' },
+      { day: 4, title: 'Sandakphu Sunrise & Gurdum Valley', description: 'Witness sun rising over 4 of the 5 highest peaks in the world (Everest, Kanchenjunga, Lhotse, Makalu) before descending to Gurdum.' },
+      { day: 5, title: 'Gurdum to Srikhola & Rimbick', description: 'Walk through dense bamboo trails and suspension bridges along Srikhola river.' },
+      { day: 6, title: 'Return Drive to Siliguri/NJP', description: 'Scenic drive past tea gardens back to NJP railway station.' }
+    ]
+  },
+
+  // 49. PURI JAGANNATH & KONARK SUN TEMPLE
+  {
+    id: 49,
+    title: 'Puri Jagannath & Konark Sun Temple',
+    location: 'Puri, Odisha',
+    price: 'Rs. 11,200',
+    rating: '4.7',
+    duration: '3 Days',
+    image: 'https://images.unsplash.com/photo-1593693397690-362cb9666fc2?auto=format&fit=crop&w=1400&q=85',
+    isTrending: false,
+    organizer: 'TravelMaster Signature',
+    bestSeason: 'Autumn & Winter (Oct - Mar)',
+    bestMonths: ['October', 'November', 'December', 'January', 'February', 'March'],
+    weatherHighlight: '🛕 UNESCO 13th-Century Stone Wheels & Golden Sands • 25°C',
+    tripType: 'Heritage & Culture',
+    departureDates: ['24 Oct 2026', '14 Nov 2026', '05 Dec 2026', '09 Jan 2027', '13 Feb 2027'],
+    categories: {
+      Economy: { price: 'Rs. 7,500', facilities: ['Standard Beach Hotel', 'Breakfast', 'Shared Cab Transfers'] },
+      Standard: { price: 'Rs. 11,200', facilities: ['Seafacing 3-Star Resort', 'Breakfast & Seafood Dinner', 'Private AC Cab'] },
+      Luxury: { price: 'Rs. 22,500', facilities: ['5-Star Luxury Heritage Resort (Mayfair Waves)', 'All Meals', 'Private Temple Historian', 'Spa'] }
+    },
+    itinerary: [
+      { day: 1, title: 'Bhubaneswar to Puri & Golden Beach', description: 'Arrive in Bhubaneswar, visit Dhauli Shanti Stupa, and check into beachfront resort in Puri. Evening Mahaprasad.' },
+      { day: 2, title: 'Jagannath Temple Darshan & Konark Sun Temple', description: 'Early morning darshan at 12th-century Jagannath Temple. Drive along Marine Drive to the breathtaking UNESCO Konark Sun Temple with 24 carved stone wheels.' },
+      { day: 3, title: 'Chilika Lake Irrawaddy Dolphins & Departure', description: 'Boat safari in Asia’s largest brackish lagoon at Satapada to spot rare Irrawaddy dolphins before airport return.' }
+    ]
+  },
+
+  // 50. MOUNT ABU DILWARA TEMPLES & NAKKI LAKE
+  {
+    id: 50,
+    title: 'Mount Abu Dilwara Temples & Nakki Lake',
+    location: 'Mount Abu, Rajasthan',
+    price: 'Rs. 9,500',
+    rating: '4.6',
+    duration: '3 Days',
+    image: 'https://images.unsplash.com/photo-1477587458883-47145ed94245?auto=format&fit=crop&w=1400&q=85',
+    isTrending: false,
+    organizer: 'TravelMaster Signature',
+    bestSeason: 'Monsoon & Winter (Aug - Feb)',
+    bestMonths: ['August', 'September', 'October', 'November', 'December', 'January', 'February'],
+    weatherHighlight: '⛰️ Hill Station in Aravallis & Marble Art • 18°C',
+    tripType: 'Heritage & Culture',
+    departureDates: ['23 Oct 2026', '13 Nov 2026', '04 Dec 2026', '25 Dec 2026', '08 Jan 2027'],
+    categories: {
+      Economy: { price: 'Rs. 6,500', facilities: ['Standard Hill Resort', 'Breakfast', 'Shared Sightseeing Cab'] },
+      Standard: { price: 'Rs. 9,500', facilities: ['Heritage Colonial Villa', 'Breakfast & Dinner', 'Private AC Cab'] },
+      Luxury: { price: 'Rs. 18,000', facilities: ['5-Star Heritage Palace (Bikaner House / Cama)', 'All Meals', 'Private Lake Boating'] }
+    },
+    itinerary: [
+      { day: 1, title: 'Arrival & Sunset at Toad Rock', description: 'Ascend the winding Aravalli roads to Mount Abu. Boating on sacred Nakki Lake and sunset at Toad Rock.' },
+      { day: 2, title: 'Marvel of Dilwara Marble Temples & Guru Shikhar', description: 'Admire the legendary translucent marble carvings of Dilwara Jain Temples built in the 11th century. Ascend to Guru Shikhar (5,650 ft), Rajasthan’s highest peak.' },
+      { day: 3, title: 'Achalgarh Fort & Departure', description: 'Explore ancient Parmar-era Achalgarh fort and Achaleshwar Mahadev temple before descending to Abu Road.' }
+    ]
+  },
+
+  // 51. KHAJURAHO TEMPLES & ORCHHA ROYAL HERITAGE
+  {
+    id: 51,
+    title: 'Khajuraho Temples & Orchha Royal Heritage',
+    location: 'Khajuraho, Madhya Pradesh',
+    price: 'Rs. 15,000',
+    rating: '4.8',
+    duration: '4 Days',
+    image: 'https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=1400&q=85',
+    isTrending: false,
+    organizer: 'TravelMaster Signature',
+    bestSeason: 'Autumn & Winter (Oct - Mar)',
+    bestMonths: ['October', 'November', 'December', 'January', 'February', 'March'],
+    weatherHighlight: '🏛️ UNESCO World Heritage Erotic Sculptures • 22°C',
+    tripType: 'Heritage & Culture',
+    departureDates: ['28 Oct 2026', '18 Nov 2026', '09 Dec 2026', '13 Jan 2027', '10 Feb 2027'],
+    categories: {
+      Economy: { price: 'Rs. 10,500', facilities: ['Heritage Guesthouse', 'Breakfast', 'Sightseeing Auto/Cab'] },
+      Standard: { price: 'Rs. 15,000', facilities: ['3-Star Garden Resort', 'Breakfast & Dinner', 'Private AC Sedan', 'Monument Passes'] },
+      Luxury: { price: 'Rs. 28,000', facilities: ['5-Star Luxury (The Lalit Temple View)', 'All Meals', 'Light & Sound Show VIP Passes'] }
+    },
+    itinerary: [
+      { day: 1, title: 'Arrival at Khajuraho & Light & Sound Show', description: 'Arrive at Khajuraho airport/railway. Evening captivating sound and light show at the Western Group of Temples.' },
+      { day: 2, title: 'Western & Eastern Group of Temples', description: 'Guided tour of Kandariya Mahadeva Temple, Lakshmana Temple, and erotic sandstone sculptures celebrating life.' },
+      { day: 3, title: 'Scenic Drive to Medieval Orchha', description: 'Drive along Betwa river to Orchha. Explore Jahangir Mahal, Raja Mahal, and riverbank royal chhatris (cenotaphs).' },
+      { day: 4, title: 'Ram Raja Temple & Jhansi Departure', description: 'Visit the unique temple where Lord Rama is worshipped as king before transfer to Jhansi railway station.' }
+    ]
+  },
+
+  // 52. DANDELI JUNGLE SAFARI & RIVER RAFTING
+  {
+    id: 52,
+    title: 'Dandeli Jungle Safari & Kali River Rafting',
+    location: 'Dandeli, Karnataka',
+    price: 'Rs. 8,700',
+    rating: '4.7',
+    duration: '3 Days',
+    image: 'https://images.unsplash.com/photo-1517411032315-54ef2cb783bb?auto=format&fit=crop&w=1400&q=85',
+    isTrending: false,
+    organizer: 'Invincible NGO',
+    bestSeason: 'Autumn, Winter & Spring (Oct - May)',
+    bestMonths: ['October', 'November', 'December', 'January', 'February', 'March', 'April', 'May'],
+    weatherHighlight: '🛶 Kali River Rapids & Malabar Hornbills • 26°C',
+    tripType: 'Trek & Adventure',
+    departureDates: ['24 Oct 2026', '14 Nov 2026', '05 Dec 2026', '16 Jan 2027'],
+    categories: {
+      Economy: { price: 'Rs. 5,900', facilities: ['Jungle Tents', 'Buffet Meals', 'Kayaking & Coracle Ride'] },
+      Standard: { price: 'Rs. 8,700', facilities: ['Wooden Log Huts', 'All Meals', '9.5km Kali White Water Rafting', 'Jungle Safari'] },
+      Luxury: { price: 'Rs. 16,500', facilities: ['Luxury Riverfront Eco-Resort', 'Private Naturalist', 'All Meals', 'Jacuzzi Bath'] }
+    },
+    itinerary: [
+      { day: 1, title: 'Arrival at Dandeli Hornbill Reserve', description: 'Check into river camp. Evening bird watching to spot great Indian hornbills, followed by coracle boat ride.' },
+      { day: 2, title: 'Kali River White Water Rafting & Natural Jacuzzi', description: 'Thrilling 9.5 km river rafting through Class 3 rapids, natural jacuzzi bath, and open jeep wildlife safari.' },
+      { day: 3, title: 'Syntheri Rocks & Departure', description: 'Trek to 300-foot monolithic granite Syntheri Rocks carved by Kaneri river before departure to Hubli/Goa.' }
+    ]
+  },
+
+  // 53. OOTY & NILGIRI MOUNTAIN TOY TRAIN
+  {
+    id: 53,
+    title: 'Ooty & Nilgiri Mountain Toy Train',
+    location: 'Ooty, Tamil Nadu',
+    price: 'Rs. 13,200',
+    rating: '4.8',
+    duration: '4 Days',
+    image: 'https://images.unsplash.com/photo-1570789210967-2cac24afeb00?auto=format&fit=crop&w=1400&q=85',
+    isTrending: true,
+    organizer: 'TravelMaster Signature',
+    bestSeason: 'Spring, Summer & Winter (Sep - May)',
+    bestMonths: ['September', 'October', 'November', 'December', 'January', 'February', 'March', 'April', 'May'],
+    weatherHighlight: '🚂 UNESCO Steam Toy Train & Blue Mountain Pine Trails • 15°C',
+    tripType: 'Nature & Wildlife',
+    departureDates: ['20 Oct 2026', '10 Nov 2026', '01 Dec 2026', '22 Dec 2026', '15 Jan 2027'],
+    categories: {
+      Economy: { price: 'Rs. 9,200', facilities: ['Pine Hill Guesthouse', 'South Indian Breakfast', 'Sightseeing Bus'] },
+      Standard: { price: 'Rs. 13,200', facilities: ['Colonial British Villa', 'Breakfast & Dinner', 'Toy Train Tickets', 'Private Cab'] },
+      Luxury: { price: 'Rs. 25,000', facilities: ['5-Star Heritage (Savoy / Taj Fernhills)', 'All Meals', 'First-Class Toy Train Coach'] }
+    },
+    itinerary: [
+      { day: 1, title: 'Coimbatore to Ooty through Nilgiri Ghats', description: 'Drive past Kallar tea plantations to the Queen of Hill Stations. Evening walk in Botanical Gardens.' },
+      { day: 2, title: 'Historic Nilgiri Mountain Railway (Toy Train)', description: 'Ride the UNESCO 1908 meter-gauge steam train across 16 tunnels and 250 bridges from Ooty to Coonoor.' },
+      { day: 3, title: 'Doddabetta Peak & Avalanche Lake', description: 'Climb Doddabetta Peak (8,650 ft), visit Tea Museum, and take an eco-safari through silent Avalanche Lake.' },
+      { day: 4, title: 'Pykara Waterfalls & Return to Coimbatore', description: 'Speedboating on Pykara Lake and waterfalls before descending to Coimbatore airport.' }
+    ]
+  },
+
+  // 54. BODH GAYA ENLIGHTENMENT & NALANDA RUINS
+  {
+    id: 54,
+    title: 'Bodh Gaya Enlightenment & Nalanda Ruins',
+    location: 'Bodh Gaya, Bihar',
+    price: 'Rs. 12,800',
+    rating: '4.8',
+    duration: '4 Days',
+    image: 'https://images.unsplash.com/photo-1561361513-2d000a50f0dc?auto=format&fit=crop&w=1400&q=85',
+    isTrending: false,
+    organizer: 'TravelMaster Signature',
+    bestSeason: 'Autumn & Winter (Oct - Mar)',
+    bestMonths: ['October', 'November', 'December', 'January', 'February', 'March'],
+    weatherHighlight: '🧘 Sacred Bodhi Tree & World’s Oldest University • 20°C',
+    tripType: 'Heritage & Culture',
+    departureDates: ['25 Oct 2026', '15 Nov 2026', '06 Dec 2026', '17 Jan 2027', '14 Feb 2027'],
+    categories: {
+      Economy: { price: 'Rs. 8,500', facilities: ['Pilgrim Hotel / Monastery Stay', 'Vegetarian Breakfast', 'Shared Transfers'] },
+      Standard: { price: 'Rs. 12,800', facilities: ['Boutique Heritage Hotel', 'Breakfast & Dinner', 'Private AC Sedan'] },
+      Luxury: { price: 'Rs. 24,000', facilities: ['5-Star Luxury Resort (The Bodhi Palace)', 'All Meals', 'Private Buddhist Scholar Guide'] }
+    },
+    itinerary: [
+      { day: 1, title: 'Arrival at Bodh Gaya & Mahabodhi Temple', description: 'Visit UNESCO Mahabodhi Temple and meditate under the sacred Bodhi Tree where Lord Buddha attained enlightenment.' },
+      { day: 2, title: 'Monasteries of the World & Great Buddha Statue', description: 'Explore international monasteries (Thai, Bhutanese, Tibetan, Japanese) and 80-foot stone Buddha statue.' },
+      { day: 3, title: 'Ancient Nalanda University & Rajgir Ropeway', description: 'Excursion to UNESCO ruins of 5th-century Nalanda University. Ride Vishwa Shanti Stupa ropeway at Rajgir.' },
+      { day: 4, title: 'Griddhakuta (Vulture Peak) & Patna Departure', description: 'Visit Vulture Peak where Buddha taught the Lotus Sutra, then transfer to Gaya/Patna airport.' }
+    ]
+  },
+
+  // 55. ROOPKUND MYSTERY HIGH-ALTITUDE EXPEDITION
+  {
+    id: 55,
+    title: 'Roopkund Mystery High-Altitude Expedition',
+    location: 'Wan, Uttarakhand',
+    price: 'Rs. 16,800',
+    rating: '5.0',
+    duration: '7 Days',
+    image: 'https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?auto=format&fit=crop&w=1400&q=85',
+    isTrending: true,
+    organizer: 'Invincible NGO',
+    bestSeason: 'Summer & Autumn (May - Jun, Sep - Oct)',
+    bestMonths: ['May', 'June', 'September', 'October'],
+    weatherHighlight: '🏔️ Glacial Mystery Lake at 15,750 ft • -5°C to 8°C',
+    tripType: 'Trek & Adventure',
+    departureDates: ['20 May 2027', '05 Jun 2027', '18 Sep 2027', '02 Oct 2027'],
+    categories: {
+      Economy: { price: 'Rs. 12,800', facilities: ['High-Altitude Tents', 'High-Energy Meals', 'Forest Passes', 'Trek Guide'] },
+      Standard: { price: 'Rs. 16,800', facilities: ['Alpine Weather Tents', 'All Meals', 'Oxygen Kit', 'Crampons', 'Summit Certificate'] },
+      Luxury: { price: 'Rs. 26,000', facilities: ['VIP Homestays at Lohajung', 'Dedicated High-Altitude Porter', 'All Meals'] }
+    },
+    itinerary: [
+      { day: 1, title: 'Rishikesh to Lohajung', description: 'Spectacular mountain drive passing Devprayag, Rudraprayag, and Karnaprayag to Lohajung.' },
+      { day: 2, title: 'Lohajung to Didna Village', description: 'Trek down to Neel Ganga stream, then climb through rhododendron groves to Didna village.' },
+      { day: 3, title: 'Didna to Ali Bugyal & Bedni Bugyal', description: 'Ascend to Asia’s largest high-altitude alpine meadows with panoramic views of Mt. Trishul.' },
+      { day: 4, title: 'Bedni Bugyal to Bhagwabasa', description: 'Climb rocky terrain past Kalu Vinayak temple to the windswept snow campsite of Bhagwabasa (14,100 ft).' },
+      { day: 5, title: 'Roopkund Summit (15,750 ft) & Return to Bedni', description: 'Pre-dawn summit assault to the mysterious glacial lake under the sheer face of Mt. Trishul.' },
+      { day: 6, title: 'Bedni Bugyal to Wan & Lohajung', description: 'Descent through moss-covered oak forests to Wan village and drive to Lohajung.' },
+      { day: 7, title: 'Lohajung to Rishikesh Departure', description: 'Return mountain drive to Rishikesh for departure.' }
+    ]
   }
 ];
 
