@@ -48,10 +48,20 @@ class _ChatScreenState extends State<ChatScreen> {
       'You are TravelMaster AI, an expert, deeply knowledgeable, real-world travel planner and concierge.\n'
       'Strict Guidelines for Real Data & Working Links:\n'
       '1. REAL & AUTHENTIC DATA ONLY: Never invent, make up, or hallucinate fictitious hotel names, fake contact numbers, or non-existent attractions. Recommend only famous, genuinely existing, verified properties (e.g., authentic Taj, Oberoi, CGH Earth, ITC, Neemrana, Zostel, Sterling, or recognized boutique/heritage homestays).\n'
-      '2. WORKING & PROPER LINKS: Every website link you provide MUST be a valid, real, and currently working URL with full "https://" protocol (for example, official domain links like [Official Website](https://www.tajhotels.com), [Oberoi Hotels](https://www.oberoihotels.com), [CGH Earth](https://www.cghearth.com), or verified booking portals like [Google Travel](https://www.google.com/travel), [MakeMyTrip](https://www.makemytrip.com), or [Booking.com](https://www.booking.com)). Always use verified top-level domains or official homepages rather than invented subpaths that could lead to 404 errors. Always format links as proper Markdown: [Link Title](https://example.com).\n'
-      '3. ACCURATE PRICING & CONTACTS: Provide realistic, current price estimates (in INR and USD), genuine reservation phone numbers (e.g. hotel reception or toll-free), and official reservation emails or website booking pages.\n'
-      '4. SPECIFIC & ACTIONABLE DETAILS: For each recommendation, provide exact neighborhood/location, check-in/out policies, key property rules, best season to visit, and local transit routes (airports, railway station codes, cab/bus routes).\n'
-      '5. DEEP & STRUCTURED FORMAT: Structure your answer cleanly using bold headings (###), categorized sections (Luxury, Boutique Heritage, Mid-Range, Budget), and bullet points so every detail is immediately clear and usable.';
+      '2. WORKING & PROPER LINKS: Every website link you provide MUST be a valid, real, and currently working URL with full "https://" protocol (for example, official domain links like [Official Website](https://www.tajhotels.com), [Oberoi Hotels](https://www.oberoihotels.com), [Invincible NGO Official Portal](https://invinciblengo.org), [CGH Earth](https://www.cghearth.com), or verified booking portals like [Google Travel](https://www.google.com/travel), [MakeMyTrip](https://www.makemytrip.com), or [Booking.com](https://www.booking.com)). Always use verified top-level domains or official homepages rather than invented subpaths that could lead to 404 errors. Always format links as proper Markdown: [Link Title](https://example.com).\n'
+      '3. INVINCIBLE NGO ADVENTURE KNOWLEDGE: When users ask about adventure treks, youth camps, Himalayan expeditions, or budget nature trips (or specifically mention Invincible NGO), provide verified real details from their official portfolio:\n'
+      '   - Official Portal: [Invincible NGO](https://invinciblengo.org) | Contact: +91 90994 00699 | HQ: Ahmedabad, Gujarat.\n'
+      '   - Kedarkantha Snow Trek: 6 Days, Sankri base camp, Juda Ka Talab, 12,500 ft summit, ~₹7,500 - ₹9,500.\n'
+      '   - Manali Adventure & Trekking Camp: 7 Days, Beas river rafting, Solang snow sports, Jogini Falls, ~₹6,200 - ₹7,800.\n'
+      '   - Polo Forest Trek & Eco Camp: 2 Days, 15th-century ancient temples, Harnav river, rock climbing, night stargazing, ~₹1,450 - ₹1,850.\n'
+      '   - Beyt Dwarka Marine & Beach Camp: 3 Days, coral reef walk, dolphin boat safari, Dunny point beach camping, ~₹2,900 - ₹3,800.\n'
+      '   - Saputara Nature & Adventure Camp: 3 Days, Governor hill, Gira waterfalls, zipline, ~₹2,200 - ₹2,900.\n'
+      '   - Chopta Tungnath Chandrashila Trek: 6 Days, Deoriatal lake, highest Shiva temple (12,073 ft), Chandrashila (13,123 ft), ~₹7,200 - ₹8,900.\n'
+      '   - Spiti Valley Road Trip & Odyssey: 9 Days, Hikkim highest post office, Key monastery, Chandratal lake, ~₹15,500 - ₹19,500.\n'
+      '   - Kasol & Kheerganga Hot Springs Trek: 5 Days, Parvati river trail, Tosh village, Kheerganga natural sulphur baths, ~₹5,200 - ₹6,800.\n'
+      '4. ACCURATE PRICING & CONTACTS: Provide realistic, current price estimates (in INR and USD), genuine reservation phone numbers (e.g. hotel reception or toll-free), and official reservation emails or website booking pages.\n'
+      '5. SPECIFIC & ACTIONABLE DETAILS: For each recommendation, provide exact neighborhood/location, check-in/out policies, key property rules, best season to visit, and local transit routes (airports, railway station codes, cab/bus routes).\n'
+      '6. DEEP & STRUCTURED FORMAT: Structure your answer cleanly using bold headings (###), categorized sections (Luxury, Boutique Heritage, Mid-Range, Budget), and bullet points so every detail is immediately clear and usable.';
 
   int _currentModelIndex = 0;
   GenerativeModel? _model;
@@ -237,10 +247,13 @@ class _ChatScreenState extends State<ChatScreen> {
                       scrollDirection: Axis.horizontal,
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       children: [
+                        'Kedarkantha snow trek by Invincible NGO',
+                        'Polo Forest 2 days camp & stargazing',
                         'Hotels in Jaipur with prices',
+                        'Manali adventure camp & rafting itinerary',
+                        'Beyt Dwarka marine & beach camping',
                         '5 days Kerala backwater itinerary',
-                        'Best quiet beaches in Goa',
-                        'Trip to Ladakh: routes & best season',
+                        'Spiti Valley 9 days road trip guide',
                       ]
                           .map((prompt) => Padding(
                                 padding: const EdgeInsets.only(right: 8),

@@ -70,10 +70,19 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
   }
 
   LatLng _getCoordinates(String locationName) {
-    if (locationName.contains('Kerala')) return const LatLng(10.8505, 76.2711);
-    if (locationName.contains('Jaipur')) return const LatLng(26.9124, 75.7873);
-    if (locationName.contains('Ladakh')) return const LatLng(34.1526, 77.5771);
-    if (locationName.contains('Goa')) return const LatLng(15.2993, 74.1240);
+    final loc = locationName.toLowerCase();
+    if (loc.contains('kerala')) return const LatLng(10.8505, 76.2711);
+    if (loc.contains('jaipur')) return const LatLng(26.9124, 75.7873);
+    if (loc.contains('ladakh')) return const LatLng(34.1526, 77.5771);
+    if (loc.contains('goa')) return const LatLng(15.2993, 74.1240);
+    if (loc.contains('kedarkantha') || loc.contains('sankri')) return const LatLng(31.0667, 78.1833);
+    if (loc.contains('manali')) return const LatLng(32.2432, 77.1892);
+    if (loc.contains('polo')) return const LatLng(24.0153, 73.1977);
+    if (loc.contains('dwarka')) return const LatLng(22.4647, 69.1173);
+    if (loc.contains('saputara')) return const LatLng(20.5796, 73.7483);
+    if (loc.contains('chopta') || loc.contains('tungnath')) return const LatLng(30.4878, 79.1764);
+    if (loc.contains('spiti') || loc.contains('kaza')) return const LatLng(32.2276, 78.0710);
+    if (loc.contains('kasol') || loc.contains('kheerganga')) return const LatLng(32.0100, 77.3150);
     return const LatLng(20.5937, 78.9629); // Default India
   }
 
