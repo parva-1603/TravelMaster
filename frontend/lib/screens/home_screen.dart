@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -1653,55 +1654,65 @@ class _VerticalPackageCardState extends State<_VerticalPackageCard> {
   int _selectedDateIndex = 0;
   int _selectedMonthIndex = 0;
   int _currentImageIndex = 0;
+  bool _isHovered = false;
   late final PageController _imagePageController;
-  Timer? _autoSlideTimer;
-  Timer? _initialDelayTimer;
+  Timer? _hoverCycleTimer;
 
   @override
   void initState() {
     super.initState();
     _imagePageController = PageController();
-    _startAutoSlide();
   }
 
-  void _startAutoSlide({bool immediate = false}) {
-    _initialDelayTimer?.cancel();
-    _autoSlideTimer?.cancel();
+  void _startHoverCycle() {
+    _hoverCycleTimer?.cancel();
+    _hoverCycleTimer = Timer.periodic(const Duration(milliseconds: 2100), (_) {
+      if (!mounted || !_isHovered) return;
+      final images = _getPackageImages(widget.package);
+      if (images.length <= 1) return;
+      final nextIdx = (_currentImageIndex + 1) % images.length;
+      if (_imagePageController.hasClients) {
+        _imagePageController.animateToPage(
+          nextIdx,
+          duration: const Duration(milliseconds: 380),
+          curve: Curves.easeInOutCubic,
+        );
+      }
+    });
+  }
 
-    void schedulePeriodic() {
-      _autoSlideTimer = Timer.periodic(const Duration(seconds: 5), (_) {
-        if (!mounted) return;
-        final images = _getPackageImages(widget.package);
-        if (images.length <= 1) return;
-        final nextIdx = (_currentImageIndex + 1) % images.length;
-        if (_imagePageController.hasClients) {
-          _imagePageController.animateToPage(
-            nextIdx,
-            duration: const Duration(milliseconds: 650),
-            curve: Curves.easeInOutCubic,
-          );
-        }
-      });
+  void _stopHoverCycle() {
+    _hoverCycleTimer?.cancel();
+    _hoverCycleTimer = null;
+  }
+
+  void _nextImage(int total) {
+    if (total <= 1) return;
+    final next = (_currentImageIndex + 1) % total;
+    if (_imagePageController.hasClients) {
+      _imagePageController.animateToPage(
+        next,
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOutCubic,
+      );
     }
+  }
 
-    if (immediate) {
-      schedulePeriodic();
-    } else {
-      final pkgId = widget.package['id'] is int
-          ? widget.package['id'] as int
-          : int.tryParse(widget.package['id'].toString()) ?? 0;
-      final offsetMs = (pkgId % 5) * 800;
-      _initialDelayTimer = Timer(Duration(milliseconds: offsetMs), () {
-        if (!mounted) return;
-        schedulePeriodic();
-      });
+  void _prevImage(int total) {
+    if (total <= 1) return;
+    final prev = (_currentImageIndex - 1 + total) % total;
+    if (_imagePageController.hasClients) {
+      _imagePageController.animateToPage(
+        prev,
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOutCubic,
+      );
     }
   }
 
   @override
   void dispose() {
-    _initialDelayTimer?.cancel();
-    _autoSlideTimer?.cancel();
+    _stopHoverCycle();
     _imagePageController.dispose();
     super.dispose();
   }
@@ -2296,220 +2307,271 @@ class _VerticalPackageCardState extends State<_VerticalPackageCard> {
     final selectedMonthSafe = _selectedMonthIndex < months.length ? _selectedMonthIndex : 0;
     final selectedDateSafe = _selectedDateIndex < dates.length ? _selectedDateIndex : 0;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E2632) : Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: isDark ? const Color(0xFF2B3747) : const Color(0xFFE2E8F0),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
+    return MouseRegion(
+      onEnter: (_) {
+        setState(() => _isHovered = true);
+        _startHoverCycle();
+      },
+      onExit: (_) {
+        setState(() => _isHovered = false);
+        _stopHoverCycle();
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOutCubic,
+        transform: Matrix4.translationValues(0, _isHovered ? -8 : 0, 0),
+        decoration: BoxDecoration(
+          color: isDark
+              ? (_isHovered ? const Color(0xFF222C3A) : const Color(0xFF1E2632))
+              : Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: _isHovered
+                ? const Color(0xFFE5533D)
+                : (isDark ? const Color(0xFF2B3747) : const Color(0xFFE2E8F0)),
+            width: _isHovered ? 2.0 : 1.0,
           ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.max,
-        children: [
-          // 1. TOP IMAGE with Horizontally Scrollable PageView & Dynamic Carousel Dots
-          ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
-            child: SizedBox(
-              height: 175,
-              width: double.infinity,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  // Horizontally Scrollable Multi-photo PageView
-                  PageView.builder(
-                    controller: _imagePageController,
-                    physics: const BouncingScrollPhysics(),
-                    itemCount: images.length,
-                    onPageChanged: (idx) {
-                      setState(() => _currentImageIndex = idx);
-                    },
-                    itemBuilder: (context, imgIdx) {
-                      return Image.network(
-                        images[imgIdx],
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) => Container(
-                          color: const Color(0xFF1E293B),
-                          child: const Center(
-                            child: Icon(
-                              Icons.landscape_rounded,
-                              color: Colors.white24,
-                              size: 40,
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-
-                  // Soft Gradient Overlay
-                  const Positioned.fill(
-                    child: IgnorePointer(
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              Color(0x35000000),
-                              Colors.transparent,
-                              Color(0x45000000),
-                            ],
-                            stops: [0.0, 0.45, 1.0],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  // Left Navigation Arrow Button
-                  if (images.length > 1)
-                    Positioned(
-                      left: 6,
-                      top: 0,
-                      bottom: 0,
-                      child: Center(
-                        child: Material(
-                          color: Colors.black.withValues(alpha: 0.40),
-                          shape: const CircleBorder(),
-                          child: InkWell(
-                            customBorder: const CircleBorder(),
-                            onTap: () {
-                              final prev = (_currentImageIndex - 1 + images.length) % images.length;
-                              _imagePageController.animateToPage(
-                                prev,
-                                duration: const Duration(milliseconds: 280),
-                                curve: Curves.easeInOut,
-                              );
-                              _startAutoSlide(immediate: true);
-                            },
-                            child: const Padding(
-                              padding: EdgeInsets.all(5.0),
-                              child: Icon(
-                                Icons.chevron_left_rounded,
-                                color: Colors.white,
-                                size: 19,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-
-                  // Right Navigation Arrow Button
-                  if (images.length > 1)
-                    Positioned(
-                      right: 6,
-                      top: 0,
-                      bottom: 0,
-                      child: Center(
-                        child: Material(
-                          color: Colors.black.withValues(alpha: 0.40),
-                          shape: const CircleBorder(),
-                          child: InkWell(
-                            customBorder: const CircleBorder(),
-                            onTap: () {
-                              final next = (_currentImageIndex + 1) % images.length;
-                              _imagePageController.animateToPage(
-                                next,
-                                duration: const Duration(milliseconds: 280),
-                                curve: Curves.easeInOut,
-                              );
-                              _startAutoSlide(immediate: true);
-                            },
-                            child: const Padding(
-                              padding: EdgeInsets.all(5.0),
-                              child: Icon(
-                                Icons.chevron_right_rounded,
-                                color: Colors.white,
-                                size: 19,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-
-                  // Wishlist Heart Button (Top Right of Image)
-                  Positioned(
-                    top: 9,
-                    right: 9,
-                    child: Material(
-                      color: Colors.black.withValues(alpha: 0.42),
-                      shape: const CircleBorder(),
-                      child: InkWell(
-                        customBorder: const CircleBorder(),
-                        onTap: widget.onToggleSave,
-                        child: Padding(
-                          padding: const EdgeInsets.all(5.5),
-                          child: Icon(
-                            widget.isSaved
-                                ? Icons.favorite_rounded
-                                : Icons.favorite_border_rounded,
-                            color: widget.isSaved ? Colors.redAccent : Colors.white,
-                            size: 16,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  // Dynamic & Interactive Carousel Dots (Center Bottom of Image)
-                  Positioned(
-                    bottom: 8,
-                    left: 0,
-                    right: 0,
-                    child: Center(
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3.5),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.38),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: List.generate(images.length, (dotIdx) {
-                            final isActive = dotIdx == _currentImageIndex;
-                            return GestureDetector(
-                              onTap: () {
-                                _imagePageController.animateToPage(
-                                  dotIdx,
-                                  duration: const Duration(milliseconds: 280),
-                                  curve: Curves.easeInOut,
-                                );
-                                _startAutoSlide(immediate: true);
+          boxShadow: [
+            BoxShadow(
+              color: _isHovered
+                  ? const Color(0xFFE5533D).withValues(alpha: 0.28)
+                  : Colors.black.withValues(alpha: 0.04),
+              blurRadius: _isHovered ? 28 : 16,
+              spreadRadius: _isHovered ? 2.0 : 0,
+              offset: _isHovered ? const Offset(0, 12) : const Offset(0, 6),
+            ),
+            if (_isHovered)
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.30),
+                blurRadius: 18,
+                offset: const Offset(0, 8),
+              ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.max,
+          children: [
+            // 1. TOP IMAGE with Horizontally Scrollable PageView, Wheel/Pointer Scrub & Dynamic Carousel Dots
+            ClipRRect(
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
+              child: SizedBox(
+                height: 175,
+                width: double.infinity,
+                child: LayoutBuilder(
+                  builder: (context, imgConstraints) {
+                    final imgWidth = imgConstraints.maxWidth;
+                    return Listener(
+                      onPointerSignal: (pointerSignal) {
+                        if (pointerSignal is PointerScrollEvent) {
+                          if (pointerSignal.scrollDelta.dy > 0 || pointerSignal.scrollDelta.dx > 0) {
+                            _nextImage(images.length);
+                          } else if (pointerSignal.scrollDelta.dy < 0 || pointerSignal.scrollDelta.dx < 0) {
+                            _prevImage(images.length);
+                          }
+                        }
+                      },
+                      child: MouseRegion(
+                        onHover: (event) {
+                          if (imgWidth <= 0 || images.length <= 1) return;
+                          final fraction = (event.localPosition.dx / imgWidth).clamp(0.0, 0.999);
+                          final targetIdx = (fraction * images.length).floor().clamp(0, images.length - 1);
+                          if (targetIdx != _currentImageIndex && _imagePageController.hasClients) {
+                            _imagePageController.animateToPage(
+                              targetIdx,
+                              duration: const Duration(milliseconds: 220),
+                              curve: Curves.easeOutCubic,
+                            );
+                          }
+                        },
+                        child: Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            // Horizontally Scrollable Multi-photo PageView
+                            PageView.builder(
+                              controller: _imagePageController,
+                              physics: const BouncingScrollPhysics(),
+                              itemCount: images.length,
+                              onPageChanged: (idx) {
+                                setState(() => _currentImageIndex = idx);
                               },
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 200),
-                                margin: const EdgeInsets.symmetric(horizontal: 2.2),
-                                width: isActive ? 14.0 : 5.5,
-                                height: 5.5,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(3),
-                                  color: isActive
-                                      ? const Color(0xFFE5533D)
-                                      : Colors.white.withValues(alpha: 0.75),
+                              itemBuilder: (context, imgIdx) {
+                                return AnimatedScale(
+                                  scale: _isHovered ? 1.05 : 1.0,
+                                  duration: const Duration(milliseconds: 350),
+                                  curve: Curves.easeOutCubic,
+                                  child: Image.network(
+                                    images[imgIdx],
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) => Container(
+                                      color: const Color(0xFF1E293B),
+                                      child: const Center(
+                                        child: Icon(
+                                          Icons.landscape_rounded,
+                                          color: Colors.white24,
+                                          size: 40,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+
+                            // Soft Gradient Overlay
+                            const Positioned.fill(
+                              child: IgnorePointer(
+                                child: DecoratedBox(
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topCenter,
+                                      end: Alignment.bottomCenter,
+                                      colors: [
+                                        Color(0x35000000),
+                                        Colors.transparent,
+                                        Color(0x45000000),
+                                      ],
+                                      stops: [0.0, 0.45, 1.0],
+                                    ),
+                                  ),
                                 ),
                               ),
-                            );
-                          }),
+                            ),
+
+                            // Left Navigation Arrow Button
+                            if (images.length > 1)
+                              Positioned(
+                                left: 6,
+                                top: 0,
+                                bottom: 0,
+                                child: Center(
+                                  child: AnimatedOpacity(
+                                    opacity: _isHovered ? 1.0 : 0.45,
+                                    duration: const Duration(milliseconds: 200),
+                                    child: Material(
+                                      color: Colors.black.withValues(alpha: 0.45),
+                                      shape: const CircleBorder(),
+                                      child: InkWell(
+                                        customBorder: const CircleBorder(),
+                                        onTap: () => _prevImage(images.length),
+                                        child: const Padding(
+                                          padding: EdgeInsets.all(5.0),
+                                          child: Icon(
+                                            Icons.chevron_left_rounded,
+                                            color: Colors.white,
+                                            size: 19,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+
+                            // Right Navigation Arrow Button
+                            if (images.length > 1)
+                              Positioned(
+                                right: 6,
+                                top: 0,
+                                bottom: 0,
+                                child: Center(
+                                  child: AnimatedOpacity(
+                                    opacity: _isHovered ? 1.0 : 0.45,
+                                    duration: const Duration(milliseconds: 200),
+                                    child: Material(
+                                      color: Colors.black.withValues(alpha: 0.45),
+                                      shape: const CircleBorder(),
+                                      child: InkWell(
+                                        customBorder: const CircleBorder(),
+                                        onTap: () => _nextImage(images.length),
+                                        child: const Padding(
+                                          padding: EdgeInsets.all(5.0),
+                                          child: Icon(
+                                            Icons.chevron_right_rounded,
+                                            color: Colors.white,
+                                            size: 19,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+
+                            // Wishlist Heart Button (Top Right of Image)
+                            Positioned(
+                              top: 9,
+                              right: 9,
+                              child: Material(
+                                color: Colors.black.withValues(alpha: 0.42),
+                                shape: const CircleBorder(),
+                                child: InkWell(
+                                  customBorder: const CircleBorder(),
+                                  onTap: widget.onToggleSave,
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(5.5),
+                                    child: Icon(
+                                      widget.isSaved
+                                          ? Icons.favorite_rounded
+                                          : Icons.favorite_border_rounded,
+                                      color: widget.isSaved ? Colors.redAccent : Colors.white,
+                                      size: 16,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+
+                            // Dynamic & Interactive Carousel Dots (Center Bottom of Image)
+                            Positioned(
+                              bottom: 8,
+                              left: 0,
+                              right: 0,
+                              child: Center(
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3.5),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black.withValues(alpha: 0.38),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: List.generate(images.length, (dotIdx) {
+                                      final isActive = dotIdx == _currentImageIndex;
+                                      return GestureDetector(
+                                        onTap: () {
+                                          _imagePageController.animateToPage(
+                                            dotIdx,
+                                            duration: const Duration(milliseconds: 250),
+                                            curve: Curves.easeOutCubic,
+                                          );
+                                        },
+                                        child: AnimatedContainer(
+                                          duration: const Duration(milliseconds: 200),
+                                          margin: const EdgeInsets.symmetric(horizontal: 2.2),
+                                          width: isActive ? 14.0 : 5.5,
+                                          height: 5.5,
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(3),
+                                            color: isActive
+                                                ? const Color(0xFFE5533D)
+                                                : Colors.white.withValues(alpha: 0.75),
+                                          ),
+                                        ),
+                                      );
+                                    }),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ),
-                  ),
-                ],
+                    );
+                  },
+                ),
               ),
             ),
-          ),
 
           // 2. CARD CONTENT
           Expanded(
@@ -2777,10 +2839,15 @@ class _VerticalPackageCardState extends State<_VerticalPackageCard> {
                               ),
                             ),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: isDark
-                                  ? const Color(0xFF283446)
-                                  : const Color(0xFFF1F5F9),
-                              elevation: 0,
+                              backgroundColor: _isHovered
+                                  ? const Color(0xFFE5533D)
+                                  : (isDark
+                                      ? const Color(0xFF283446)
+                                      : const Color(0xFFF1F5F9)),
+                              foregroundColor: _isHovered
+                                  ? Colors.white
+                                  : (isDark ? Colors.white : const Color(0xFF0F172A)),
+                              elevation: _isHovered ? 2 : 0,
                               padding: const EdgeInsets.symmetric(horizontal: 4),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(20),
@@ -2835,7 +2902,8 @@ class _VerticalPackageCardState extends State<_VerticalPackageCard> {
           ),
         ],
       ),
-    );
+    ),
+  );
   }
 }
 
