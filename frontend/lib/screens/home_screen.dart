@@ -319,30 +319,28 @@ class _HomeScreenState extends State<HomeScreen> {
               return SingleChildScrollView(
                 controller: _scrollController,
                 padding:
-                    EdgeInsets.fromLTRB(wide ? 32 : 20, 8, wide ? 32 : 20, 40),
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 1360),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildHeader(context),
-                        const SizedBox(height: 24),
-                        _RotatingHeroBanner(
-                          allPackages: _allPackages,
-                          wide: wide,
-                          onThemeToggle: widget.onThemeToggle,
-                        ),
-                        const SizedBox(height: 20),
-                        _buildSearchPanel(wide: wide),
-                        const SizedBox(height: 36),
-                        _buildSeasonFilterBar(context),
-                        const SizedBox(height: 18),
-                        _buildSortAndSummaryBar(context, filteredPackages.length, wide),
-                        const SizedBox(height: 20),
-                        _buildVerticalPackageGrid(context, filteredPackages, viewport.maxWidth),
-                      ],
-                    ),
+                    EdgeInsets.fromLTRB(wide ? 24 : 16, 8, wide ? 24 : 16, 40),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildHeader(context),
+                      const SizedBox(height: 22),
+                      _RotatingHeroBanner(
+                        allPackages: _allPackages,
+                        wide: wide,
+                        onThemeToggle: widget.onThemeToggle,
+                      ),
+                      const SizedBox(height: 20),
+                      _buildSearchPanel(wide: wide),
+                      const SizedBox(height: 32),
+                      _buildSeasonFilterBar(context),
+                      const SizedBox(height: 18),
+                      _buildSortAndSummaryBar(context, filteredPackages.length, wide),
+                      const SizedBox(height: 20),
+                      _buildVerticalPackageGrid(context, filteredPackages, viewport.maxWidth),
+                    ],
                   ),
                 ),
               );
@@ -982,16 +980,20 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
-    final int crossAxisCount = screenWidth >= 1200
-        ? 4
-        : (screenWidth >= 900
-            ? 3
-            : (screenWidth >= 600 ? 2 : 1));
-    final double childAspectRatio = screenWidth >= 1200
-        ? 0.63
-        : (screenWidth >= 900
-            ? 0.70
-            : (screenWidth >= 600 ? 0.72 : 0.86));
+    final int crossAxisCount = screenWidth >= 1680
+        ? 5
+        : (screenWidth >= 1260
+            ? 4
+            : (screenWidth >= 900
+                ? 3
+                : (screenWidth >= 580 ? 2 : 1)));
+    final double childAspectRatio = screenWidth >= 1680
+        ? 0.65
+        : (screenWidth >= 1260
+            ? 0.63
+            : (screenWidth >= 900
+                ? 0.68
+                : (screenWidth >= 580 ? 0.72 : 0.86)));
 
     return GridView.builder(
       shrinkWrap: true,
@@ -1166,7 +1168,7 @@ class _RotatingHeroBannerState extends State<_RotatingHeroBanner> {
   List<_HeroPlaceSlide> _getHeroSlides() {
     if (widget.allPackages.isEmpty) return _defaultHeroSlides;
 
-    final dynamicSlides = widget.allPackages.take(12).map((pkg) {
+    final dynamicSlides = widget.allPackages.map((pkg) {
       final title = (pkg['title'] ?? 'Scenic Escape').toString();
       final loc = (pkg['location'] ?? 'India').toString();
       final image = (pkg['image'] ?? '').toString();
@@ -1652,15 +1654,54 @@ class _VerticalPackageCardState extends State<_VerticalPackageCard> {
   int _selectedMonthIndex = 0;
   int _currentImageIndex = 0;
   late final PageController _imagePageController;
+  Timer? _autoSlideTimer;
+  Timer? _initialDelayTimer;
 
   @override
   void initState() {
     super.initState();
     _imagePageController = PageController();
+    _startAutoSlide();
+  }
+
+  void _startAutoSlide({bool immediate = false}) {
+    _initialDelayTimer?.cancel();
+    _autoSlideTimer?.cancel();
+
+    void schedulePeriodic() {
+      _autoSlideTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+        if (!mounted) return;
+        final images = _getPackageImages(widget.package);
+        if (images.length <= 1) return;
+        final nextIdx = (_currentImageIndex + 1) % images.length;
+        if (_imagePageController.hasClients) {
+          _imagePageController.animateToPage(
+            nextIdx,
+            duration: const Duration(milliseconds: 650),
+            curve: Curves.easeInOutCubic,
+          );
+        }
+      });
+    }
+
+    if (immediate) {
+      schedulePeriodic();
+    } else {
+      final pkgId = widget.package['id'] is int
+          ? widget.package['id'] as int
+          : int.tryParse(widget.package['id'].toString()) ?? 0;
+      final offsetMs = (pkgId % 5) * 800;
+      _initialDelayTimer = Timer(Duration(milliseconds: offsetMs), () {
+        if (!mounted) return;
+        schedulePeriodic();
+      });
+    }
   }
 
   @override
   void dispose() {
+    _initialDelayTimer?.cancel();
+    _autoSlideTimer?.cancel();
     _imagePageController.dispose();
     super.dispose();
   }
@@ -2349,6 +2390,7 @@ class _VerticalPackageCardState extends State<_VerticalPackageCard> {
                                 duration: const Duration(milliseconds: 280),
                                 curve: Curves.easeInOut,
                               );
+                              _startAutoSlide(immediate: true);
                             },
                             child: const Padding(
                               padding: EdgeInsets.all(5.0),
@@ -2382,6 +2424,7 @@ class _VerticalPackageCardState extends State<_VerticalPackageCard> {
                                 duration: const Duration(milliseconds: 280),
                                 curve: Curves.easeInOut,
                               );
+                              _startAutoSlide(immediate: true);
                             },
                             child: const Padding(
                               padding: EdgeInsets.all(5.0),
@@ -2443,6 +2486,7 @@ class _VerticalPackageCardState extends State<_VerticalPackageCard> {
                                   duration: const Duration(milliseconds: 280),
                                   curve: Curves.easeInOut,
                                 );
+                                _startAutoSlide(immediate: true);
                               },
                               child: AnimatedContainer(
                                 duration: const Duration(milliseconds: 200),
