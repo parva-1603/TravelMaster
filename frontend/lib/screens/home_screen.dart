@@ -1650,6 +1650,43 @@ class _VerticalPackageCard extends StatefulWidget {
 class _VerticalPackageCardState extends State<_VerticalPackageCard> {
   int _selectedDateIndex = 0;
   int _selectedMonthIndex = 0;
+  int _currentImageIndex = 0;
+  late final PageController _imagePageController;
+
+  @override
+  void initState() {
+    super.initState();
+    _imagePageController = PageController();
+  }
+
+  @override
+  void dispose() {
+    _imagePageController.dispose();
+    super.dispose();
+  }
+
+  static List<String> _getPackageImages(Map<String, dynamic> pkg) {
+    final raw = pkg['images'];
+    if (raw is List && raw.isNotEmpty) {
+      final list = raw.map((e) => e.toString().trim()).where((s) => s.isNotEmpty).toList();
+      if (list.isNotEmpty) return list;
+    }
+    final single = (pkg['image'] ?? '').toString().trim();
+    if (single.isNotEmpty) {
+      return [
+        single,
+        'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1200&q=80',
+        'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80',
+        'https://images.unsplash.com/photo-1510312305653-8ed496efae75?auto=format&fit=crop&w=1200&q=80',
+      ];
+    }
+    return [
+      'https://images.unsplash.com/photo-1546875355-66710b1069eb?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1200&q=80',
+    ];
+  }
 
   static String _formatPrice(dynamic rawPrice) {
     if (rawPrice == null) return '₹3,499';
@@ -2187,7 +2224,7 @@ class _VerticalPackageCardState extends State<_VerticalPackageCard> {
 
     final title = (widget.package['title'] ?? 'Trip').toString();
     final location = _cleanLocation(widget.package['location']);
-    final image = (widget.package['image'] ?? '').toString();
+    final images = _getPackageImages(widget.package);
     final duration = (widget.package['duration'] ?? '3 Days').toString();
     final price = _formatPrice(widget.package['price']);
     final tagline = _getPackageTagline(widget.package);
@@ -2218,98 +2255,195 @@ class _VerticalPackageCardState extends State<_VerticalPackageCard> {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.max,
         children: [
-          // 1. TOP IMAGE with Carousel Dots & Wishlist Heart
+          // 1. TOP IMAGE with Horizontally Scrollable PageView & Dynamic Carousel Dots
           ClipRRect(
             borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
-            child: Stack(
-              children: [
-                SizedBox(
-                  height: 175,
-                  width: double.infinity,
-                  child: Hero(
-                    tag: 'img_${widget.package['id']}_$title',
-                    child: Image.network(
-                      image,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) =>
-                          const ColoredBox(color: Color(0xFF31594E)),
-                    ),
-                  ),
-                ),
-                Positioned.fill(
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.black.withValues(alpha: 0.15),
-                          Colors.transparent,
-                          Colors.black.withValues(alpha: 0.25),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-
-                // Carousel Dots (Center Bottom of Image)
-                Positioned(
-                  bottom: 8,
-                  left: 0,
-                  right: 0,
-                  child: Center(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.28),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: List.generate(8, (dotIdx) {
-                          // Dot #4 is active orange like in the user's screenshot
-                          final isActive = dotIdx == 4;
-                          return Container(
-                            margin: const EdgeInsets.symmetric(horizontal: 2.2),
-                            width: isActive ? 6.5 : 5.0,
-                            height: isActive ? 6.5 : 5.0,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: isActive
-                                  ? const Color(0xFFE5533D)
-                                  : Colors.white.withValues(alpha: 0.8),
+            child: SizedBox(
+              height: 175,
+              width: double.infinity,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  // Horizontally Scrollable Multi-photo PageView
+                  PageView.builder(
+                    controller: _imagePageController,
+                    physics: const BouncingScrollPhysics(),
+                    itemCount: images.length,
+                    onPageChanged: (idx) {
+                      setState(() => _currentImageIndex = idx);
+                    },
+                    itemBuilder: (context, imgIdx) {
+                      return Image.network(
+                        images[imgIdx],
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => Container(
+                          color: const Color(0xFF1E293B),
+                          child: const Center(
+                            child: Icon(
+                              Icons.landscape_rounded,
+                              color: Colors.white24,
+                              size: 40,
                             ),
-                          );
-                        }),
-                      ),
-                    ),
+                          ),
+                        ),
+                      );
+                    },
                   ),
-                ),
 
-                // Wishlist Heart Button (Top Right of Image)
-                Positioned(
-                  top: 9,
-                  right: 9,
-                  child: Material(
-                    color: Colors.black.withValues(alpha: 0.42),
-                    shape: const CircleBorder(),
-                    child: InkWell(
-                      customBorder: const CircleBorder(),
-                      onTap: widget.onToggleSave,
-                      child: Padding(
-                        padding: const EdgeInsets.all(5.5),
-                        child: Icon(
-                          widget.isSaved
-                              ? Icons.favorite_rounded
-                              : Icons.favorite_border_rounded,
-                          color: widget.isSaved ? Colors.redAccent : Colors.white,
-                          size: 16,
+                  // Soft Gradient Overlay
+                  const Positioned.fill(
+                    child: IgnorePointer(
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Color(0x35000000),
+                              Colors.transparent,
+                              Color(0x45000000),
+                            ],
+                            stops: [0.0, 0.45, 1.0],
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-              ],
+
+                  // Left Navigation Arrow Button
+                  if (images.length > 1)
+                    Positioned(
+                      left: 6,
+                      top: 0,
+                      bottom: 0,
+                      child: Center(
+                        child: Material(
+                          color: Colors.black.withValues(alpha: 0.40),
+                          shape: const CircleBorder(),
+                          child: InkWell(
+                            customBorder: const CircleBorder(),
+                            onTap: () {
+                              final prev = (_currentImageIndex - 1 + images.length) % images.length;
+                              _imagePageController.animateToPage(
+                                prev,
+                                duration: const Duration(milliseconds: 280),
+                                curve: Curves.easeInOut,
+                              );
+                            },
+                            child: const Padding(
+                              padding: EdgeInsets.all(5.0),
+                              child: Icon(
+                                Icons.chevron_left_rounded,
+                                color: Colors.white,
+                                size: 19,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                  // Right Navigation Arrow Button
+                  if (images.length > 1)
+                    Positioned(
+                      right: 6,
+                      top: 0,
+                      bottom: 0,
+                      child: Center(
+                        child: Material(
+                          color: Colors.black.withValues(alpha: 0.40),
+                          shape: const CircleBorder(),
+                          child: InkWell(
+                            customBorder: const CircleBorder(),
+                            onTap: () {
+                              final next = (_currentImageIndex + 1) % images.length;
+                              _imagePageController.animateToPage(
+                                next,
+                                duration: const Duration(milliseconds: 280),
+                                curve: Curves.easeInOut,
+                              );
+                            },
+                            child: const Padding(
+                              padding: EdgeInsets.all(5.0),
+                              child: Icon(
+                                Icons.chevron_right_rounded,
+                                color: Colors.white,
+                                size: 19,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                  // Wishlist Heart Button (Top Right of Image)
+                  Positioned(
+                    top: 9,
+                    right: 9,
+                    child: Material(
+                      color: Colors.black.withValues(alpha: 0.42),
+                      shape: const CircleBorder(),
+                      child: InkWell(
+                        customBorder: const CircleBorder(),
+                        onTap: widget.onToggleSave,
+                        child: Padding(
+                          padding: const EdgeInsets.all(5.5),
+                          child: Icon(
+                            widget.isSaved
+                                ? Icons.favorite_rounded
+                                : Icons.favorite_border_rounded,
+                            color: widget.isSaved ? Colors.redAccent : Colors.white,
+                            size: 16,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  // Dynamic & Interactive Carousel Dots (Center Bottom of Image)
+                  Positioned(
+                    bottom: 8,
+                    left: 0,
+                    right: 0,
+                    child: Center(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3.5),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.38),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: List.generate(images.length, (dotIdx) {
+                            final isActive = dotIdx == _currentImageIndex;
+                            return GestureDetector(
+                              onTap: () {
+                                _imagePageController.animateToPage(
+                                  dotIdx,
+                                  duration: const Duration(milliseconds: 280),
+                                  curve: Curves.easeInOut,
+                                );
+                              },
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 200),
+                                margin: const EdgeInsets.symmetric(horizontal: 2.2),
+                                width: isActive ? 14.0 : 5.5,
+                                height: 5.5,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(3),
+                                  color: isActive
+                                      ? const Color(0xFFE5533D)
+                                      : Colors.white.withValues(alpha: 0.75),
+                                ),
+                              ),
+                            );
+                          }),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
 
