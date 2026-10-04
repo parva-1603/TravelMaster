@@ -335,6 +335,24 @@ class _LoginScreenState extends State<LoginScreen> {
             label: const Text('Continue with Google'),
           ),
         ),
+        const SizedBox(height: 12),
+        SizedBox(
+          width: double.infinity,
+          height: 50,
+          child: FilledButton.tonalIcon(
+            onPressed: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (_) =>
+                      HomeScreen(onThemeToggle: widget.onThemeToggle),
+                ),
+              );
+            },
+            icon: const Icon(Icons.travel_explore_rounded),
+            label: const Text('Explore as Guest'),
+          ),
+        ),
         const SizedBox(height: 16),
         Center(
           child: TextButton(

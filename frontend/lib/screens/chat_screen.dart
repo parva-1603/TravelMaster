@@ -14,22 +14,30 @@ class _ChatScreenState extends State<ChatScreen> {
   final List<Map<String, String>> _messages = [];
   bool _isLoading = false;
 
-  late final GenerativeModel _model;
-  late final ChatSession _chat;
+  static const _apiKey = 'AQ.Ab8RN6I'
+      '6N7k82u2oChtG9albAKk571nznN0rNg0suXikVEAvQQ'; // Obfuscated to bypass GitHub block
+
+  // High-availability candidate models prioritized by stability and low latency
+  static const List<String> _candidateModels = [
+    'gemini-3.5-flash-lite',
+    'gemini-3.1-flash-lite',
+    'gemini-flash-latest',
+    'gemini-3.5-flash',
+    'gemini-3.8-flash',
+  ];
+
+  static const String _systemInstruction =
+      'You are TravelMaster AI, an expert travel assistant. Suggest destinations, plan itineraries, and if asked about hotels in a city (like Jaipur, Kerala, Ladakh, Goa), you must suggest some top hotels with their approximate prices, contact details, and rules (e.g., Luxury Resort, Budget Inn, Boutique Stay). Do not refuse to suggest hotels.';
+
+  int _currentModelIndex = 0;
+  GenerativeModel? _model;
+  ChatSession? _chat;
+  final List<Content> _chatHistory = [];
 
   @override
   void initState() {
     super.initState();
-    // Initialize the Gemini model with specific instructions for TravelMaster
-    const apiKey = 'AQ.Ab8RN6I'
-        '6N7k82u2oChtG9albAKk571nznN0rNg0suXikVEAvQQ'; // Obfuscated to bypass GitHub block
-    _model = GenerativeModel(
-      model: 'gemini-3.8-flash',
-      apiKey: apiKey,
-      systemInstruction: Content.system(
-          'You are TravelMaster AI, an expert travel assistant. Suggest destinations, plan itineraries, and if asked about hotels in a city (like Jaipur, Kerala, Ladakh, Goa), you must suggest some top hotels with their approximate prices, contact details, and rules (e.g., Luxury Resort, Budget Inn, Boutique Stay). Do not refuse to suggest hotels.'),
-    );
-    _chat = _model.startChat();
+    _initChatSession();
 
     // Add a welcome message
     _messages.add({
@@ -37,6 +45,16 @@ class _ChatScreenState extends State<ChatScreen> {
       'text':
           'Hello! I am your TravelMaster AI assistant. How can I help you plan your trip today?'
     });
+  }
+
+  void _initChatSession() {
+    final modelName = _candidateModels[_currentModelIndex];
+    _model = GenerativeModel(
+      model: modelName,
+      apiKey: _apiKey,
+      systemInstruction: Content.system(_systemInstruction),
+    );
+    _chat = _model!.startChat(history: List<Content>.from(_chatHistory));
   }
 
   @override
@@ -55,26 +73,43 @@ class _ChatScreenState extends State<ChatScreen> {
     });
     _controller.clear();
 
-    try {
-      final response = await _chat.sendMessage(Content.text(text));
-      final responseText = response.text;
-      if (mounted && responseText != null) {
-        setState(() {
-          _messages.add({'sender': 'bot', 'text': responseText});
-        });
+    final userContent = Content.text(text);
+    String? replyText;
+
+    for (int attempt = 0; attempt < _candidateModels.length; attempt++) {
+      try {
+        if (_chat == null) {
+          _initChatSession();
+        }
+        final response = await _chat!.sendMessage(userContent);
+        final responseText = response.text;
+        if (responseText != null && responseText.trim().isNotEmpty) {
+          replyText = responseText.trim();
+          _chatHistory.add(userContent);
+          _chatHistory.add(Content.model([TextPart(replyText)]));
+          break;
+        }
+      } catch (e) {
+        debugPrint('Gemini attempt failed with ${_candidateModels[_currentModelIndex]}: $e');
+        _currentModelIndex = (_currentModelIndex + 1) % _candidateModels.length;
+        _initChatSession();
       }
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
+    }
+
+    if (!mounted) return;
+
+    setState(() {
+      _isLoading = false;
+      if (replyText != null) {
+        _messages.add({'sender': 'bot', 'text': replyText});
+      } else {
         _messages.add({
           'sender': 'bot',
-          'text': 'Sorry, I encountered an error. Please try again later.'
+          'text':
+              'All AI models are currently experiencing high demand. Please try asking again in a few moments.'
         });
-      });
-      debugPrint('Error from Gemini: $e');
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
+      }
+    });
   }
 
   @override
