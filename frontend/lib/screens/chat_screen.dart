@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 import '../widgets/live_background.dart';
 
@@ -11,8 +13,21 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _controller = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
   final List<Map<String, String>> _messages = [];
   bool _isLoading = false;
+
+  late final FocusNode _focusNode = FocusNode(
+    onKeyEvent: (node, event) {
+      if (event is KeyDownEvent &&
+          event.logicalKey == LogicalKeyboardKey.enter &&
+          !HardwareKeyboard.instance.isShiftPressed) {
+        _sendMessage();
+        return KeyEventResult.handled;
+      }
+      return KeyEventResult.ignored;
+    },
+  );
 
   static const _apiKey = 'AQ.Ab8RN6I'
       '6N7k82u2oChtG9albAKk571nznN0rNg0suXikVEAvQQ'; // Obfuscated to bypass GitHub block
@@ -27,7 +42,12 @@ class _ChatScreenState extends State<ChatScreen> {
   ];
 
   static const String _systemInstruction =
-      'You are TravelMaster AI, an expert travel assistant. Suggest destinations, plan itineraries, and if asked about hotels in a city (like Jaipur, Kerala, Ladakh, Goa), you must suggest some top hotels with their approximate prices, contact details, and rules (e.g., Luxury Resort, Budget Inn, Boutique Stay). Do not refuse to suggest hotels.';
+      'You are TravelMaster AI, an expert, deeply knowledgeable travel planner and concierge.\n'
+      'When answering travel queries, search and plan in a deep, thorough, and highly specific manner:\n'
+      '1. Provide rich, practical details including top attractions, hidden gems, day-by-day itineraries, and transit routes.\n'
+      '2. When suggesting hotels/stays, always provide categorized options (e.g., Luxury Resort, Boutique Heritage, Mid-Range, Budget Inn) with exact property names, specific location/neighborhood, approximate prices (in INR and USD), contact details (phone, email, or website), and key rules (check-in/out times, visitor/pet policies).\n'
+      '3. Include actionable recommendations such as the best season/month to visit, weather tips, local food recommendations, and budget guidance.\n'
+      '4. Format your output cleanly and efficiently using clear Markdown headers (###), bold highlights, and structured bullet points so it is effortless to read.';
 
   int _currentModelIndex = 0;
   GenerativeModel? _model;
@@ -57,9 +77,23 @@ class _ChatScreenState extends State<ChatScreen> {
     _chat = _model!.startChat(history: List<Content>.from(_chatHistory));
   }
 
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOutCubic,
+        );
+      }
+    });
+  }
+
   @override
   void dispose() {
     _controller.dispose();
+    _scrollController.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
@@ -72,6 +106,7 @@ class _ChatScreenState extends State<ChatScreen> {
       _isLoading = true;
     });
     _controller.clear();
+    _scrollToBottom();
 
     final userContent = Content.text(text);
     String? replyText;
@@ -110,6 +145,7 @@ class _ChatScreenState extends State<ChatScreen> {
         });
       }
     });
+    _scrollToBottom();
   }
 
   @override
@@ -152,6 +188,7 @@ class _ChatScreenState extends State<ChatScreen> {
           children: [
             Expanded(
               child: ListView.builder(
+                controller: _scrollController,
                 padding: const EdgeInsets.fromLTRB(18, 14, 18, 18),
                 itemCount: _messages.length,
                 itemBuilder: (context, index) {
@@ -162,7 +199,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         isUser ? Alignment.centerRight : Alignment.centerLeft,
                     child: ConstrainedBox(
                       constraints: BoxConstraints(
-                        maxWidth: MediaQuery.sizeOf(context).width * 0.78,
+                        maxWidth: MediaQuery.sizeOf(context).width * 0.85,
                       ),
                       child: Container(
                         margin: const EdgeInsets.only(bottom: 14),
@@ -182,13 +219,81 @@ class _ChatScreenState extends State<ChatScreen> {
                                   color: colors.outlineVariant
                                       .withValues(alpha: 0.65)),
                         ),
-                        child: Text(
-                          message['text'] ?? '',
-                          style: TextStyle(
-                            height: 1.45,
-                            color: isUser ? colors.onPrimary : colors.onSurface,
-                          ),
-                        ),
+                        child: isUser
+                            ? Text(
+                                message['text'] ?? '',
+                                style: TextStyle(
+                                  height: 1.45,
+                                  color: colors.onPrimary,
+                                  fontSize: 15,
+                                ),
+                              )
+                            : MarkdownBody(
+                                data: message['text'] ?? '',
+                                selectable: true,
+                                styleSheet: MarkdownStyleSheet(
+                                  p: TextStyle(
+                                    height: 1.55,
+                                    color: colors.onSurface,
+                                    fontSize: 14.5,
+                                  ),
+                                  h1: TextStyle(
+                                    color: colors.primary,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 20,
+                                    height: 1.5,
+                                  ),
+                                  h2: TextStyle(
+                                    color: colors.primary,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                    height: 1.45,
+                                  ),
+                                  h3: TextStyle(
+                                    color: colors.primary,
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 16.5,
+                                    height: 1.4,
+                                  ),
+                                  h4: TextStyle(
+                                    color: colors.primary,
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 15.5,
+                                    height: 1.35,
+                                  ),
+                                  strong: TextStyle(
+                                    color: colors.primary,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                  em: const TextStyle(fontStyle: FontStyle.italic),
+                                  listBullet: TextStyle(
+                                    color: colors.primary,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                  ),
+                                  code: TextStyle(
+                                    backgroundColor: colors.surfaceContainerHighest,
+                                    color: colors.onSurface,
+                                    fontFamily: 'monospace',
+                                    fontSize: 13,
+                                  ),
+                                  blockquoteDecoration: BoxDecoration(
+                                    color: colors.surfaceContainerHighest
+                                        .withValues(alpha: 0.4),
+                                    border: Border(
+                                      left: BorderSide(
+                                          color: colors.primary, width: 3),
+                                    ),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  horizontalRuleDecoration: BoxDecoration(
+                                    border: Border(
+                                      top: BorderSide(
+                                          color: colors.outlineVariant, width: 1),
+                                    ),
+                                  ),
+                                ),
+                              ),
                       ),
                     ),
                   );
@@ -209,7 +314,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       ),
                     ),
                     const SizedBox(width: 10),
-                    Text('Putting a few ideas together',
+                    Text('Searching deeply and putting recommendations together...',
                         style: Theme.of(context).textTheme.bodySmall),
                   ],
                 ),
@@ -252,10 +357,12 @@ class _ChatScreenState extends State<ChatScreen> {
                   Expanded(
                     child: TextField(
                       controller: _controller,
+                      focusNode: _focusNode,
                       minLines: 1,
                       maxLines: 4,
+                      textInputAction: TextInputAction.send,
                       decoration: const InputDecoration(
-                        hintText: 'Ask about a place, stay or route',
+                        hintText: 'Ask about a place, stay or route (Enter to send)',
                         prefixIcon: Icon(Icons.chat_outlined),
                       ),
                       onSubmitted: (_) => _sendMessage(),
@@ -266,7 +373,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     width: 50,
                     height: 50,
                     child: IconButton.filled(
-                      tooltip: 'Send message',
+                      tooltip: 'Send message (Enter)',
                       onPressed: _isLoading ? null : _sendMessage,
                       icon: const Icon(Icons.arrow_upward_rounded),
                     ),
