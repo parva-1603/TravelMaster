@@ -77,18 +77,6 @@ class _ChatScreenState extends State<ChatScreen> {
     _chat = _model!.startChat(history: List<Content>.from(_chatHistory));
   }
 
-  void _scrollToBottom() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_scrollController.hasClients) {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOutCubic,
-        );
-      }
-    });
-  }
-
   @override
   void dispose() {
     _controller.dispose();
@@ -106,7 +94,6 @@ class _ChatScreenState extends State<ChatScreen> {
       _isLoading = true;
     });
     _controller.clear();
-    _scrollToBottom();
 
     final userContent = Content.text(text);
     String? replyText;
@@ -145,7 +132,6 @@ class _ChatScreenState extends State<ChatScreen> {
         });
       }
     });
-    _scrollToBottom();
   }
 
   @override
