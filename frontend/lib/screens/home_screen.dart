@@ -1666,6 +1666,26 @@ class _VerticalPackageCardState extends State<_VerticalPackageCard> {
   }
 
   static List<String> _getPackageImages(Map<String, dynamic> pkg) {
+    final title = (pkg['title'] ?? '').toString().toLowerCase();
+    if (title.contains('saputara')) {
+      return [
+        'https://images.unsplash.com/photo-1432405972618-c60b0225b8f9?auto=format&fit=crop&w=1200&q=80',
+        'https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1200&q=80',
+        'https://images.unsplash.com/photo-1518457607834-6e8d80c183c5?auto=format&fit=crop&w=1200&q=80',
+        'https://images.unsplash.com/photo-1510312305653-8ed496efae75?auto=format&fit=crop&w=1200&q=80',
+        'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&w=1200&q=80',
+      ];
+    }
+    if (title.contains('polo')) {
+      return [
+        'https://images.unsplash.com/photo-1516214104703-d870798883c5?auto=format&fit=crop&w=1200&q=80',
+        'https://images.unsplash.com/photo-1544644181-1484b3fdfc62?auto=format&fit=crop&w=1200&q=80',
+        'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=1200&q=80',
+        'https://images.unsplash.com/photo-1621847468516-1ed5d0df56fe?auto=format&fit=crop&w=1200&q=80',
+        'https://images.unsplash.com/photo-1426604966848-d7adac402bff?auto=format&fit=crop&w=1200&q=80',
+      ];
+    }
+
     final raw = pkg['images'];
     if (raw is List && raw.isNotEmpty) {
       final list = raw.map((e) => e.toString().trim()).where((s) => s.isNotEmpty).toList();
@@ -1681,7 +1701,7 @@ class _VerticalPackageCardState extends State<_VerticalPackageCard> {
       ];
     }
     return [
-      'https://images.unsplash.com/photo-1546875355-66710b1069eb?auto=format&fit=crop&w=1200&q=80',
+      'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80',
       'https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1200&q=80',
       'https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?auto=format&fit=crop&w=1200&q=80',
       'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1200&q=80',
