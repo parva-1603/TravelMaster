@@ -16,6 +16,7 @@ class _ChatScreenState extends State<ChatScreen> {
   final ScrollController _scrollController = ScrollController();
   final List<Map<String, String>> _messages = [];
   bool _isLoading = false;
+  GlobalKey? _latestUserQuestionKey;
 
   late final FocusNode _focusNode = FocusNode(
     onKeyEvent: (node, event) {
@@ -63,7 +64,7 @@ class _ChatScreenState extends State<ChatScreen> {
     _messages.add({
       'sender': 'bot',
       'text':
-          'Hello! I am your TravelMaster AI assistant. How can I help you plan your trip today?'
+          'Hello! I am your TravelMaster AI assistant. Ask me about destinations, hotels, itineraries, or travel routes!'
     });
   }
 
@@ -75,6 +76,20 @@ class _ChatScreenState extends State<ChatScreen> {
       systemInstruction: Content.system(_systemInstruction),
     );
     _chat = _model!.startChat(history: List<Content>.from(_chatHistory));
+  }
+
+  void _scrollToLatestQuestion() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final targetContext = _latestUserQuestionKey?.currentContext;
+      if (targetContext != null) {
+        Scrollable.ensureVisible(
+          targetContext,
+          duration: const Duration(milliseconds: 380),
+          curve: Curves.easeOutCubic,
+          alignment: 0.04, // Smoothly anchors the question at the top of the screen
+        );
+      }
+    });
   }
 
   @override
@@ -89,11 +104,14 @@ class _ChatScreenState extends State<ChatScreen> {
     final text = _controller.text.trim();
     if (text.isEmpty) return;
 
+    _latestUserQuestionKey = GlobalKey();
+
     setState(() {
       _messages.add({'sender': 'user', 'text': text});
       _isLoading = true;
     });
     _controller.clear();
+    _scrollToLatestQuestion();
 
     final userContent = Content.text(text);
     String? replyText;
@@ -137,6 +155,8 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final lastUserIndex = _messages.lastIndexWhere((m) => m['sender'] == 'user');
+
     return Scaffold(
       backgroundColor: Colors.transparent,
       appBar: AppBar(
@@ -147,19 +167,22 @@ class _ChatScreenState extends State<ChatScreen> {
               width: 38,
               height: 38,
               decoration: BoxDecoration(
-                color: colors.primary,
+                gradient: LinearGradient(
+                  colors: [colors.primary, colors.secondary],
+                ),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: const Icon(Icons.explore_rounded,
                   color: Colors.white, size: 21),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 12),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Travel guide'),
+                const Text('TravelMaster AI Guide',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                 Text(
-                  'Here for the details',
+                  'Powered by Gemini Intelligent Concierge',
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
                         color: colors.onSurfaceVariant,
                       ),
@@ -173,203 +196,394 @@ class _ChatScreenState extends State<ChatScreen> {
         child: Column(
           children: [
             Expanded(
-              child: ListView.builder(
-                controller: _scrollController,
-                padding: const EdgeInsets.fromLTRB(18, 14, 18, 18),
-                itemCount: _messages.length,
-                itemBuilder: (context, index) {
-                  final message = _messages[index];
-                  final isUser = message['sender'] == 'user';
-                  return Align(
-                    alignment:
-                        isUser ? Alignment.centerRight : Alignment.centerLeft,
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        maxWidth: MediaQuery.sizeOf(context).width * 0.85,
-                      ),
-                      child: Container(
-                        margin: const EdgeInsets.only(bottom: 14),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 13),
-                        decoration: BoxDecoration(
-                          color: isUser ? colors.primary : colors.surface,
-                          borderRadius: BorderRadius.circular(15).copyWith(
-                            bottomRight:
-                                isUser ? const Radius.circular(4) : null,
-                            bottomLeft:
-                                !isUser ? const Radius.circular(4) : null,
-                          ),
-                          border: isUser
-                              ? null
-                              : Border.all(
-                                  color: colors.outlineVariant
-                                      .withValues(alpha: 0.65)),
-                        ),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 860),
+                  child: ListView.builder(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+                    itemCount: _messages.length + (_isLoading ? 1 : 0),
+                    itemBuilder: (context, index) {
+                      if (_isLoading && index == _messages.length) {
+                        return _buildLoadingBubble(colors);
+                      }
+
+                      final message = _messages[index];
+                      final isUser = message['sender'] == 'user';
+                      final isLatestUser = isUser && (index == lastUserIndex);
+
+                      return Container(
+                        key: isLatestUser ? _latestUserQuestionKey : null,
+                        margin: const EdgeInsets.only(bottom: 24),
                         child: isUser
-                            ? Text(
-                                message['text'] ?? '',
-                                style: TextStyle(
-                                  height: 1.45,
-                                  color: colors.onPrimary,
-                                  fontSize: 15,
-                                ),
-                              )
-                            : MarkdownBody(
-                                data: message['text'] ?? '',
-                                selectable: true,
-                                styleSheet: MarkdownStyleSheet(
-                                  p: TextStyle(
-                                    height: 1.55,
-                                    color: colors.onSurface,
-                                    fontSize: 14.5,
-                                  ),
-                                  h1: TextStyle(
-                                    color: colors.primary,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 20,
-                                    height: 1.5,
-                                  ),
-                                  h2: TextStyle(
-                                    color: colors.primary,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 18,
-                                    height: 1.45,
-                                  ),
-                                  h3: TextStyle(
-                                    color: colors.primary,
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 16.5,
-                                    height: 1.4,
-                                  ),
-                                  h4: TextStyle(
-                                    color: colors.primary,
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 15.5,
-                                    height: 1.35,
-                                  ),
-                                  strong: TextStyle(
-                                    color: colors.primary,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                  em: const TextStyle(fontStyle: FontStyle.italic),
-                                  listBullet: TextStyle(
-                                    color: colors.primary,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 14,
-                                  ),
-                                  code: TextStyle(
-                                    backgroundColor: colors.surfaceContainerHighest,
-                                    color: colors.onSurface,
-                                    fontFamily: 'monospace',
-                                    fontSize: 13,
-                                  ),
-                                  blockquoteDecoration: BoxDecoration(
-                                    color: colors.surfaceContainerHighest
-                                        .withValues(alpha: 0.4),
-                                    border: Border(
-                                      left: BorderSide(
-                                          color: colors.primary, width: 3),
-                                    ),
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  horizontalRuleDecoration: BoxDecoration(
-                                    border: Border(
-                                      top: BorderSide(
-                                          color: colors.outlineVariant, width: 1),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-            if (_isLoading)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-                child: Row(
-                  children: [
-                    SizedBox(
-                      width: 15,
-                      height: 15,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: colors.primary,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Text('Searching deeply and putting recommendations together...',
-                        style: Theme.of(context).textTheme.bodySmall),
-                  ],
+                            ? _buildUserMessage(message['text'] ?? '', colors)
+                            : _buildBotMessage(message['text'] ?? '', colors),
+                      );
+                    },
+                  ),
                 ),
               ),
+            ),
             if (_messages.length <= 2 && !_isLoading)
-              SizedBox(
-                height: 44,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  children: [
-                    'Find me a quiet getaway',
-                    'Hotels in Jaipur',
-                    '5 days in Kerala',
-                    'Best beaches in Goa',
-                  ]
-                      .map((prompt) => Padding(
-                            padding: const EdgeInsets.only(right: 8),
-                            child: ActionChip(
-                              label: Text(prompt),
-                              side: BorderSide(color: colors.outlineVariant),
-                              backgroundColor: colors.surface,
-                              onPressed: () {
-                                _controller.text = prompt;
-                                _sendMessage();
-                              },
-                            ),
-                          ))
-                      .toList(),
+              Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 860),
+                  child: SizedBox(
+                    height: 44,
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      children: [
+                        'Hotels in Jaipur with prices',
+                        '5 days Kerala backwater itinerary',
+                        'Best quiet beaches in Goa',
+                        'Trip to Ladakh: routes & best season',
+                      ]
+                          .map((prompt) => Padding(
+                                padding: const EdgeInsets.only(right: 8),
+                                child: ActionChip(
+                                  avatar: Icon(Icons.search_rounded,
+                                      size: 16, color: colors.primary),
+                                  label: Text(prompt),
+                                  side: BorderSide(color: colors.outlineVariant),
+                                  backgroundColor: colors.surface,
+                                  onPressed: () {
+                                    _controller.text = prompt;
+                                    _sendMessage();
+                                  },
+                                ),
+                              ))
+                          .toList(),
+                    ),
+                  ),
                 ),
               ),
             Container(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
               decoration: BoxDecoration(
                 color: colors.surface,
-                border: Border(top: BorderSide(color: colors.outlineVariant)),
+                border: Border(top: BorderSide(color: colors.outlineVariant.withValues(alpha: 0.6))),
               ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _controller,
-                      focusNode: _focusNode,
-                      minLines: 1,
-                      maxLines: 4,
-                      textInputAction: TextInputAction.send,
-                      decoration: const InputDecoration(
-                        hintText: 'Ask about a place, stay or route (Enter to send)',
-                        prefixIcon: Icon(Icons.chat_outlined),
-                      ),
-                      onSubmitted: (_) => _sendMessage(),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 860),
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Expanded(
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: colors.surfaceContainerHighest.withValues(alpha: 0.4),
+                                  borderRadius: BorderRadius.circular(24),
+                                  border: Border.all(
+                                      color: colors.outlineVariant.withValues(alpha: 0.8)),
+                                ),
+                                child: TextField(
+                                  controller: _controller,
+                                  focusNode: _focusNode,
+                                  minLines: 1,
+                                  maxLines: 4,
+                                  textInputAction: TextInputAction.send,
+                                  decoration: InputDecoration(
+                                    hintText: 'Ask about any city, hotel, itinerary or budget...',
+                                    hintStyle: TextStyle(
+                                        color: colors.onSurfaceVariant.withValues(alpha: 0.7)),
+                                    prefixIcon: Icon(Icons.search_rounded,
+                                        color: colors.primary),
+                                    border: InputBorder.none,
+                                    contentPadding:
+                                        const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                                  ),
+                                  onSubmitted: (_) => _sendMessage(),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            SizedBox(
+                              width: 48,
+                              height: 48,
+                              child: IconButton.filled(
+                                tooltip: 'Send message (Enter)',
+                                onPressed: _isLoading ? null : _sendMessage,
+                                icon: const Icon(Icons.arrow_upward_rounded),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'TravelMaster AI provides instant travel & stay details. Always verify booking terms.',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: colors.onSurfaceVariant.withValues(alpha: 0.7),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(width: 10),
-                  SizedBox(
-                    width: 50,
-                    height: 50,
-                    child: IconButton.filled(
-                      tooltip: 'Send message (Enter)',
-                      onPressed: _isLoading ? null : _sendMessage,
-                      icon: const Icon(Icons.arrow_upward_rounded),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildUserMessage(String text, ColorScheme colors) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            Text(
+              'You',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
+                color: colors.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(width: 8),
+            CircleAvatar(
+              radius: 12,
+              backgroundColor: colors.primary,
+              child: const Icon(Icons.person, size: 14, color: Colors.white),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+          decoration: BoxDecoration(
+            color: colors.primaryContainer.withValues(alpha: 0.8),
+            borderRadius: BorderRadius.circular(18).copyWith(
+              topRight: const Radius.circular(4),
+            ),
+            border: Border.all(color: colors.primary.withValues(alpha: 0.2)),
+          ),
+          child: Text(
+            text,
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              height: 1.4,
+              color: colors.onPrimaryContainer,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBotMessage(String text, ColorScheme colors) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Container(
+              width: 26,
+              height: 26,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [colors.primary, colors.secondary],
+                ),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(Icons.auto_awesome, size: 15, color: Colors.white),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'TravelMaster AI',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 13.5,
+                color: colors.onSurface,
+              ),
+            ),
+            const SizedBox(width: 6),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: colors.primary.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Text(
+                'Result',
+                style: TextStyle(
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w700,
+                  color: colors.primary,
+                ),
+              ),
+            ),
+            const Spacer(),
+            IconButton(
+              icon: const Icon(Icons.copy_rounded, size: 17),
+              tooltip: 'Copy answer',
+              onPressed: () {
+                Clipboard.setData(ClipboardData(text: text));
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Result copied to clipboard'),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+          decoration: BoxDecoration(
+            color: colors.surface,
+            borderRadius: BorderRadius.circular(16).copyWith(
+              topLeft: const Radius.circular(4),
+            ),
+            border: Border.all(color: colors.outlineVariant.withValues(alpha: 0.7)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.03),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: MarkdownBody(
+            data: text,
+            selectable: true,
+            styleSheet: MarkdownStyleSheet(
+              p: TextStyle(
+                height: 1.6,
+                color: colors.onSurface,
+                fontSize: 14.5,
+              ),
+              h1: TextStyle(
+                color: colors.primary,
+                fontWeight: FontWeight.bold,
+                fontSize: 20,
+                height: 1.4,
+              ),
+              h2: TextStyle(
+                color: colors.primary,
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+                height: 1.4,
+              ),
+              h3: TextStyle(
+                color: colors.primary,
+                fontWeight: FontWeight.w700,
+                fontSize: 16,
+                height: 1.35,
+              ),
+              h4: TextStyle(
+                color: colors.primary,
+                fontWeight: FontWeight.w700,
+                fontSize: 15,
+                height: 1.35,
+              ),
+              strong: TextStyle(
+                color: colors.primary,
+                fontWeight: FontWeight.w700,
+              ),
+              em: const TextStyle(fontStyle: FontStyle.italic),
+              listBullet: TextStyle(
+                color: colors.primary,
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+              ),
+              code: TextStyle(
+                backgroundColor: colors.surfaceContainerHighest,
+                color: colors.onSurface,
+                fontFamily: 'monospace',
+                fontSize: 13,
+              ),
+              blockquoteDecoration: BoxDecoration(
+                color: colors.surfaceContainerHighest.withValues(alpha: 0.4),
+                border: Border(
+                  left: BorderSide(color: colors.primary, width: 3),
+                ),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              horizontalRuleDecoration: BoxDecoration(
+                border: Border(
+                  top: BorderSide(color: colors.outlineVariant, width: 1),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLoadingBubble(ColorScheme colors) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Container(
+              width: 26,
+              height: 26,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [colors.primary, colors.secondary],
+                ),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(Icons.auto_awesome, size: 15, color: Colors.white),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'TravelMaster AI',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 13.5,
+                color: colors.onSurface,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            color: colors.surface,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: colors.outlineVariant.withValues(alpha: 0.7)),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: colors.primary,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                'Searching deeply & preparing recommendations...',
+                style: TextStyle(
+                  fontSize: 13.5,
+                  color: colors.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
