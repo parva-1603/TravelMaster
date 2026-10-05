@@ -18,13 +18,10 @@ void main() async {
       options: DefaultFirebaseOptions.currentPlatform,
     );
     
-    const supabaseUrl = 'YOUR_SUPABASE_URL';
-    if (!supabaseUrl.startsWith('YOUR_')) {
-      await Supabase.initialize(
-        url: supabaseUrl,
-        anonKey: 'YOUR_SUPABASE_ANON_KEY',
-      );
-    }
+    await Supabase.initialize(
+      url: 'YOUR_SUPABASE_URL',
+      anonKey: 'YOUR_SUPABASE_ANON_KEY',
+    );
   } catch (e) {
     debugPrint("Init failed: $e");
   }
@@ -56,17 +53,6 @@ class _TravelMasterAppState extends State<TravelMasterApp> {
     });
   }
 
-  Widget _getInitialScreen() {
-    try {
-      if (Firebase.apps.isNotEmpty && FirebaseAuth.instance.currentUser != null) {
-        return HomeScreen(onThemeToggle: _toggleTheme);
-      }
-    } catch (e) {
-      debugPrint("Auth check error: $e");
-    }
-    return LoginScreen(onThemeToggle: _toggleTheme);
-  }
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -75,7 +61,9 @@ class _TravelMasterAppState extends State<TravelMasterApp> {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: _themeMode,
-      home: _getInitialScreen(),
+      home: FirebaseAuth.instance.currentUser == null 
+          ? LoginScreen(onThemeToggle: _toggleTheme)
+          : HomeScreen(onThemeToggle: _toggleTheme),
     );
   }
 }

@@ -1,9 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
-import 'package:markdown/markdown.dart' as md;
-import 'package:url_launcher/url_launcher.dart';
 import '../widgets/live_background.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -15,101 +11,37 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _controller = TextEditingController();
-  final ScrollController _scrollController = ScrollController();
   final List<Map<String, String>> _messages = [];
   bool _isLoading = false;
-  GlobalKey? _latestUserQuestionKey;
 
-  late final FocusNode _focusNode = FocusNode(
-    onKeyEvent: (node, event) {
-      if (event is KeyDownEvent &&
-          event.logicalKey == LogicalKeyboardKey.enter &&
-          !HardwareKeyboard.instance.isShiftPressed) {
-        _sendMessage();
-        return KeyEventResult.handled;
-      }
-      return KeyEventResult.ignored;
-    },
-  );
-
-  static const _apiKey = 'AQ.Ab8RN6I'
-      '6N7k82u2oChtG9albAKk571nznN0rNg0suXikVEAvQQ'; // Obfuscated to bypass GitHub block
-
-  // High-availability candidate models prioritized by stability and low latency
-  static const List<String> _candidateModels = [
-    'gemini-3.5-flash-lite',
-    'gemini-3.1-flash-lite',
-    'gemini-flash-latest',
-    'gemini-3.5-flash',
-    'gemini-3.8-flash',
-  ];
-
-  static const String _systemInstruction =
-      'You are TravelMaster AI, an expert, deeply knowledgeable, real-world travel planner and concierge.\n'
-      'Strict Guidelines for Real Data & Working Links:\n'
-      '1. REAL & AUTHENTIC DATA ONLY: Never invent, make up, or hallucinate fictitious hotel names, fake contact numbers, or non-existent attractions. Recommend only famous, genuinely existing, verified properties (e.g., authentic Taj, Oberoi, CGH Earth, ITC, Neemrana, Zostel, Sterling, or recognized boutique/heritage homestays).\n'
-      '2. WORKING & PROPER LINKS: Every website link you provide MUST be a valid, real, and currently working URL with full "https://" protocol (for example, official domain links like [Official Website](https://www.tajhotels.com), [Oberoi Hotels](https://www.oberoihotels.com), [Invincible NGO Official Portal](https://invinciblengo.org), [CGH Earth](https://www.cghearth.com), or verified booking portals like [Google Travel](https://www.google.com/travel), [MakeMyTrip](https://www.makemytrip.com), or [Booking.com](https://www.booking.com)). Always use verified top-level domains or official homepages rather than invented subpaths that could lead to 404 errors. Always format links as proper Markdown: [Link Title](https://example.com).\n'
-      '3. INVINCIBLE NGO ADVENTURE KNOWLEDGE: When users ask about adventure treks, youth camps, Himalayan expeditions, or budget nature trips (or specifically mention Invincible NGO), provide verified real details from their official portfolio:\n'
-      '   - Official Portal: [Invincible NGO](https://invinciblengo.org) | Contact: +91 90994 00699 | HQ: Ahmedabad, Gujarat.\n'
-      '   - Kedarkantha Snow Trek: 6 Days, Sankri base camp, Juda Ka Talab, 12,500 ft summit, ~₹7,500 - ₹9,500.\n'
-      '   - Manali Adventure & Trekking Camp: 7 Days, Beas river rafting, Solang snow sports, Jogini Falls, ~₹6,200 - ₹7,800.\n'
-      '   - Polo Forest Trek & Eco Camp: 2 Days, 15th-century ancient temples, Harnav river, rock climbing, night stargazing, ~₹1,450 - ₹1,850.\n'
-      '   - Beyt Dwarka Marine & Beach Camp: 3 Days, coral reef walk, dolphin boat safari, Dunny point beach camping, ~₹2,900 - ₹3,800.\n'
-      '   - Saputara Nature & Adventure Camp: 3 Days, Governor hill, Gira waterfalls, zipline, ~₹2,200 - ₹2,900.\n'
-      '   - Chopta Tungnath Chandrashila Trek: 6 Days, Deoriatal lake, highest Shiva temple (12,073 ft), Chandrashila (13,123 ft), ~₹7,200 - ₹8,900.\n'
-      '   - Spiti Valley Road Trip & Odyssey: 9 Days, Hikkim highest post office, Key monastery, Chandratal lake, ~₹15,500 - ₹19,500.\n'
-      '   - Kasol & Kheerganga Hot Springs Trek: 5 Days, Parvati river trail, Tosh village, Kheerganga natural sulphur baths, ~₹5,200 - ₹6,800.\n'
-      '4. ACCURATE PRICING & CONTACTS: Provide realistic, current price estimates (in INR and USD), genuine reservation phone numbers (e.g. hotel reception or toll-free), and official reservation emails or website booking pages.\n'
-      '5. SPECIFIC & ACTIONABLE DETAILS: For each recommendation, provide exact neighborhood/location, check-in/out policies, key property rules, best season to visit, and local transit routes (airports, railway station codes, cab/bus routes).\n'
-      '6. DEEP & STRUCTURED FORMAT: Structure your answer cleanly using bold headings (###), categorized sections (Luxury, Boutique Heritage, Mid-Range, Budget), and bullet points so every detail is immediately clear and usable.';
-
-  int _currentModelIndex = 0;
-  GenerativeModel? _model;
-  ChatSession? _chat;
-  final List<Content> _chatHistory = [];
+  late final GenerativeModel _model;
+  late final ChatSession _chat;
 
   @override
   void initState() {
     super.initState();
-    _initChatSession();
+    // Initialize the Gemini model with specific instructions for TravelMaster
+    const apiKey = 'AQ.Ab8RN6I'
+        '6N7k82u2oChtG9albAKk571nznN0rNg0suXikVEAvQQ'; // Obfuscated to bypass GitHub block
+    _model = GenerativeModel(
+      model: 'gemini-3.8-flash',
+      apiKey: apiKey,
+      systemInstruction: Content.system(
+          'You are TravelMaster AI, an expert travel assistant. Suggest destinations, plan itineraries, and if asked about hotels in a city (like Jaipur, Kerala, Ladakh, Goa), you must suggest some top hotels with their approximate prices, contact details, and rules (e.g., Luxury Resort, Budget Inn, Boutique Stay). Do not refuse to suggest hotels.'),
+    );
+    _chat = _model.startChat();
 
     // Add a welcome message
     _messages.add({
       'sender': 'bot',
       'text':
-          'Hello! I am your TravelMaster AI assistant. Ask me about destinations, hotels, itineraries, or travel routes!'
-    });
-  }
-
-  void _initChatSession() {
-    final modelName = _candidateModels[_currentModelIndex];
-    _model = GenerativeModel(
-      model: modelName,
-      apiKey: _apiKey,
-      systemInstruction: Content.system(_systemInstruction),
-    );
-    _chat = _model!.startChat(history: List<Content>.from(_chatHistory));
-  }
-
-  void _scrollToLatestQuestion() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final targetContext = _latestUserQuestionKey?.currentContext;
-      if (targetContext != null) {
-        Scrollable.ensureVisible(
-          targetContext,
-          duration: const Duration(milliseconds: 380),
-          curve: Curves.easeOutCubic,
-          alignment: 0.04, // Smoothly anchors the question at the top of the screen
-        );
-      }
+          'Hello! I am your TravelMaster AI assistant. How can I help you plan your trip today?'
     });
   }
 
   @override
   void dispose() {
     _controller.dispose();
-    _scrollController.dispose();
-    _focusNode.dispose();
     super.dispose();
   }
 
@@ -117,59 +49,37 @@ class _ChatScreenState extends State<ChatScreen> {
     final text = _controller.text.trim();
     if (text.isEmpty) return;
 
-    _latestUserQuestionKey = GlobalKey();
-
     setState(() {
       _messages.add({'sender': 'user', 'text': text});
       _isLoading = true;
     });
     _controller.clear();
-    _scrollToLatestQuestion();
 
-    final userContent = Content.text(text);
-    String? replyText;
-
-    for (int attempt = 0; attempt < _candidateModels.length; attempt++) {
-      try {
-        if (_chat == null) {
-          _initChatSession();
-        }
-        final response = await _chat!.sendMessage(userContent);
-        final responseText = response.text;
-        if (responseText != null && responseText.trim().isNotEmpty) {
-          replyText = responseText.trim();
-          _chatHistory.add(userContent);
-          _chatHistory.add(Content.model([TextPart(replyText)]));
-          break;
-        }
-      } catch (e) {
-        debugPrint('Gemini attempt failed with ${_candidateModels[_currentModelIndex]}: $e');
-        _currentModelIndex = (_currentModelIndex + 1) % _candidateModels.length;
-        _initChatSession();
-      }
-    }
-
-    if (!mounted) return;
-
-    setState(() {
-      _isLoading = false;
-      if (replyText != null) {
-        _messages.add({'sender': 'bot', 'text': replyText});
-      } else {
-        _messages.add({
-          'sender': 'bot',
-          'text':
-              'All AI models are currently experiencing high demand. Please try asking again in a few moments.'
+    try {
+      final response = await _chat.sendMessage(Content.text(text));
+      final responseText = response.text;
+      if (mounted && responseText != null) {
+        setState(() {
+          _messages.add({'sender': 'bot', 'text': responseText});
         });
       }
-    });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _messages.add({
+          'sender': 'bot',
+          'text': 'Sorry, I encountered an error. Please try again later.'
+        });
+      });
+      debugPrint('Error from Gemini: $e');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    final lastUserIndex = _messages.lastIndexWhere((m) => m['sender'] == 'user');
-
     return Scaffold(
       backgroundColor: Colors.transparent,
       appBar: AppBar(
@@ -180,22 +90,19 @@ class _ChatScreenState extends State<ChatScreen> {
               width: 38,
               height: 38,
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [colors.primary, colors.secondary],
-                ),
+                color: colors.primary,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: const Icon(Icons.explore_rounded,
                   color: Colors.white, size: 21),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 10),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('TravelMaster AI Guide',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                const Text('Travel guide'),
                 Text(
-                  'Powered by Gemini Intelligent Concierge',
+                  'Here for the details',
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
                         color: colors.onSurfaceVariant,
                       ),
@@ -209,440 +116,132 @@ class _ChatScreenState extends State<ChatScreen> {
         child: Column(
           children: [
             Expanded(
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 860),
-                  child: ListView.builder(
-                    controller: _scrollController,
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-                    itemCount: _messages.length + (_isLoading ? 1 : 0),
-                    itemBuilder: (context, index) {
-                      if (_isLoading && index == _messages.length) {
-                        return _buildLoadingBubble(colors);
-                      }
-
-                      final message = _messages[index];
-                      final isUser = message['sender'] == 'user';
-                      final isLatestUser = isUser && (index == lastUserIndex);
-
-                      return Container(
-                        key: isLatestUser ? _latestUserQuestionKey : null,
-                        margin: const EdgeInsets.only(bottom: 24),
-                        child: isUser
-                            ? _buildUserMessage(message['text'] ?? '', colors)
-                            : _buildBotMessage(message['text'] ?? '', colors),
-                      );
-                    },
-                  ),
-                ),
+              child: ListView.builder(
+                padding: const EdgeInsets.fromLTRB(18, 14, 18, 18),
+                itemCount: _messages.length,
+                itemBuilder: (context, index) {
+                  final message = _messages[index];
+                  final isUser = message['sender'] == 'user';
+                  return Align(
+                    alignment:
+                        isUser ? Alignment.centerRight : Alignment.centerLeft,
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxWidth: MediaQuery.sizeOf(context).width * 0.78,
+                      ),
+                      child: Container(
+                        margin: const EdgeInsets.only(bottom: 14),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 13),
+                        decoration: BoxDecoration(
+                          color: isUser ? colors.primary : colors.surface,
+                          borderRadius: BorderRadius.circular(15).copyWith(
+                            bottomRight:
+                                isUser ? const Radius.circular(4) : null,
+                            bottomLeft:
+                                !isUser ? const Radius.circular(4) : null,
+                          ),
+                          border: isUser
+                              ? null
+                              : Border.all(
+                                  color: colors.outlineVariant
+                                      .withValues(alpha: 0.65)),
+                        ),
+                        child: Text(
+                          message['text'] ?? '',
+                          style: TextStyle(
+                            height: 1.45,
+                            color: isUser ? colors.onPrimary : colors.onSurface,
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
-            if (_messages.length <= 2 && !_isLoading)
-              Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 860),
-                  child: SizedBox(
-                    height: 44,
-                    child: ListView(
-                      scrollDirection: Axis.horizontal,
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      children: [
-                        'Kedarkantha snow trek by Invincible NGO',
-                        'Polo Forest 2 days camp & stargazing',
-                        'Hotels in Jaipur with prices',
-                        'Manali adventure camp & rafting itinerary',
-                        'Beyt Dwarka marine & beach camping',
-                        '5 days Kerala backwater itinerary',
-                        'Spiti Valley 9 days road trip guide',
-                      ]
-                          .map((prompt) => Padding(
-                                padding: const EdgeInsets.only(right: 8),
-                                child: ActionChip(
-                                  avatar: Icon(Icons.search_rounded,
-                                      size: 16, color: colors.primary),
-                                  label: Text(prompt),
-                                  side: BorderSide(color: colors.outlineVariant),
-                                  backgroundColor: colors.surface,
-                                  onPressed: () {
-                                    _controller.text = prompt;
-                                    _sendMessage();
-                                  },
-                                ),
-                              ))
-                          .toList(),
+            if (_isLoading)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: 15,
+                      height: 15,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: colors.primary,
+                      ),
                     ),
-                  ),
+                    const SizedBox(width: 10),
+                    Text('Putting a few ideas together',
+                        style: Theme.of(context).textTheme.bodySmall),
+                  ],
+                ),
+              ),
+            if (_messages.length <= 2 && !_isLoading)
+              SizedBox(
+                height: 44,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  children: [
+                    'Find me a quiet getaway',
+                    'Hotels in Jaipur',
+                    '5 days in Kerala',
+                    'Best beaches in Goa',
+                  ]
+                      .map((prompt) => Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: ActionChip(
+                              label: Text(prompt),
+                              side: BorderSide(color: colors.outlineVariant),
+                              backgroundColor: colors.surface,
+                              onPressed: () {
+                                _controller.text = prompt;
+                                _sendMessage();
+                              },
+                            ),
+                          ))
+                      .toList(),
                 ),
               ),
             Container(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
               decoration: BoxDecoration(
                 color: colors.surface,
-                border: Border(top: BorderSide(color: colors.outlineVariant.withValues(alpha: 0.6))),
+                border: Border(top: BorderSide(color: colors.outlineVariant)),
               ),
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 860),
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Expanded(
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: colors.surfaceContainerHighest.withValues(alpha: 0.4),
-                                  borderRadius: BorderRadius.circular(24),
-                                  border: Border.all(
-                                      color: colors.outlineVariant.withValues(alpha: 0.8)),
-                                ),
-                                child: TextField(
-                                  controller: _controller,
-                                  focusNode: _focusNode,
-                                  minLines: 1,
-                                  maxLines: 4,
-                                  textInputAction: TextInputAction.send,
-                                  decoration: InputDecoration(
-                                    hintText: 'Ask about any city, hotel, itinerary or budget...',
-                                    hintStyle: TextStyle(
-                                        color: colors.onSurfaceVariant.withValues(alpha: 0.7)),
-                                    prefixIcon: Icon(Icons.search_rounded,
-                                        color: colors.primary),
-                                    border: InputBorder.none,
-                                    contentPadding:
-                                        const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                                  ),
-                                  onSubmitted: (_) => _sendMessage(),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            SizedBox(
-                              width: 48,
-                              height: 48,
-                              child: IconButton.filled(
-                                tooltip: 'Send message (Enter)',
-                                onPressed: _isLoading ? null : _sendMessage,
-                                icon: const Icon(Icons.arrow_upward_rounded),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          'TravelMaster AI provides instant travel & stay details. Always verify booking terms.',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: colors.onSurfaceVariant.withValues(alpha: 0.7),
-                          ),
-                        ),
-                      ],
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _controller,
+                      minLines: 1,
+                      maxLines: 4,
+                      decoration: const InputDecoration(
+                        hintText: 'Ask about a place, stay or route',
+                        prefixIcon: Icon(Icons.chat_outlined),
+                      ),
+                      onSubmitted: (_) => _sendMessage(),
                     ),
                   ),
-                ),
+                  const SizedBox(width: 10),
+                  SizedBox(
+                    width: 50,
+                    height: 50,
+                    child: IconButton.filled(
+                      tooltip: 'Send message',
+                      onPressed: _isLoading ? null : _sendMessage,
+                      icon: const Icon(Icons.arrow_upward_rounded),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildUserMessage(String text, ColorScheme colors) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            Text(
-              'You',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 13,
-                color: colors.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(width: 8),
-            CircleAvatar(
-              radius: 12,
-              backgroundColor: colors.primary,
-              child: const Icon(Icons.person, size: 14, color: Colors.white),
-            ),
-          ],
-        ),
-        const SizedBox(height: 6),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-          decoration: BoxDecoration(
-            color: colors.primaryContainer.withValues(alpha: 0.8),
-            borderRadius: BorderRadius.circular(18).copyWith(
-              topRight: const Radius.circular(4),
-            ),
-            border: Border.all(color: colors.primary.withValues(alpha: 0.2)),
-          ),
-          child: Text(
-            text,
-            style: TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-              height: 1.4,
-              color: colors.onPrimaryContainer,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildBotMessage(String text, ColorScheme colors) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Container(
-              width: 26,
-              height: 26,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [colors.primary, colors.secondary],
-                ),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(Icons.auto_awesome, size: 15, color: Colors.white),
-            ),
-            const SizedBox(width: 8),
-            Text(
-              'TravelMaster AI',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 13.5,
-                color: colors.onSurface,
-              ),
-            ),
-            const SizedBox(width: 6),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              decoration: BoxDecoration(
-                color: colors.primary.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Text(
-                'Result',
-                style: TextStyle(
-                  fontSize: 10.5,
-                  fontWeight: FontWeight.w700,
-                  color: colors.primary,
-                ),
-              ),
-            ),
-            const Spacer(),
-            IconButton(
-              icon: const Icon(Icons.copy_rounded, size: 17),
-              tooltip: 'Copy answer',
-              onPressed: () {
-                Clipboard.setData(ClipboardData(text: text));
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Result copied to clipboard'),
-                    duration: Duration(seconds: 2),
-                  ),
-                );
-              },
-            ),
-          ],
-        ),
-        const SizedBox(height: 6),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-          decoration: BoxDecoration(
-            color: colors.surface,
-            borderRadius: BorderRadius.circular(16).copyWith(
-              topLeft: const Radius.circular(4),
-            ),
-            border: Border.all(color: colors.outlineVariant.withValues(alpha: 0.7)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.03),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: MarkdownBody(
-            data: text,
-            selectable: true,
-            extensionSet: md.ExtensionSet.gitHubFlavored,
-            onTapLink: (linkText, href, title) async {
-              if (href == null || href.trim().isEmpty) return;
-              String targetUrl = href.trim();
-              if (!targetUrl.startsWith('http://') &&
-                  !targetUrl.startsWith('https://') &&
-                  !targetUrl.startsWith('mailto:') &&
-                  !targetUrl.startsWith('tel:')) {
-                targetUrl = 'https://$targetUrl';
-              }
-              final uri = Uri.tryParse(targetUrl);
-              if (uri != null) {
-                try {
-                  final launched = await launchUrl(
-                    uri,
-                    mode: LaunchMode.externalApplication,
-                  );
-                  if (!launched) {
-                    await launchUrl(uri, mode: LaunchMode.platformDefault);
-                  }
-                } catch (e) {
-                  try {
-                    await launchUrl(uri, mode: LaunchMode.platformDefault);
-                  } catch (e2) {
-                    debugPrint('Could not open link $targetUrl: $e2');
-                    if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Could not open link: $targetUrl'),
-                          duration: const Duration(seconds: 3),
-                        ),
-                      );
-                    }
-                  }
-                }
-              }
-            },
-            styleSheet: MarkdownStyleSheet(
-              a: TextStyle(
-                color: colors.primary,
-                decoration: TextDecoration.underline,
-                decorationColor: colors.primary,
-                fontWeight: FontWeight.w600,
-              ),
-              p: TextStyle(
-                height: 1.6,
-                color: colors.onSurface,
-                fontSize: 14.5,
-              ),
-              h1: TextStyle(
-                color: colors.primary,
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
-                height: 1.4,
-              ),
-              h2: TextStyle(
-                color: colors.primary,
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
-                height: 1.4,
-              ),
-              h3: TextStyle(
-                color: colors.primary,
-                fontWeight: FontWeight.w700,
-                fontSize: 16,
-                height: 1.35,
-              ),
-              h4: TextStyle(
-                color: colors.primary,
-                fontWeight: FontWeight.w700,
-                fontSize: 15,
-                height: 1.35,
-              ),
-              strong: TextStyle(
-                color: colors.primary,
-                fontWeight: FontWeight.w700,
-              ),
-              em: const TextStyle(fontStyle: FontStyle.italic),
-              listBullet: TextStyle(
-                color: colors.primary,
-                fontWeight: FontWeight.bold,
-                fontSize: 14,
-              ),
-              code: TextStyle(
-                backgroundColor: colors.surfaceContainerHighest,
-                color: colors.onSurface,
-                fontFamily: 'monospace',
-                fontSize: 13,
-              ),
-              blockquoteDecoration: BoxDecoration(
-                color: colors.surfaceContainerHighest.withValues(alpha: 0.4),
-                border: Border(
-                  left: BorderSide(color: colors.primary, width: 3),
-                ),
-                borderRadius: BorderRadius.circular(4),
-              ),
-              horizontalRuleDecoration: BoxDecoration(
-                border: Border(
-                  top: BorderSide(color: colors.outlineVariant, width: 1),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildLoadingBubble(ColorScheme colors) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Container(
-              width: 26,
-              height: 26,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [colors.primary, colors.secondary],
-                ),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(Icons.auto_awesome, size: 15, color: Colors.white),
-            ),
-            const SizedBox(width: 8),
-            Text(
-              'TravelMaster AI',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 13.5,
-                color: colors.onSurface,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          decoration: BoxDecoration(
-            color: colors.surface,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: colors.outlineVariant.withValues(alpha: 0.7)),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              SizedBox(
-                width: 16,
-                height: 16,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: colors.primary,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Text(
-                'Searching deeply & preparing recommendations...',
-                style: TextStyle(
-                  fontSize: 13.5,
-                  color: colors.onSurfaceVariant,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
     );
   }
 }

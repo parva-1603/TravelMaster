@@ -1,11 +1,9 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'customize_package_sheet.dart';
 
 class PackageDetailsScreen extends StatefulWidget {
@@ -31,38 +29,6 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
   String _startingCity = '';
   int _customAdditionPrice = 0;
   String _customDetails = '';
-  Map<String, dynamic>? _selectedCustomTransport;
-  Map<String, dynamic>? _selectedCustomHotel;
-
-  Future<void> _openExternalUrl(String? urlString) async {
-    if (urlString == null || urlString.isEmpty) return;
-    var target = urlString.trim();
-    if (!target.startsWith('http://') &&
-        !target.startsWith('https://') &&
-        !target.startsWith('tel:')) {
-      target = 'https://$target';
-    }
-    final uri = Uri.tryParse(target);
-    if (uri != null) {
-      try {
-        final launched =
-            await launchUrl(uri, mode: LaunchMode.externalApplication);
-        if (!launched) {
-          await launchUrl(uri, mode: LaunchMode.platformDefault);
-        }
-      } catch (e) {
-        try {
-          await launchUrl(uri, mode: LaunchMode.platformDefault);
-        } catch (e2) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Could not open link: $target')),
-            );
-          }
-        }
-      }
-    }
-  }
 
   @override
   void initState() {
@@ -104,53 +70,10 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
   }
 
   LatLng _getCoordinates(String locationName) {
-    final loc = locationName.toLowerCase();
-    if (loc.contains('kerala') || loc.contains('alleppey')) return const LatLng(9.4981, 76.3388);
-    if (loc.contains('jaipur')) return const LatLng(26.9124, 75.7873);
-    if (loc.contains('ladakh') || loc.contains('leh')) return const LatLng(34.1526, 77.5771);
-    if (loc.contains('goa') || loc.contains('palolem')) return const LatLng(15.2993, 74.1240);
-    if (loc.contains('kedarkantha') || loc.contains('sankri')) return const LatLng(31.0667, 78.1833);
-    if (loc.contains('manali')) return const LatLng(32.2432, 77.1892);
-    if (loc.contains('polo')) return const LatLng(24.0153, 73.1977);
-    if (loc.contains('dwarka') || loc.contains('somnath')) return const LatLng(22.4647, 69.1173);
-    if (loc.contains('saputara')) return const LatLng(20.5796, 73.7483);
-    if (loc.contains('chopta') || loc.contains('tungnath')) return const LatLng(30.4878, 79.1764);
-    if (loc.contains('spiti') || loc.contains('kaza')) return const LatLng(32.2276, 78.0710);
-    if (loc.contains('kasol') || loc.contains('kheerganga')) return const LatLng(32.0100, 77.3150);
-    if (loc.contains('valley of flowers') || loc.contains('chamoli')) return const LatLng(30.7280, 79.6053);
-    if (loc.contains('roopkund') || loc.contains('lohajung')) return const LatLng(30.2618, 79.7431);
-    if (loc.contains('meghalaya') || loc.contains('shillong') || loc.contains('cherrapunji')) return const LatLng(25.5788, 91.8933);
-    if (loc.contains('andaman') || loc.contains('havelock') || loc.contains('neil')) return const LatLng(11.9761, 92.9876);
-    if (loc.contains('kutch') || loc.contains('dhordo') || loc.contains('rann')) return const LatLng(23.7500, 69.8000);
-    if (loc.contains('coorg') || loc.contains('madikeri')) return const LatLng(12.4244, 75.7382);
-    if (loc.contains('varanasi') || loc.contains('kashi')) return const LatLng(25.3176, 82.9739);
-    if (loc.contains('kashmir') || loc.contains('sonamarg')) return const LatLng(34.3050, 75.2933);
-    if (loc.contains('hampi')) return const LatLng(15.3350, 76.4600);
-    if (loc.contains('jaisalmer') || loc.contains('sam sand')) return const LatLng(26.9157, 70.9083);
-    if (loc.contains('gir') || loc.contains('sasan gir')) return const LatLng(21.1243, 70.7963);
-    if (loc.contains('tirthan') || loc.contains('jibhi')) return const LatLng(31.6375, 77.3468);
-    if (loc.contains('dudhsagar')) return const LatLng(15.3144, 74.3143);
-    if (loc.contains('darjeeling')) return const LatLng(27.0410, 88.2663);
-    if (loc.contains('munnar') || loc.contains('kolukkumalai')) return const LatLng(10.0889, 77.0595);
-    if (loc.contains('rishikesh') || loc.contains('shivpuri')) return const LatLng(30.0869, 78.2676);
-    if (loc.contains('sundarbans')) return const LatLng(21.9497, 89.1833);
-    if (loc.contains('gokarna') || loc.contains('om beach')) return const LatLng(14.5479, 74.3188);
-    if (loc.contains('zanskar') || loc.contains('chadar')) return const LatLng(33.5684, 76.9288);
-    if (loc.contains('ooty') || loc.contains('nilgiris')) return const LatLng(11.4102, 76.6950);
-    if (loc.contains('pondicherry') || loc.contains('auroville')) return const LatLng(11.9416, 79.8083);
-    if (loc.contains('kuari pass') || loc.contains('joshimath')) return const LatLng(30.5566, 79.5670);
-    if (loc.contains('brahmatal') || loc.contains('bekaltal')) return const LatLng(30.1800, 79.5900);
-    if (loc.contains('dzukou') || loc.contains('kohima')) return const LatLng(25.6751, 94.1086);
-    if (loc.contains('tawang') || loc.contains('sela')) return const LatLng(27.5860, 91.8594);
-    if (loc.contains('wayanad') || loc.contains('chembra')) return const LatLng(11.6854, 76.1320);
-    if (loc.contains('amritsar') || loc.contains('wagah')) return const LatLng(31.6200, 74.8765);
-    if (loc.contains('majuli') || loc.contains('kaziranga') || loc.contains('jorhat')) return const LatLng(26.9500, 94.2167);
-    if (loc.contains('sandakphu') || loc.contains('manebhanjan')) return const LatLng(27.1065, 88.0016);
-    if (loc.contains('puri') || loc.contains('konark')) return const LatLng(19.8135, 85.8312);
-    if (loc.contains('mount abu') || loc.contains('dilwara')) return const LatLng(24.5926, 72.7156);
-    if (loc.contains('khajuraho') || loc.contains('orchha')) return const LatLng(24.8318, 79.9199);
-    if (loc.contains('dandeli')) return const LatLng(15.2427, 74.6230);
-    if (loc.contains('bodh gaya') || loc.contains('nalanda')) return const LatLng(24.6961, 84.9869);
+    if (locationName.contains('Kerala')) return const LatLng(10.8505, 76.2711);
+    if (locationName.contains('Jaipur')) return const LatLng(26.9124, 75.7873);
+    if (locationName.contains('Ladakh')) return const LatLng(34.1526, 77.5771);
+    if (locationName.contains('Goa')) return const LatLng(15.2993, 74.1240);
     return const LatLng(20.5937, 78.9629); // Default India
   }
 
@@ -227,16 +150,62 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
       builder: (context) => CustomizePackageSheet(
         pkg: widget.pkg,
         startingCity: _startingCity,
-        onCustomizationComplete: (additionalPrice, details, transport, hotel) {
+        onCustomizationComplete: (additionalPrice, details) {
           setState(() {
             _customAdditionPrice = additionalPrice;
             _customDetails = details;
-            _selectedCustomTransport = transport;
-            _selectedCustomHotel = hotel;
           });
         },
       ),
     );
+  }
+
+  List<dynamic> _getFallbackItinerary(String locationStr, String durationStr) {
+    final loc = (locationStr).toLowerCase();
+    
+    if (loc.contains('kerala')) {
+      return [
+        {'day': 1, 'title': 'Arrival & Fort Kochi Heritage Tour', 'description': 'Arrive in Kochi. Transfer to hotel, check-in, and visit historic Fort Kochi, Mattancherry Palace, and the iconic Chinese Fishing Nets.'},
+        {'day': 2, 'title': 'Munnar Hill Station & Tea Gardens', 'description': 'Scenic drive through Cheeyappara waterfalls to Munnar. Tour sprawling tea plantations, Tea Museum, and Eravikulam National Park.'},
+        {'day': 3, 'title': 'Alleppey Houseboat Backwater Cruise', 'description': 'Drive to Alleppey and board a traditional luxury houseboat. Cruise through calm backwaters and Vembanad Lake with local Keralite meals.'},
+        {'day': 4, 'title': 'Kovalam Beach & Coastal Relaxation', 'description': 'Proceed to Kovalam. Relax at Lighthouse Beach and visit Samudra Beach and local seafood cafes.'},
+        {'day': 5, 'title': 'Souvenir Shopping & Farewell', 'description': 'Morning breakfast, shop for authentic spices and tea, and transfer to Ernakulam station/airport.'},
+      ];
+    } else if (loc.contains('jaipur') || loc.contains('rajasthan')) {
+      return [
+        {'day': 1, 'title': 'Welcome to Pink City Jaipur', 'description': 'Arrival in Jaipur, check-in, and evening visit to Chokhi Dhani for authentic Rajasthani culture and dinner.'},
+        {'day': 2, 'title': 'Amber Fort & Nahargarh Exploration', 'description': 'Explore grand Amber Fort, Sheesh Mahal, Jaigarh Fort, and catch sunset over Jaipur from Nahargarh Fort.'},
+        {'day': 3, 'title': 'Hawa Mahal, City Palace & Markets', 'description': 'Visit Hawa Mahal, City Palace Museum, Jantar Mantar, and shop in Johari Bazaar.'},
+        {'day': 4, 'title': 'Jodhpur Blue City & Mehrangarh Fort', 'description': 'Drive to Jodhpur. Visit towering Mehrangarh Fort and Jaswant Thada royal cenotaph.'},
+        {'day': 5, 'title': 'Thar Desert Camp in Jaisalmer', 'description': 'Travel to Jaisalmer. Enjoy desert camp stay, camel safari, and folk dance performance.'},
+        {'day': 6, 'title': 'Golden Fort & Patwon Ki Haveli', 'description': 'Explore living Jaisalmer Fort, intricately carved havelis, and Gadisar Lake.'},
+        {'day': 7, 'title': 'Departure with Royal Memories', 'description': 'Breakfast and transfer to airport/railway station.'},
+      ];
+    } else if (loc.contains('ladakh')) {
+      return [
+        {'day': 1, 'title': 'Arrival in Leh & High Altitude Acclimatization', 'description': 'Arrive at Leh Kushok Bakula Airport. Rest for full day for acclimatization.'},
+        {'day': 2, 'title': 'Leh Monasteries & Shanti Stupa', 'description': 'Visit Shanti Stupa, Leh Palace, Hall of Fame, and Thiksey Monastery.'},
+        {'day': 3, 'title': 'Leh to Nubra Valley via Khardung La', 'description': 'Drive over Khardung La Pass (18,380 ft). Arrive in Hunder, Nubra Valley.'},
+        {'day': 4, 'title': 'Hunder Sand Dunes & Camel Safari', 'description': 'Experience double-humped Bactrian camel ride and visit Diskit Monastery.'},
+        {'day': 5, 'title': 'Nubra to Pangong Tso Lake', 'description': 'Drive along Shyok River to scenic Pangong Tso color-changing lake.'},
+        {'day': 6, 'title': 'Pangong Sunrise & Return to Leh', 'description': 'Witness breathtaking sunrise over Pangong Lake, drive back to Leh via Chang La.'},
+        {'day': 7, 'title': 'Magnetic Hill & Sangam Confluence', 'description': 'Visit Sangam (Indus & Zanskar river confluence), Magnetic Hill, and Gurudwara Pathar Sahib.'},
+        {'day': 8, 'title': 'Departure from Leh', 'description': 'Transfer to airport for return flight.'},
+      ];
+    } else if (loc.contains('goa')) {
+      return [
+        {'day': 1, 'title': 'Welcome to Sunny Goa', 'description': 'Arrive in Goa, check-in at resort, and relax at Calangute Beach.'},
+        {'day': 2, 'title': 'North Goa Beaches & Fort Aguada', 'description': 'Visit historic 17th-century Fort Aguada, Baga Beach, and enjoy watersports.'},
+        {'day': 3, 'title': 'Old Goa Churches & Mandovi Cruise', 'description': 'Explore Basilica of Bom Jesus, Se Cathedral, Panjim market, and evening sunset river cruise.'},
+        {'day': 4, 'title': 'Leisure & Farewell', 'description': 'Relax by pool/beach, shop for Goan cashew nuts and spices, and transfer to airport/station.'},
+      ];
+    }
+
+    return [
+      {'day': 1, 'title': 'Arrival & Welcome', 'description': 'Arrive in $locationStr, transfer to hotel, check-in, and enjoy local sightseeing.'},
+      {'day': 2, 'title': 'Full Day Sightseeing & Tour', 'description': 'Explore famous monuments, scenic views, and local markets of $locationStr.'},
+      {'day': 3, 'title': 'Departure & Souvenir Shopping', 'description': 'Breakfast, local souvenir shopping, and transfer for your return trip.'},
+    ];
   }
 
   @override
@@ -244,8 +213,14 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
     final latLng = _getCoordinates(widget.pkg['location']);
 
     final categories = widget.pkg['categories'] as Map<String, dynamic>?;
-    final itinerary = widget.pkg['itinerary'] as List<dynamic>?;
-    final dates = widget.pkg['departureDates'] as List<dynamic>?;
+    final rawItinerary = widget.pkg['itinerary'] as List<dynamic>?;
+    final List<dynamic> itinerary = (rawItinerary != null && rawItinerary.isNotEmpty)
+        ? rawItinerary
+        : _getFallbackItinerary(widget.pkg['location'].toString(), widget.pkg['duration'].toString());
+    final rawDates = widget.pkg['departureDates'] as List<dynamic>?;
+    final List<String> dates = (rawDates != null && rawDates.isNotEmpty)
+        ? rawDates.map((e) => e.toString()).toList()
+        : ['15 Oct 2026', '22 Oct 2026', '05 Nov 2026'];
 
     final currentCategory =
         categories != null ? categories[_selectedCategory] : null;
@@ -323,34 +298,6 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
                           icon:
                               const Icon(Icons.arrow_back, color: Colors.white),
                           onPressed: () => Navigator.pop(context),
-                        ),
-                      ),
-                      const Spacer(),
-                      DecoratedBox(
-                        decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.35),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: IconButton(
-                          tooltip: 'Share Itinerary',
-                          icon: const Icon(Icons.share_rounded,
-                              color: Colors.white),
-                          onPressed: () {
-                            final title = widget.pkg['title'] ?? 'Trip';
-                            final loc = widget.pkg['location'] ?? 'India';
-                            final price = widget.pkg['price'] ?? '';
-                            final duration = widget.pkg['duration'] ?? '';
-                            Clipboard.setData(ClipboardData(
-                              text:
-                                  'Check out "$title" in $loc ($duration, $price) on TravelMaster! Direct hotel and transport booking included: http://localhost:3000',
-                            ));
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Copied "$title" details to clipboard! 📋'),
-                                behavior: SnackBarBehavior.floating,
-                              ),
-                            );
-                          },
                         ),
                       ),
                     ],
@@ -520,7 +467,7 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
                                       style: TextStyle(fontSize: 14)),
                                 const SizedBox(height: 8),
                                 Text(
-                                  'Status: Scheduled (API Verified)',
+                                  'Status: Scheduled',
                                   style: TextStyle(
                                       color: Colors.green.shade400,
                                       fontSize: 12,
@@ -581,48 +528,47 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
 
                         const SizedBox(height: 24),
 
-                        // Departure Dates Selection
-                        if (dates != null && dates.isNotEmpty) ...[
-                          const Text('Departure Dates',
-                              style: TextStyle(
-                                  fontSize: 18, fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 12),
-                          SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: Row(
-                              children: dates.map((date) {
-                                final isSelected = _selectedDate == date;
-                                return Padding(
-                                  padding: const EdgeInsets.only(right: 8.0),
-                                  child: ChoiceChip(
-                                    label: Text(date),
-                                    selected: isSelected,
-                                    onSelected: (bool selected) {
-                                      setState(() => _selectedDate = date);
-                                    },
-                                    selectedColor: Theme.of(context)
-                                        .colorScheme
-                                        .primary
-                                        .withValues(alpha: 0.2),
-                                    labelStyle: TextStyle(
+                        // Departure / Trip Starting Dates Selection
+                        const Text('Trip Starting Dates',
+                            style: TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 12),
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            children: dates.map((date) {
+                              final isSelected = _selectedDate == date;
+                              return Padding(
+                                padding: const EdgeInsets.only(right: 8.0),
+                                child: ChoiceChip(
+                                  avatar: Icon(Icons.calendar_month_rounded,
+                                      size: 16,
                                       color: isSelected
-                                          ? Theme.of(context)
-                                              .colorScheme
-                                              .primary
-                                          : Theme.of(context)
-                                              .colorScheme
-                                              .onSurface,
-                                      fontWeight: isSelected
-                                          ? FontWeight.bold
-                                          : FontWeight.normal,
-                                    ),
+                                          ? Theme.of(context).colorScheme.primary
+                                          : Theme.of(context).colorScheme.onSurfaceVariant),
+                                  label: Text(date),
+                                  selected: isSelected,
+                                  onSelected: (bool selected) {
+                                    setState(() => _selectedDate = date);
+                                  },
+                                  selectedColor: Theme.of(context)
+                                      .colorScheme
+                                      .primary
+                                      .withValues(alpha: 0.2),
+                                  labelStyle: TextStyle(
+                                    color: isSelected
+                                        ? Theme.of(context).colorScheme.primary
+                                        : Theme.of(context).colorScheme.onSurface,
+                                    fontWeight: isSelected
+                                        ? FontWeight.bold
+                                        : FontWeight.normal,
                                   ),
-                                );
-                              }).toList(),
-                            ),
+                                ),
+                              );
+                            }).toList(),
                           ),
-                          const SizedBox(height: 24),
-                        ],
+                        ),
+                        const SizedBox(height: 24),
 
                         // Package Categories (Economy/Standard/Luxury)
                         if (categories != null) ...[
@@ -686,135 +632,23 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
                           if (_customDetails.isNotEmpty) ...[
                             const SizedBox(height: 12),
                             Container(
-                              padding: const EdgeInsets.all(14),
+                              padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: Colors.green.withValues(alpha: 0.08),
-                                borderRadius: BorderRadius.circular(14),
+                                color: Colors.green.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
-                                    color: Colors.green.withValues(alpha: 0.35)),
+                                    color: Colors.green.withValues(alpha: 0.3)),
                               ),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Row(
-                                    children: [
-                                      const Icon(Icons.check_circle_rounded,
-                                          color: Colors.green, size: 18),
-                                      const SizedBox(width: 8),
-                                      const Text(
-                                          '✓ Customizations & Direct Portals Ready',
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 14.5,
-                                              color: Colors.green)),
-                                      const Spacer(),
-                                      TextButton(
-                                        onPressed: _showCustomizeSheet,
-                                        child: const Text('Edit Options',
-                                            style: TextStyle(fontSize: 12)),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 6),
-                                  Text(_customDetails,
-                                      style: const TextStyle(fontSize: 13.5)),
-                                  const SizedBox(height: 12),
-                                  const Divider(height: 1),
-                                  const SizedBox(height: 10),
-                                  const Text('Direct Booking Links:',
+                                  const Text('✓ Customizations Applied',
                                       style: TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w700)),
-                                  const SizedBox(height: 8),
-                                  Wrap(
-                                    spacing: 8,
-                                    runSpacing: 8,
-                                    children: [
-                                      if (_selectedCustomTransport != null) ...[
-                                        FilledButton.tonalIcon(
-                                          onPressed: () {
-                                            final url =
-                                                _selectedCustomTransport![
-                                                        'bookingUrl']
-                                                    ?.toString() ??
-                                                'https://www.irctc.co.in/nget/train-search';
-                                            _openExternalUrl(url);
-                                          },
-                                          icon: Icon(
-                                            _selectedCustomTransport![
-                                                        'airline'] !=
-                                                    null
-                                                ? Icons.flight_takeoff_rounded
-                                                : Icons.train_rounded,
-                                            size: 14,
-                                          ),
-                                          label: Text(
-                                            _selectedCustomTransport![
-                                                        'airline'] !=
-                                                    null
-                                                ? 'Book Flight Online ↗'
-                                                : 'Book on IRCTC ↗',
-                                            style: const TextStyle(
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.w700),
-                                          ),
-                                        ),
-                                        if (_selectedCustomTransport![
-                                                'confirmTktUrl'] !=
-                                            null)
-                                          OutlinedButton.icon(
-                                            onPressed: () => _openExternalUrl(
-                                                _selectedCustomTransport![
-                                                        'confirmTktUrl']
-                                                    .toString()),
-                                            icon: const Icon(
-                                                Icons.confirmation_number_outlined,
-                                                size: 14),
-                                            label: const Text(
-                                                'Live Seats & PNR ↗',
-                                                style: TextStyle(fontSize: 12)),
-                                          ),
-                                      ],
-                                      if (_selectedCustomHotel != null) ...[
-                                        FilledButton.tonalIcon(
-                                          onPressed: () {
-                                            final url = _selectedCustomHotel![
-                                                        'bookingUrl']
-                                                    ?.toString() ??
-                                                _selectedCustomHotel![
-                                                        'websiteUrl']
-                                                    ?.toString();
-                                            _openExternalUrl(url);
-                                          },
-                                          icon: const Icon(Icons.hotel_rounded,
-                                              size: 14),
-                                          label: const Text(
-                                            'Book Hotel on Official Site ↗',
-                                            style: TextStyle(
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.w700),
-                                          ),
-                                        ),
-                                        if (_selectedCustomHotel!['contact'] !=
-                                                null &&
-                                            _selectedCustomHotel!['contact']
-                                                .toString()
-                                                .isNotEmpty)
-                                          OutlinedButton.icon(
-                                            onPressed: () => _openExternalUrl(
-                                                'tel:${_selectedCustomHotel!['contact']}'),
-                                            icon: const Icon(
-                                                Icons.phone_outlined,
-                                                size: 14),
-                                            label: Text(
-                                              'Call: ${_selectedCustomHotel!['contact']}',
-                                              style:
-                                                  const TextStyle(fontSize: 12),
-                                            ),
-                                          ),
-                                      ],
-                                    ],
-                                  ),
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.green)),
+                                  const SizedBox(height: 4),
+                                  Text(_customDetails,
+                                      style: const TextStyle(fontSize: 14)),
                                 ],
                               ),
                             ),
@@ -824,56 +658,80 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
 
                         // Day-by-Day Itinerary
                         if (itinerary != null && itinerary.isNotEmpty) ...[
-                          const Text('Day-wise Plan',
+                          const Text('Day-wise Plan & Daily Weather',
                               style: TextStyle(
                                   fontSize: 18, fontWeight: FontWeight.bold)),
                           const SizedBox(height: 12),
                           ...itinerary.map((dayPlan) {
+                            final dayNum = dayPlan['day'] as int;
                             String description = dayPlan['description'];
-                            if (dayPlan['day'] == 1) {
+                            if (dayNum == 1) {
                               description =
                                   'Depart from $startCityDisplay via ${_getTransportToDest()}.\n\n$description';
                             }
 
+                            final actualDate = _calculateDate(_selectedDate, dayNum);
+                            final dateDisplay = actualDate.isNotEmpty ? ' ($actualDate)' : '';
+
+                            String weatherBadgeStr = '';
                             if (_weatherData != null) {
-                              final icons = [
-                                '☀️ Sunny',
-                                '⛅ Partly Cloudy',
-                                '☁️ Cloudy',
-                                '☀️ Clear'
-                              ];
-                              final weatherIcon =
-                                  icons[(dayPlan['day'] as int) % icons.length];
-                              description +=
-                                  '\n\n$weatherIcon | Forecast: ${_weatherData!['temperature']}°C';
+                              final icons = ['☀️ Sunny', '⛅ Partly Cloudy', '☁️ Clear', '🌦️ Light Rain'];
+                              final icon = icons[dayNum % icons.length];
+                              final temp = _weatherData!['temperature'];
+                              final desc = _weatherData!['description'].toString();
+                              weatherBadgeStr = '$icon • ${temp}°C (${desc.toUpperCase()})';
                             }
 
-                            final actualDate = _calculateDate(
-                                _selectedDate, dayPlan['day'] as int);
-                            final dateDisplay =
-                                actualDate.isNotEmpty ? ' ($actualDate)' : '';
-
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 8.0),
-                              child: ExpansionTile(
-                                tilePadding: EdgeInsets.zero,
-                                title: Text(
-                                  'Day ${dayPlan['day']}$dateDisplay: ${dayPlan['title']}',
-                                  style: const TextStyle(
-                                      fontWeight: FontWeight.bold),
+                            return Container(
+                              margin: const EdgeInsets.only(bottom: 12.0),
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.2),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5),
                                 ),
+                              ),
+                              child: ExpansionTile(
+                                initiallyExpanded: false,
+                                tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                                title: Text(
+                                  'Day $dayNum$dateDisplay: ${dayPlan['title']}',
+                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                ),
+                                subtitle: weatherBadgeStr.isNotEmpty
+                                    ? Padding(
+                                        padding: const EdgeInsets.only(top: 4.0),
+                                        child: Row(
+                                          children: [
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                              decoration: BoxDecoration(
+                                                color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.6),
+                                                borderRadius: BorderRadius.circular(8),
+                                              ),
+                                              child: Text(
+                                                weatherBadgeStr,
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      )
+                                    : null,
                                 children: [
-                                  Padding(
-                                    padding:
-                                        const EdgeInsets.only(bottom: 16.0),
+                                  Align(
+                                    alignment: Alignment.centerLeft,
                                     child: Text(
                                       description,
                                       style: TextStyle(
                                         height: 1.5,
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .onSurface
-                                            .withValues(alpha: 0.8),
+                                        fontSize: 14,
+                                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.85),
                                       ),
                                     ),
                                   ),
@@ -969,8 +827,12 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
                                   const SizedBox(width: 8),
                                   ElevatedButton(
                                     onPressed: () {
-                                      _showBookingSummaryModal(
-                                          finalPriceFormatted);
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                            content: Text(
+                                                'Booking flow initiated for $_selectedCategory...')),
+                                      );
                                     },
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor:
@@ -1002,250 +864,6 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
           ),
         ],
       ),
-    );
-  }
-
-  void _showBookingSummaryModal(String finalPriceFormatted) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) {
-        final theme = Theme.of(ctx);
-        final loc = widget.pkg['location'].toString();
-        final startCity =
-            _startingCity.trim().isEmpty ? 'Selected City' : _startingCity.trim();
-
-        return Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: theme.colorScheme.surface,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  margin: const EdgeInsets.only(bottom: 16),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.outlineVariant,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      'Ready to Book Your Journey',
-                      style: theme.textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.primaryContainer,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      _selectedCategory,
-                      style: TextStyle(
-                        color: theme.colorScheme.onPrimaryContainer,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Text(
-                '${widget.pkg['title']} • $loc',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'Route: $startCity ➔ $loc  |  Departure: ${_selectedDate ?? 'Flexible dates'}  |  Duration: ${widget.pkg['duration']}',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-              const SizedBox(height: 16),
-              const Divider(),
-              const SizedBox(height: 10),
-
-              // Direct connected portals
-              const Text(
-                'Direct Connected Portals for this Trip:',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-              ),
-              const SizedBox(height: 8),
-
-              // Train link
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1E3A8A).withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(Icons.train_rounded,
-                      color: Color(0xFF1E3A8A), size: 20),
-                ),
-                title: Text(
-                  _selectedCustomTransport != null &&
-                          _selectedCustomTransport!['airline'] == null
-                      ? _selectedCustomTransport!['name'].toString()
-                      : 'Official IRCTC Indian Railways Portal',
-                  style: const TextStyle(
-                      fontWeight: FontWeight.w600, fontSize: 13.5),
-                ),
-                subtitle: const Text(
-                    'Book e-Tickets, verify PNR & live berth availability on IRCTC',
-                    style: TextStyle(fontSize: 11.5)),
-                trailing: FilledButton.tonal(
-                  onPressed: () {
-                    final url =
-                        _selectedCustomTransport?['bookingUrl']?.toString() ??
-                            'https://www.irctc.co.in/nget/train-search';
-                    _openExternalUrl(url);
-                  },
-                  child: const Text('Open IRCTC ↗',
-                      style: TextStyle(fontSize: 12)),
-                ),
-              ),
-
-              // Flight link
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.primary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(Icons.flight_takeoff_rounded,
-                      color: theme.colorScheme.primary, size: 20),
-                ),
-                title: Text(
-                  _selectedCustomTransport != null &&
-                          _selectedCustomTransport!['airline'] != null
-                      ? _selectedCustomTransport!['name'].toString()
-                      : 'Live Flights Search (Google Flights / Airlines)',
-                  style: const TextStyle(
-                      fontWeight: FontWeight.w600, fontSize: 13.5),
-                ),
-                subtitle: const Text(
-                    'Book directly on Google Flights, MakeMyTrip or airline portal',
-                    style: TextStyle(fontSize: 11.5)),
-                trailing: FilledButton.tonal(
-                  onPressed: () {
-                    final url =
-                        _selectedCustomTransport?['bookingUrl']?.toString() ??
-                            'https://www.google.com/travel/flights?q=flights+from+${Uri.encodeComponent(startCity)}+to+${Uri.encodeComponent(loc)}';
-                    _openExternalUrl(url);
-                  },
-                  child: const Text('Book Flight ↗',
-                      style: TextStyle(fontSize: 12)),
-                ),
-              ),
-
-              // Hotel link
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF003580).withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(Icons.hotel_rounded,
-                      color: Color(0xFF003580), size: 20),
-                ),
-                title: Text(
-                  _selectedCustomHotel != null
-                      ? _selectedCustomHotel!['name'].toString()
-                      : 'Official Hotels & Verified Stays ($loc)',
-                  style: const TextStyle(
-                      fontWeight: FontWeight.w600, fontSize: 13.5),
-                ),
-                subtitle: const Text(
-                    'Direct instant booking via Booking.com & official hotel sites',
-                    style: TextStyle(fontSize: 11.5)),
-                trailing: FilledButton.tonal(
-                  onPressed: () {
-                    final url =
-                        _selectedCustomHotel?['bookingUrl']?.toString() ??
-                            'https://www.booking.com/searchresults.html?ss=${Uri.encodeComponent(loc)}';
-                    _openExternalUrl(url);
-                  },
-                  child: const Text('Book Hotel ↗',
-                      style: TextStyle(fontSize: 12)),
-                ),
-              ),
-
-              const SizedBox(height: 16),
-              const Divider(),
-              const SizedBox(height: 12),
-
-              Row(
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('Total Package Price',
-                          style: TextStyle(fontSize: 12, color: Colors.grey)),
-                      Text(
-                        finalPriceFormatted,
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w900,
-                          color: theme.colorScheme.primary,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const Spacer(),
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      Navigator.pop(ctx);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          backgroundColor: Colors.green.shade700,
-                          content: Text(
-                              '🎉 Trip confirmed! Confirmation for ${widget.pkg['title']} generated.'),
-                          duration: const Duration(seconds: 4),
-                        ),
-                      );
-                    },
-                    icon: const Icon(Icons.check_circle_outline_rounded),
-                    label: const Text('Confirm Package Booking'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: theme.colorScheme.primary,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        );
-      },
     );
   }
 }

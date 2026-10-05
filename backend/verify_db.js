@@ -1,9 +1,16 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+require('dotenv').config();
+const mongoose = require('mongoose');
+const Package = require('./models/Package');
 
 async function main() {
-  const packages = await prisma.package.findMany();
-  console.log("Total packages in DB:", packages.length);
+  const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/travelmaster';
+  await mongoose.connect(MONGODB_URI);
+  
+  const packages = await Package.find();
+  console.log("Total packages in MongoDB:", packages.length);
   console.log(packages);
 }
-main().finally(() => prisma.$disconnect());
+
+main()
+  .catch(console.error)
+  .finally(() => mongoose.disconnect());
