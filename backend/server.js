@@ -2093,8 +2093,8 @@ app.use((req, res, next) => {
   });
 });
 
-// Start Server (only if not running on Vercel)
-if (process.env.NODE_ENV !== 'production') {
+// Start Server (only when started directly, not when imported as Vercel Serverless Function)
+if (!process.env.VERCEL && require.main === module) {
   app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
   });

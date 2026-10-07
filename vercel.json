@@ -1,6 +1,7 @@
 {
   "outputDirectory": "frontend/build/web",
   "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
