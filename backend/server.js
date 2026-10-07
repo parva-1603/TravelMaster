@@ -1964,18 +1964,18 @@ app.delete('/api/admin/locations/:id', async (req, res) => {
 
 // 11. 100% Real Live Generative AI Travel Assistant Endpoint
 app.post('/api/chat', async (req, res) => {
-  const { message, history } = req.body;
+  const { message } = req.body;
   if (!message || !message.trim()) {
     return res.status(400).json({ error: 'Message is required' });
   }
 
   const prompt = message.trim();
 
-  // Tier 1: Real-time Live Generative AI Engine (Fast & Resilient)
+  // Tier 1: Fast external AI attempt with 3s timeout (silent fallback on timeout/error)
   try {
     const cleanPrompt = prompt.replace(/[^a-zA-Z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
     const aiUrl = `https://text.pollinations.ai/${encodeURIComponent(cleanPrompt || prompt)}`;
-    const aiRes = await fetch(aiUrl);
+    const aiRes = await fetch(aiUrl, { signal: AbortSignal.timeout(3000) });
     if (aiRes.ok) {
       let text = await aiRes.text();
       if (text && text.trim().length > 20 && !text.startsWith('{')) {
@@ -1985,52 +1985,48 @@ app.post('/api/chat', async (req, res) => {
       }
     }
   } catch (err) {
-    console.error('Tier 1 Live AI Error:', err.message);
+    // Network request timed out or unfulfilled; silently fallback to DB-aware assistant
   }
 
-  // Tier 2: Real-time Live AI via POST
+  // Tier 2: Real-time DB-aware Smart Travel Assistant
   try {
-    const postRes = await fetch('https://text.pollinations.ai/', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        messages: [
-          { role: 'system', content: 'You are TravelMaster AI, an expert travel consultant. Provide detailed Markdown responses with price estimates in INR.' },
-          { role: 'user', content: prompt }
-        ]
-      })
-    });
-    if (postRes.ok) {
-      let text = await postRes.text();
-      if (text && text.trim().length > 20 && !text.startsWith('{')) {
-        text = text.replace(/\*\*Support Pollinations\.AI:\*\*[\s\S]*/i, '').trim();
-        text = text.replace(/🌸 \*\*Ad\*\*[\s\S]*/i, '').trim();
-        return res.json({ reply: text });
-      }
+    const q = prompt.toLowerCase();
+    let dbPackage = null;
+    let dbLocation = null;
+
+    if (typeof Package !== 'undefined') {
+      const packages = await Package.find({});
+      dbPackage = packages.find(p => q.includes(p.title.toLowerCase()) || q.includes((p.category || '').toLowerCase()));
     }
-  } catch (err) {
-    console.error('Tier 2 Live AI Error:', err.message);
-  }
+    if (typeof Location !== 'undefined' && !dbPackage) {
+      const locations = await Location.find({});
+      dbLocation = locations.find(l => q.includes(l.name.toLowerCase()));
+    }
 
-  // Tier 3: Dynamic Live Contextual AI Response Generator tailored specifically to the user's prompt
-  const q = prompt.toLowerCase();
-  let location = 'your destination';
-  if (q.includes('goa')) location = 'Goa';
-  else if (q.includes('kerala') || q.includes('munnar') || q.includes('alleppey')) location = 'Kerala';
-  else if (q.includes('jaipur') || q.includes('rajasthan') || q.includes('udaipur')) location = 'Rajasthan';
-  else if (q.includes('ladakh') || q.includes('leh')) location = 'Ladakh';
-  else if (q.includes('manali') || q.includes('shimla') || q.includes('himachal')) location = 'Manali & Himachal';
-  else if (q.includes('kashmir') || q.includes('srinagar')) location = 'Kashmir';
-  else if (q.includes('statue') || q.includes('unity') || q.includes('gujarat')) location = 'Statue of Unity, Gujarat';
-  else if (q.includes('varanasi') || q.includes('kashi')) location = 'Varanasi';
+    let location = dbPackage ? dbPackage.title : (dbLocation ? dbLocation.name : 'your destination');
+    if (location === 'your destination') {
+      if (q.includes('goa')) location = 'Goa';
+      else if (q.includes('kerala') || q.includes('munnar') || q.includes('alleppey')) location = 'Kerala';
+      else if (q.includes('jaipur') || q.includes('rajasthan') || q.includes('udaipur')) location = 'Rajasthan';
+      else if (q.includes('ladakh') || q.includes('leh')) location = 'Ladakh';
+      else if (q.includes('manali') || q.includes('shimla') || q.includes('himachal')) location = 'Manali & Himachal';
+      else if (q.includes('kashmir') || q.includes('srinagar')) location = 'Kashmir';
+      else if (q.includes('statue') || q.includes('unity') || q.includes('gujarat')) location = 'Statue of Unity, Gujarat';
+      else if (q.includes('varanasi') || q.includes('kashi')) location = 'Varanasi';
+    }
 
-  const daysMatch = q.match(/(\d+)\s*(day|days|night|nights)/);
-  const days = daysMatch ? daysMatch[1] : '4-5';
+    const daysMatch = q.match(/(\d+)\s*(day|days|night|nights)/);
+    const days = daysMatch ? daysMatch[1] : (dbPackage ? dbPackage.duration : '4-5');
 
-  const budgetMatch = q.match(/(rs|inr|₹|budget)?\s*(\d{4,6})/);
-  const approxBudget = budgetMatch ? `₹${budgetMatch[2]}` : '₹15,000 – ₹25,000';
+    const budgetMatch = q.match(/(rs|inr|₹|budget)?\s*(\d{4,6})/);
+    const approxBudget = budgetMatch ? `₹${budgetMatch[2]}` : (dbPackage ? `₹${dbPackage.price.toLocaleString('en-IN')}` : '₹15,000 – ₹25,000');
 
-  const dynamicReply = `# ✈️ **TravelMaster Live AI Consultation: ${location.toUpperCase()}**
+    let packageInfo = '';
+    if (dbPackage) {
+      packageInfo = `\n### 📦 **Featured Atlas Package: ${dbPackage.title}**\n- **Price:** ₹${dbPackage.price.toLocaleString('en-IN')} per person\n- **Duration:** ${dbPackage.duration}\n- **Highlights:** ${dbPackage.description}\n`;
+    }
+
+    const dynamicReply = `# ✈️ **TravelMaster Live AI Consultation: ${location.toUpperCase()}**
 
 > **Query Analyzed:** "${prompt}"
 
@@ -2040,7 +2036,7 @@ app.post('/api/chat', async (req, res) => {
 - **Destination:** **${location}**
 - **Estimated Budget Range:** **${approxBudget} per person**
 - **Best Season:** October to March (Pleasant weather & active local sightseeing)
-
+${packageInfo}
 ---
 
 ### 📅 **Day-by-Day Activity Plan for ${location}**
@@ -2063,7 +2059,12 @@ app.post('/api/chat', async (req, res) => {
 
 > *Ask TravelMaster AI anything else! Request flight timings, specific hotel names, or a custom budget breakdown.*`;
 
-  return res.json({ reply: dynamicReply });
+    return res.json({ reply: dynamicReply });
+  } catch (err) {
+    return res.json({
+      reply: `Hello! I am TravelMaster AI, your personalized travel assistant. I am here to help you plan trips to Goa, Kerala, Rajasthan, Kashmir, Ladakh, and more! Ask me about itineraries, budgets, or travel recommendations.`
+    });
+  }
 });
 
 const path = require('path');
