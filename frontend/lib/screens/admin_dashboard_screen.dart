@@ -98,7 +98,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
       final res = await http.get(Uri.parse('http://localhost:5000/api/admin/bookings'));
       if (res.statusCode == 200) {
         final data = json.decode(res.body) as List;
-        _bookings = data.cast<Map<String, dynamic>>();
+        if (mounted) {
+          setState(() {
+            _bookings = data.cast<Map<String, dynamic>>();
+            _totalBookings = _bookings.length;
+          });
+        }
       }
     } catch (e) {
       debugPrint('Error fetching bookings: $e');
@@ -110,7 +115,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
       final res = await http.get(Uri.parse('http://localhost:5000/api/admin/packages'));
       if (res.statusCode == 200) {
         final data = json.decode(res.body) as List;
-        _packages = data.cast<Map<String, dynamic>>();
+        if (mounted) {
+          setState(() {
+            _packages = data.cast<Map<String, dynamic>>();
+            _totalPackagesCount = _packages.length;
+          });
+        }
       }
     } catch (e) {
       debugPrint('Error fetching admin packages: $e');
@@ -122,7 +132,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
       final res = await http.get(Uri.parse('http://localhost:5000/api/admin/locations'));
       if (res.statusCode == 200) {
         final data = json.decode(res.body) as List;
-        _locations = data.cast<Map<String, dynamic>>();
+        if (mounted) {
+          setState(() {
+            _locations = data.cast<Map<String, dynamic>>();
+            _totalLocationsCount = _locations.length;
+          });
+        }
       }
     } catch (e) {
       debugPrint('Error fetching admin locations: $e');
@@ -822,7 +837,19 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                                 children: [
                                   Text('📅 Travel Date: ${b['travelDate'] ?? 'N/A'}'),
                                   const SizedBox(height: 4),
-                                  Text('🏷️ Category: ${b['category'] ?? 'Standard'}'),
+                                  Row(
+                                      children: [
+                                        const Text('🏷️ Category: '),
+                                        if ((b['category'] == 'Customized') || ((b['customDetails'] ?? '').toString().trim().isNotEmpty) || (b['selectedTransport'] is Map && (b['selectedTransport'] as Map).isNotEmpty) || (b['selectedHotel'] is Map && (b['selectedHotel'] as Map).isNotEmpty))
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                            decoration: BoxDecoration(color: Colors.purple.shade700, borderRadius: BorderRadius.circular(6)),
+                                            child: const Text('✨ Customized Plan', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+                                          )
+                                        else
+                                          Text(b['category'] ?? 'Standard', style: const TextStyle(fontWeight: FontWeight.bold)),
+                                      ],
+                                    ),
                                   Text('💳 Amount Paid: ₹${b['amount'] ?? 25000}', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF10B981))),
                                 ],
                               ),
@@ -873,11 +900,107 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
     );
   }
 
-  void _downloadAadharCard(String? fileUrl, String travelerName) {
+  void _downloadAadharCard(String? fileUrl, String travelerName, {String? fileName}) {
+    final name = (fileName != null && fileName.trim().isNotEmpty) ? fileName : '${travelerName.replaceAll(" ", "_")}_Aadhar.jpg';
     final url = (fileUrl != null && fileUrl.trim().isNotEmpty)
         ? fileUrl.trim()
         : 'https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=600&q=80';
-    html.window.open(url, '_blank');
+
+    try {
+      final anchor = html.AnchorElement(href: url)
+        ..target = '_blank'
+        ..download = name;
+      html.document.body?.children.add(anchor);
+      anchor.click();
+      anchor.remove();
+    } catch (_) {
+      html.window.open(url, '_blank');
+    }
+  }
+
+  void _viewAadharDocument(String? fileUrl, String travelerName) {
+    final url = (fileUrl != null && fileUrl.trim().isNotEmpty)
+        ? fileUrl.trim()
+        : 'https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=600&q=80';
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            const Icon(Icons.badge_rounded, color: Colors.teal),
+            const SizedBox(width: 8),
+            Expanded(child: Text('Identity Proof: $travelerName', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold))),
+          ],
+        ),
+        content: SizedBox(
+          width: 550,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (url.contains('application/pdf') || url.endsWith('.pdf'))
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: Colors.blueGrey.shade900,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      children: [
+                        const Icon(Icons.picture_as_pdf_rounded, color: Colors.redAccent, size: 64),
+                        const SizedBox(height: 12),
+                        const Text('PDF Aadhar Document Uploaded', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 12),
+                        ElevatedButton.icon(
+                          icon: const Icon(Icons.open_in_new),
+                          label: const Text('Open PDF in Browser'),
+                          style: ElevatedButton.styleFrom(backgroundColor: Colors.teal, foregroundColor: Colors.white),
+                          onPressed: () => html.window.open(url, '_blank'),
+                        ),
+                      ],
+                    ),
+                  )
+                else
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.network(
+                      url,
+                      fit: BoxFit.contain,
+                      errorBuilder: (ctx, err, stack) => Container(
+                        height: 250,
+                        color: Colors.grey.shade200,
+                        child: const Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.badge_outlined, size: 48, color: Colors.grey),
+                              SizedBox(height: 8),
+                              Text('Document Photo Preview'),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          ElevatedButton.icon(
+            icon: const Icon(Icons.download_rounded, size: 16),
+            label: const Text('Download Document'),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.teal.shade700, foregroundColor: Colors.white),
+            onPressed: () => _downloadAadharCard(url, travelerName),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showFullBookingDetailsModal(Map<String, dynamic> b) {
@@ -920,7 +1043,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Package: ${b['packageName'] ?? 'N/A'} (${b['category'] ?? 'Standard'})',
+                          Text('Package: ${b['packageName'] ?? 'N/A'} ' + (((b['category'] == 'Customized') || ((b['customDetails'] ?? '').toString().trim().isNotEmpty) || (b['selectedTransport'] is Map && (b['selectedTransport'] as Map).isNotEmpty) || (b['selectedHotel'] is Map && (b['selectedHotel'] as Map).isNotEmpty)) ? '(✨ Customized Plan)' : '(${b['category'] ?? 'Standard'})'),
                               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
                           const SizedBox(height: 6),
                           Text('Customer Name: ${b['customerName'] ?? 'Valued Traveler'}'),
@@ -1129,21 +1252,40 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                         final tAadhar = t['aadharNo'] ?? 'N/A';
                         final fileUrl = t['aadharFile'] ?? '';
 
+                        final fName = t['aadharFileName'] ?? '';
                         return Card(
                           margin: const EdgeInsets.only(bottom: 8),
                           child: ListTile(
-                            leading: const CircleAvatar(child: Icon(Icons.person)),
-                            title: Text('$tName ($tAge Y, $tGender)'),
-                            subtitle: Text('Aadhar No: $tAadhar'),
-                            trailing: ElevatedButton.icon(
-                              icon: const Icon(Icons.download_rounded, size: 16),
-                              label: const Text('Download Doc'),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.teal.shade700,
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                              ),
-                              onPressed: () => _downloadAadharCard(fileUrl.toString(), tName.toString()),
+                            leading: CircleAvatar(
+                              backgroundColor: Colors.teal.shade100,
+                              child: Text(tName.isNotEmpty ? tName[0].toUpperCase() : 'T', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.teal.shade900)),
+                            ),
+                            title: Text('$tName ($tAge Y, $tGender)', style: const TextStyle(fontWeight: FontWeight.bold)),
+                            subtitle: Text('Aadhar No: ${tAadhar.toString().isEmpty ? 'N/A' : tAadhar}'),
+                            trailing: Wrap(
+                              spacing: 8,
+                              children: [
+                                ElevatedButton.icon(
+                                  icon: const Icon(Icons.visibility_rounded, size: 15),
+                                  label: const Text('View Doc', style: TextStyle(fontSize: 11)),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.blue.shade700,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  ),
+                                  onPressed: () => _viewAadharDocument(fileUrl.toString(), tName.toString()),
+                                ),
+                                ElevatedButton.icon(
+                                  icon: const Icon(Icons.download_rounded, size: 15),
+                                  label: const Text('Download', style: TextStyle(fontSize: 11)),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.teal.shade700,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  ),
+                                  onPressed: () => _downloadAadharCard(fileUrl.toString(), tName.toString(), fileName: fName.toString()),
+                                ),
+                              ],
                             ),
                           ),
                         );

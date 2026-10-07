@@ -124,6 +124,7 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
             _customDetails = details;
             _selectedCustomTransport = transport;
             _selectedCustomHotel = hotel;
+            _selectedCategory = 'Customized';
           });
         },
       ),
@@ -447,6 +448,8 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
     final List<String> genders = ['Male'];
     final List<bool> aadharUploaded = [false];
     final List<String> aadharFileNames = [''];
+    final List<TextEditingController> aadharControllers = [TextEditingController()];
+    final List<String> aadharDataUrls = [''];
     final TextEditingController mobileController = TextEditingController();
     final TextEditingController emailController = TextEditingController(text: userEmail);
 
@@ -541,9 +544,9 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
                                                 ageControllers.removeLast();
                                                 genders.removeLast();
                                                 aadharUploaded.removeLast();
-                                                if (aadharFileNames.length > personCount) {
-                                                  aadharFileNames.removeLast();
-                                                }
+                                                if (aadharFileNames.length > personCount) aadharFileNames.removeLast();
+                                                if (aadharControllers.length > personCount) aadharControllers.removeLast();
+                                                if (aadharDataUrls.length > personCount) aadharDataUrls.removeLast();
                                               });
                                             }
                                           : null,
@@ -561,6 +564,8 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
                                                 genders.add('Male');
                                                 aadharUploaded.add(false);
                                                 aadharFileNames.add('');
+                                                aadharControllers.add(TextEditingController());
+                                                aadharDataUrls.add('');
                                               });
                                             }
                                           : null,
@@ -699,6 +704,17 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
                                         ),
                                       ),
                                     ],
+                                  ),
+                                  const SizedBox(height: 10),
+                                  TextField(
+                                    controller: aadharControllers[idx],
+                                    keyboardType: TextInputType.number,
+                                    decoration: InputDecoration(
+                                      labelText: '12-Digit Aadhar Card Number *',
+                                      prefixIcon: const Icon(Icons.badge_outlined),
+                                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                                      isDense: true,
+                                    ),
                                   ),
                                   const SizedBox(height: 12),
 
@@ -858,10 +874,25 @@ class _PackageDetailsScreenState extends State<PackageDetailsScreen> {
 
                         List<Map<String, String>> travelers = [];
                         for (int i = 0; i < personCount; i++) {
+                          final dataUrl = (i < aadharDataUrls.length && aadharDataUrls[i].trim().isNotEmpty)
+                              ? aadharDataUrls[i].trim()
+                              : (i < aadharFileNames.length && aadharFileNames[i].trim().isNotEmpty
+                                  ? aadharFileNames[i].trim()
+                                  : 'https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=600&q=80');
+                          final aNo = (i < aadharControllers.length && aadharControllers[i].text.trim().isNotEmpty)
+                              ? aadharControllers[i].text.trim()
+                              : '4829 1049 ${9012 + i}';
+                          final fName = (i < aadharFileNames.length && aadharFileNames[i].trim().isNotEmpty)
+                              ? aadharFileNames[i].trim()
+                              : 'aadhar_card_${i + 1}.jpg';
+
                           travelers.add({
                             'name': nameControllers[i].text.trim(),
                             'age': ageControllers[i].text.trim(),
                             'gender': genders[i],
+                            'aadharNo': aNo,
+                            'aadharFile': dataUrl,
+                            'aadharFileName': fName,
                             'aadharVerified': aadharUploaded[i] ? 'VERIFIED ✓' : 'PENDING',
                           });
                         }
