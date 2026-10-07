@@ -6,4 +6,5 @@ misc/
 .env*
 local.properties
 **/local.properties
+.gemini/
 

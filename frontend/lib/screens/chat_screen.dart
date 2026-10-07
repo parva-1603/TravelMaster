@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:google_generative_ai/google_generative_ai.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:http/http.dart' as http;
 import '../widgets/live_background.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -14,28 +16,14 @@ class _ChatScreenState extends State<ChatScreen> {
   final List<Map<String, String>> _messages = [];
   bool _isLoading = false;
 
-  late final GenerativeModel _model;
-  late final ChatSession _chat;
-
   @override
   void initState() {
     super.initState();
-    // Initialize the Gemini model with specific instructions for TravelMaster
-    const apiKey = 'AQ.Ab8RN6I'
-        '6N7k82u2oChtG9albAKk571nznN0rNg0suXikVEAvQQ'; // Obfuscated to bypass GitHub block
-    _model = GenerativeModel(
-      model: 'gemini-3.8-flash',
-      apiKey: apiKey,
-      systemInstruction: Content.system(
-          'You are TravelMaster AI, an expert travel assistant. Suggest destinations, plan itineraries, and if asked about hotels in a city (like Jaipur, Kerala, Ladakh, Goa), you must suggest some top hotels with their approximate prices, contact details, and rules (e.g., Luxury Resort, Budget Inn, Boutique Stay). Do not refuse to suggest hotels.'),
-    );
-    _chat = _model.startChat();
-
-    // Add a welcome message
+    // Welcome message
     _messages.add({
       'sender': 'bot',
       'text':
-          'Hello! I am your TravelMaster AI assistant. How can I help you plan your trip today?'
+          'Hello! 👋 I am your **TravelMaster AI assistant** powered by live Generative AI.\n\nHow can I help you plan your travel today? Ask me anything about destinations, itineraries, flight/train routes, or hotel recommendations!'
     });
   }
 
@@ -55,25 +43,59 @@ class _ChatScreenState extends State<ChatScreen> {
     });
     _controller.clear();
 
-    try {
-      final response = await _chat.sendMessage(Content.text(text));
-      final responseText = response.text;
-      if (mounted && responseText != null) {
-        setState(() {
-          _messages.add({'sender': 'bot', 'text': responseText});
-        });
+    final endpoints = <String>[
+      'http://localhost:5000/api/chat',
+      'http://127.0.0.1:5000/api/chat',
+      if (Uri.base.scheme.startsWith('http')) '${Uri.base.origin}/api/chat',
+    ].toSet().toList();
+
+    http.Response? res;
+    for (final urlStr in endpoints) {
+      try {
+        final response = await http.post(
+          Uri.parse(urlStr),
+          headers: {'Content-Type': 'application/json'},
+          body: json.encode({
+            'message': text,
+            'history': _messages,
+          }),
+        ).timeout(const Duration(seconds: 25));
+
+        if (response.statusCode == 200) {
+          res = response;
+          break;
+        }
+      } catch (e) {
+        debugPrint('Failed connecting to AI endpoint $urlStr: $e');
       }
-    } catch (e) {
-      if (!mounted) return;
+    }
+
+    if (res != null && res.statusCode == 200) {
+      try {
+        final data = json.decode(res.body);
+        if (data['reply'] != null && data['reply'].toString().trim().isNotEmpty) {
+          if (mounted) {
+            setState(() {
+              _messages.add({'sender': 'bot', 'text': data['reply'].toString().trim()});
+              _isLoading = false;
+            });
+            return;
+          }
+        }
+      } catch (e) {
+        debugPrint('JSON parse error: $e');
+      }
+    }
+
+    if (mounted) {
       setState(() {
         _messages.add({
           'sender': 'bot',
-          'text': 'Sorry, I encountered an error. Please try again later.'
+          'text':
+              '⚠️ Unable to connect to the live AI service. Please check your internet connection and try again.'
         });
+        _isLoading = false;
       });
-      debugPrint('Error from Gemini: $e');
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -93,7 +115,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 color: colors.primary,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Icon(Icons.explore_rounded,
+              child: const Icon(Icons.auto_awesome_rounded,
                   color: Colors.white, size: 21),
             ),
             const SizedBox(width: 10),
@@ -102,7 +124,7 @@ class _ChatScreenState extends State<ChatScreen> {
               children: [
                 const Text('Travel guide'),
                 Text(
-                  'Here for the details',
+                  '100% Live AI Assistant',
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
                         color: colors.onSurfaceVariant,
                       ),
@@ -127,33 +149,86 @@ class _ChatScreenState extends State<ChatScreen> {
                         isUser ? Alignment.centerRight : Alignment.centerLeft,
                     child: ConstrainedBox(
                       constraints: BoxConstraints(
-                        maxWidth: MediaQuery.sizeOf(context).width * 0.78,
+                        maxWidth: MediaQuery.sizeOf(context).width * 0.82,
                       ),
                       child: Container(
                         margin: const EdgeInsets.only(bottom: 14),
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 13),
+                            horizontal: 16, vertical: 14),
                         decoration: BoxDecoration(
                           color: isUser ? colors.primary : colors.surface,
-                          borderRadius: BorderRadius.circular(15).copyWith(
+                          borderRadius: BorderRadius.circular(16).copyWith(
                             bottomRight:
                                 isUser ? const Radius.circular(4) : null,
                             bottomLeft:
                                 !isUser ? const Radius.circular(4) : null,
                           ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.05),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
                           border: isUser
                               ? null
                               : Border.all(
                                   color: colors.outlineVariant
                                       .withValues(alpha: 0.65)),
                         ),
-                        child: Text(
-                          message['text'] ?? '',
-                          style: TextStyle(
-                            height: 1.45,
-                            color: isUser ? colors.onPrimary : colors.onSurface,
-                          ),
-                        ),
+                        child: isUser
+                            ? Text(
+                                message['text'] ?? '',
+                                style: TextStyle(
+                                  height: 1.45,
+                                  color: colors.onPrimary,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              )
+                            : MarkdownBody(
+                                data: message['text'] ?? '',
+                                selectable: true,
+                                styleSheet: MarkdownStyleSheet(
+                                  p: TextStyle(
+                                      height: 1.5,
+                                      color: colors.onSurface,
+                                      fontSize: 15),
+                                  h1: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: colors.onSurface,
+                                      fontSize: 20),
+                                  h2: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: colors.onSurface,
+                                      fontSize: 18),
+                                  h3: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: colors.primary,
+                                      fontSize: 16),
+                                  h4: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: colors.onSurface,
+                                      fontSize: 15),
+                                  strong: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: colors.onSurface),
+                                  tableBody: TextStyle(
+                                      color: colors.onSurface, fontSize: 14),
+                                  tableHead: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: colors.primary,
+                                      fontSize: 14),
+                                  tableBorder: TableBorder.all(
+                                      color: colors.outlineVariant, width: 1),
+                                  listBullet: TextStyle(
+                                      color: colors.primary, fontSize: 16),
+                                  code: TextStyle(
+                                      backgroundColor:
+                                          colors.surfaceContainerHighest,
+                                      fontFamily: 'monospace'),
+                                ),
+                              ),
                       ),
                     ),
                   );
@@ -174,7 +249,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       ),
                     ),
                     const SizedBox(width: 10),
-                    Text('Putting a few ideas together',
+                    Text('Live AI is thinking...',
                         style: Theme.of(context).textTheme.bodySmall),
                   ],
                 ),

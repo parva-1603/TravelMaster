@@ -5,7 +5,8 @@ import 'package:http/http.dart' as http;
 class CustomizePackageSheet extends StatefulWidget {
   final Map<String, dynamic> pkg;
   final String startingCity;
-  final Function(int additionalPrice, String details) onCustomizationComplete;
+  final Function(int additionalPrice, String details,
+      {Map<String, dynamic>? transport, Map<String, dynamic>? hotel}) onCustomizationComplete;
 
   const CustomizePackageSheet({
     super.key,
@@ -30,11 +31,19 @@ class _CustomizePackageSheetState extends State<CustomizePackageSheet> {
   Map<String, dynamic>? _selectedTransport;
   Map<String, dynamic>? _selectedHotel;
 
+  String _getStartingHub(String location) {
+    final loc = location.toLowerCase();
+    final ahmedabadDestinations = [
+      'rajasthan', 'jaipur', 'udaipur', 'jaisalmer', 'jodhpur', 'mount abu', 'pushkar',
+      'mumbai', 'pune', 'maharashtra', 'goa', 'gujarat', 'ahmedabad', 'surat', 'kutch', 'rajkot', 'dwarka', 'somnath', 'gir'
+    ];
+    return ahmedabadDestinations.any((d) => loc.contains(d)) ? 'Ahmedabad' : 'Delhi';
+  }
+
   @override
   void initState() {
     super.initState();
-    _fromController.text =
-        widget.startingCity.isEmpty ? 'Delhi' : widget.startingCity;
+    _fromController.text = _getStartingHub(widget.pkg['location'].toString());
     _fetchOptions();
   }
 
@@ -78,8 +87,30 @@ class _CustomizePackageSheetState extends State<CustomizePackageSheet> {
     int tPrice = _selectedTransport!['price'] as int;
     int hPrice = _selectedHotel!['price'] as int;
 
-    widget.onCustomizationComplete(tPrice + hPrice,
-        'Transport: ${_selectedTransport!['name']} | Hotel: ${_selectedHotel!['name']}');
+    // Build structured maps for admin tracking
+    final transportData = <String, dynamic>{
+      'name': _selectedTransport!['name'] ?? '',
+      'mode': _transportMode,          // 'flight' or 'train'
+      'classType': _transportClass,
+      'departure': _selectedTransport!['departure'] ?? '',
+      'arrival': _selectedTransport!['arrival'] ?? '',
+      'price': tPrice,
+    };
+    final hotelData = <String, dynamic>{
+      'name': _selectedHotel!['name'] ?? '',
+      'type': _accommodationType,       // 'Hotel' or 'Resort'
+      'rating': (_selectedHotel!['rating'] ?? '').toString(),
+      'price': hPrice,
+      'contact': _selectedHotel!['contact'] ?? '',
+    };
+
+    widget.onCustomizationComplete(
+      tPrice + hPrice,
+      'Transport: ${_selectedTransport!['name']} (${_transportMode.toUpperCase()} - $_transportClass) | '
+      '${_accommodationType}: ${_selectedHotel!['name']} (⭐ ${_selectedHotel!['rating']})',
+      transport: transportData,
+      hotel: hotelData,
+    );
     Navigator.pop(context);
   }
 
@@ -114,14 +145,45 @@ class _CustomizePackageSheetState extends State<CustomizePackageSheet> {
           ),
           const SizedBox(height: 16),
 
-          // Cities
+          // Centered Starting Point Hub Badge
+          Center(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.6),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.4),
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.location_on, size: 18, color: Theme.of(context).colorScheme.primary),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Trip Starting Point: ${_getStartingHub(widget.pkg['location'].toString())}',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Cities with Centered Text Alignment
           Row(
             children: [
               Expanded(
                 child: TextField(
                   controller: _fromController,
+                  textAlign: TextAlign.center,
                   decoration: const InputDecoration(
-                    labelText: 'Leaving From',
+                    labelText: 'Leaving From (Starting Point)',
                     prefixIcon: Icon(Icons.flight_takeoff),
                     border: OutlineInputBorder(),
                   ),
@@ -135,6 +197,7 @@ class _CustomizePackageSheetState extends State<CustomizePackageSheet> {
               Expanded(
                 child: TextField(
                   readOnly: true,
+                  textAlign: TextAlign.center,
                   controller: TextEditingController(
                       text: widget.pkg['location'].toString().split(',').first),
                   decoration: const InputDecoration(

@@ -30,34 +30,67 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _submit() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter both email and password.')),
+      );
+      return;
+    }
+
     setState(() => _isLoading = true);
+
+    // Admin Credentials Special Check
+    if (email == '24ceuoz014@ddu.ac.in' && password == 'Parva@1603') {
+      try {
+        await FirebaseAuth.instance.signInWithEmailAndPassword(
+          email: email,
+          password: password,
+        );
+      } catch (_) {
+        try {
+          await FirebaseAuth.instance.createUserWithEmailAndPassword(
+            email: email,
+            password: password,
+          );
+        } catch (_) {}
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Welcome Super Admin! Access granted.')),
+        );
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => HomeScreen(onThemeToggle: widget.onThemeToggle),
+          ),
+        );
+        return;
+      }
+    }
+
     try {
       if (_isLogin) {
         await FirebaseAuth.instance.signInWithEmailAndPassword(
-          email: _emailController.text.trim(),
-          password: _passwordController.text,
+          email: email,
+          password: password,
         );
-        if (mounted) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-                builder: (_) =>
-                    HomeScreen(onThemeToggle: widget.onThemeToggle)),
-          );
-        }
       } else {
         await FirebaseAuth.instance.createUserWithEmailAndPassword(
-          email: _emailController.text.trim(),
-          password: _passwordController.text,
+          email: email,
+          password: password,
         );
-        if (mounted) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-                builder: (_) =>
-                    HomeScreen(onThemeToggle: widget.onThemeToggle)),
-          );
-        }
+      }
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => HomeScreen(onThemeToggle: widget.onThemeToggle),
+          ),
+        );
       }
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
@@ -333,6 +366,30 @@ class _LoginScreenState extends State<LoginScreen> {
             onPressed: _isLoading ? null : _googleSignIn,
             icon: Image.asset('assets/images/google_logo.png', height: 19),
             label: const Text('Continue with Google'),
+          ),
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          width: double.infinity,
+          height: 48,
+          child: TextButton.icon(
+            onPressed: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => HomeScreen(onThemeToggle: widget.onThemeToggle),
+                ),
+              );
+            },
+            icon: const Icon(Icons.explore_rounded, color: Colors.deepOrange, size: 20),
+            label: const Text(
+              'Explore Packages as Guest →',
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.bold,
+                color: Colors.deepOrange,
+              ),
+            ),
           ),
         ),
         const SizedBox(height: 16),

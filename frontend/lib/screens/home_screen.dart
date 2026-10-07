@@ -5,7 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:http/http.dart' as http;
 
+import '../widgets/auto_slideshow_image.dart';
 import '../widgets/live_background.dart';
+import 'about_us_screen.dart';
+import 'admin_dashboard_screen.dart';
 import 'chat_screen.dart';
 import 'login_screen.dart';
 import 'package_details_screen.dart';
@@ -86,6 +89,87 @@ class _HomeScreenState extends State<HomeScreen> {
     return [];
   }
 
+  void _openAdminPortal(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
+    final currentEmail = user?.email?.toLowerCase().trim() ?? '';
+    
+    if (user != null && currentEmail == '24ceuoz014@ddu.ac.in') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const AdminDashboardScreen()),
+      );
+      return;
+    }
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.gpp_maybe_rounded, color: Colors.redAccent, size: 28),
+            SizedBox(width: 8),
+            Text('Admin Access Restricted'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'The Admin Panel is not available to everyone. It is strictly accessible only when logged in with the official admin account:',
+              style: TextStyle(fontSize: 14),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: Colors.deepOrange.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.deepOrange.withValues(alpha: 0.3)),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.verified_user_rounded, color: Colors.deepOrange, size: 20),
+                  SizedBox(width: 8),
+                  Text(
+                    '24ceuoz014@ddu.ac.in',
+                    style: TextStyle(fontWeight: FontWeight.bold, color: Colors.deepOrange, fontSize: 14),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 14),
+            Text(
+              user == null
+                  ? 'You are currently not logged in. Please log in with 24ceuoz014@ddu.ac.in via Email or Google Sign-In.'
+                  : 'Currently logged in as: ${user.email ?? "Unknown"}. This account does not have admin permissions.',
+              style: const TextStyle(fontSize: 13, color: Colors.grey),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Close'),
+          ),
+          FilledButton.icon(
+            onPressed: () {
+              Navigator.pop(ctx);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => LoginScreen(onThemeToggle: widget.onThemeToggle),
+                ),
+              );
+            },
+            icon: const Icon(Icons.login_rounded, size: 16),
+            label: Text(user == null ? 'Log In Now' : 'Switch Account'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _logout() async {
     await FirebaseAuth.instance.signOut();
     if (!mounted) return;
@@ -158,6 +242,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildHeader(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final currentUser = FirebaseAuth.instance.currentUser;
+    final isAdminUser = currentUser != null &&
+        currentUser.email?.toLowerCase().trim() == '24ceuoz014@ddu.ac.in';
+
     return Row(
       children: [
         Container(
@@ -195,25 +283,86 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         const Spacer(),
+        if (isAdminUser) ...[
+          FilledButton.tonalIcon(
+            onPressed: () => _openAdminPortal(context),
+            icon: const Icon(Icons.admin_panel_settings_rounded, size: 18),
+            label: const Text('Admin Portal', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+          const SizedBox(width: 8),
+        ],
+        TextButton.icon(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => AboutUsScreen(onThemeToggle: widget.onThemeToggle),
+              ),
+            );
+          },
+          icon: const Icon(Icons.info_outline_rounded, size: 18),
+          label: const Text('About Us', style: TextStyle(fontWeight: FontWeight.bold)),
+        ),
+        const SizedBox(width: 4),
         IconButton(
           tooltip: isDark ? 'Switch to light theme' : 'Switch to dark theme',
           onPressed: widget.onThemeToggle,
           icon: Icon(
               isDark ? Icons.light_mode_outlined : Icons.dark_mode_outlined),
         ),
-        IconButton(
-          tooltip: 'Sign out',
-          onPressed: _logout,
-          icon: const Icon(Icons.logout_rounded),
-        ),
+        if (FirebaseAuth.instance.currentUser != null)
+          IconButton(
+            tooltip: 'Sign out',
+            onPressed: _logout,
+            icon: const Icon(Icons.logout_rounded),
+          )
+        else
+          ElevatedButton.icon(
+            onPressed: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => LoginScreen(onThemeToggle: widget.onThemeToggle),
+                ),
+              );
+            },
+            icon: const Icon(Icons.login_rounded, size: 16),
+            label: const Text('Log In'),
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            ),
+          ),
       ],
     ).animate().fadeIn(duration: 450.ms).slideY(begin: -0.08);
   }
 
   Widget _buildHero({required bool wide}) {
-    final image = _allPackages.isNotEmpty
-        ? (_allPackages.first['image'] ?? '').toString()
-        : 'https://images.unsplash.com/photo-1530789253388-582c481c54b0?auto=format&fit=crop&w=1800&q=85';
+    List<String> heroImages = [];
+    for (final pkg in _allPackages) {
+      if (pkg['images'] is List && (pkg['images'] as List).isNotEmpty) {
+        for (final img in (pkg['images'] as List)) {
+          final s = img.toString();
+          if (s.isNotEmpty && !heroImages.contains(s)) {
+            heroImages.add(s);
+          }
+        }
+      } else if (pkg['image'] != null && pkg['image'].toString().isNotEmpty) {
+        final s = pkg['image'].toString();
+        if (!heroImages.contains(s)) {
+          heroImages.add(s);
+        }
+      }
+    }
+
+    if (heroImages.isEmpty) {
+      heroImages = const [
+        'https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&w=1800&q=85',
+        'https://images.unsplash.com/photo-1477587458883-47145ed94245?auto=format&fit=crop&w=1800&q=85',
+        'https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?auto=format&fit=crop&w=1800&q=85',
+        'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=1800&q=85',
+        'https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=1800&q=85',
+      ];
+    }
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(20),
@@ -223,11 +372,11 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            Image.network(
-              image,
+            AutoSlideshowImage(
+              images: heroImages,
               fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) =>
-                  const ColoredBox(color: Color(0xFF31594E)),
+              interval: const Duration(seconds: 5),
+              showControls: true,
             ),
             const DecoratedBox(
               decoration: BoxDecoration(
@@ -568,21 +717,36 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
-    return SizedBox(
-      height: 332,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.only(bottom: 6),
-        itemCount: packages.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 14),
-        itemBuilder: (context, index) => _PackageCard(
-          package: packages[index],
-          onThemeToggle: widget.onThemeToggle,
-        )
-            .animate()
-            .fadeIn(delay: Duration(milliseconds: 90 * index))
-            .slideY(begin: 0.06),
-      ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        int crossAxisCount = 1;
+        if (constraints.maxWidth >= 1100) {
+          crossAxisCount = 4;
+        } else if (constraints.maxWidth >= 800) {
+          crossAxisCount = 3;
+        } else if (constraints.maxWidth >= 550) {
+          crossAxisCount = 2;
+        }
+
+        return GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: crossAxisCount,
+            crossAxisSpacing: 16,
+            mainAxisSpacing: 20,
+            mainAxisExtent: 330,
+          ),
+          itemCount: packages.length,
+          itemBuilder: (context, index) => _PackageCard(
+            package: packages[index],
+            onThemeToggle: widget.onThemeToggle,
+          )
+              .animate()
+              .fadeIn(delay: Duration(milliseconds: 60 * (index % 6)))
+              .slideY(begin: 0.05),
+        );
+      },
     );
   }
 }
@@ -609,17 +773,20 @@ class _PackageCardState extends State<_PackageCard> {
     final duration = (widget.package['duration'] ?? '').toString();
     final rating = (widget.package['rating'] ?? '').toString();
 
+    final List<String> packageImages = widget.package['images'] is List
+        ? List<String>.from(widget.package['images'])
+        : (image.isNotEmpty ? [image] : []);
+
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
       cursor: SystemMouseCursors.click,
       child: AnimatedScale(
-        scale: _isHovered ? 1.03 : 1.0,
+        scale: _isHovered ? 1.02 : 1.0,
         duration: const Duration(milliseconds: 220),
         curve: Curves.easeOutCubic,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 220),
-          width: 268,
           decoration: BoxDecoration(
             color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(16),
@@ -659,17 +826,12 @@ class _PackageCardState extends State<_PackageCard> {
                       borderRadius:
                           const BorderRadius.vertical(top: Radius.circular(16)),
                       child: AnimatedScale(
-                        scale: _isHovered ? 1.08 : 1.0,
+                        scale: _isHovered ? 1.05 : 1.0,
                         duration: const Duration(milliseconds: 300),
                         curve: Curves.easeOutCubic,
-                        child: Hero(
-                          tag: 'image_$title',
-                          child: Image.network(
-                            image,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) =>
-                                const ColoredBox(color: Color(0xFF31594E)),
-                          ),
+                        child: AutoSlideshowImage(
+                          images: packageImages.isNotEmpty ? packageImages : [image],
+                          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
                         ),
                       ),
                     ),

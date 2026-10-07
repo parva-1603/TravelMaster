@@ -8,6 +8,7 @@ const packageSchema = new mongoose.Schema(
     rating: { type: String, required: true },
     duration: { type: String, required: true },
     image: { type: String, required: true },
+    images: [{ type: String }],
     isTrending: { type: Boolean, default: false },
     departureDates: [{ type: String }],
     categories: { type: mongoose.Schema.Types.Mixed },
